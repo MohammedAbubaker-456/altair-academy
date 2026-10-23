@@ -37,9 +37,7 @@ export default async function AdminLoginPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground font-display">
             Altair Academy Admin
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Sign in to access the management portal
-          </p>
+          <p className="text-sm text-muted-foreground">Sign in to access the management portal</p>
         </div>
 
         <LoginForm />

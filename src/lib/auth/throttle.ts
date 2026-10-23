@@ -14,17 +14,12 @@ import { db } from "@/lib/db";
 const MAX_FAILED_ATTEMPTS = 5;
 const WINDOW_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
-export type ThrottleResult =
-  | { allowed: true }
-  | { allowed: false; retryAfterMinutes: number };
+export type ThrottleResult = { allowed: true } | { allowed: false; retryAfterMinutes: number };
 
 /**
  * Checks if the given email and IP address are currently rate-limited.
  */
-export async function checkLoginThrottle(
-  email: string,
-  ip: string,
-): Promise<ThrottleResult> {
+export async function checkLoginThrottle(email: string, ip: string): Promise<ThrottleResult> {
   const key = `${email.toLowerCase().trim()}_${ip.trim()}`;
   const now = new Date();
 

@@ -1,0 +1,168 @@
+/**
+ * Admin Overview Dashboard Page
+ *
+ * Displays high-level system statistics, active vs inactive counts for
+ * each entity, and quick action links.
+ *
+ * Location: src/app/admin/(dashboard)/page.tsx
+ * Type: Server Component
+ */
+
+import type { Metadata } from "next";
+import Link from "next/link";
+import { getDashboardStats } from "@/server/admin/stats";
+import { requireAdmin } from "@/lib/auth/session";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  GraduationCap,
+  FolderTree,
+  Users,
+  Newspaper,
+  HelpCircle,
+  Plus,
+  ArrowRight,
+  ShieldCheck,
+} from "lucide-react";
+
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Admin Dashboard | Altair Academy",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default async function AdminDashboardPage() {
+  const admin = await requireAdmin();
+  const stats = await getDashboardStats();
+
+  const entityCards = [
+    {
+      title: "Courses",
+      stats: stats.courses,
+      icon: GraduationCap,
+      href: "/admin/courses",
+      newHref: "/admin/courses/new",
+      description: "Manage technical training courses and certifications",
+    },
+    {
+      title: "Categories",
+      stats: stats.categories,
+      icon: FolderTree,
+      href: "/admin/categories",
+      newHref: null,
+      description: "Organize courses into technical disciplines",
+    },
+    {
+      title: "Team & Instructors",
+      stats: stats.team,
+      icon: Users,
+      href: "/admin/team",
+      newHref: "/admin/team/new",
+      description: "Management profiles, instructors, and credentials",
+    },
+    {
+      title: "News & Insights",
+      stats: stats.news,
+      icon: Newspaper,
+      href: "/admin/news",
+      newHref: "/admin/news/new",
+      description: "Featured articles, stories, and editor picks",
+    },
+    {
+      title: "FAQs",
+      stats: stats.faqs,
+      icon: HelpCircle,
+      href: "/admin/faqs",
+      newHref: null,
+      description: "Frequently asked questions for prospective students",
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Welcome Banner */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b pb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight font-display text-foreground">
+            Welcome back, {admin.name}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Overview of content, active items, and quick management links for Altair Academy.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1 self-start sm:self-auto">
+          <ShieldCheck className="h-3.5 w-3.5" />
+          <span>Database & Session Secure</span>
+        </div>
+      </div>
+
+      {/* Overview Cards Grid */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {entityCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card
+              key={card.title}
+              className="flex flex-col justify-between border-border/80 shadow-xs hover:border-primary/40 transition-colors"
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy/5 text-navy">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold font-display text-foreground">
+                      {card.stats.total}
+                    </span>
+                    <span className="text-xs text-muted-foreground block">Total</span>
+                  </div>
+                </div>
+                <CardTitle className="text-lg font-display mt-2">{card.title}</CardTitle>
+                <p className="text-xs text-muted-foreground">{card.description}</p>
+              </CardHeader>
+
+              <CardContent className="pt-0">
+                <div className="flex items-center gap-3 py-2 text-xs border-y my-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="font-medium text-foreground">{card.stats.active}</span>
+                    <span className="text-muted-foreground">Active</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                    <span className="font-medium text-foreground">{card.stats.inactive}</span>
+                    <span className="text-muted-foreground">Inactive</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <Button variant="outline" size="sm" asChild className="text-xs">
+                    <Link href={card.href}>
+                      Manage <ArrowRight className="ml-1.5 h-3 w-3" />
+                    </Link>
+                  </Button>
+                  {card.newHref && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="text-xs text-navy hover:text-navy hover:bg-navy/10"
+                    >
+                      <Link href={card.newHref}>
+                        <Plus className="mr-1 h-3 w-3" /> Add New
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

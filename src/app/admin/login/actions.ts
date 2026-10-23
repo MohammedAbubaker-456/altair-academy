@@ -15,19 +15,14 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { loginSchema } from "@/lib/validation/auth";
-import {
-  checkLoginThrottle,
-  recordFailedLogin,
-  clearLoginThrottle,
-} from "@/lib/auth/throttle";
+import { checkLoginThrottle, recordFailedLogin, clearLoginThrottle } from "@/lib/auth/throttle";
 import { createSession, destroySession } from "@/lib/auth/session";
 
 // Pre-computed dummy bcrypt hash to equalize timing on failed email lookups
 const DUMMY_HASH = "$2a$12$e8uq0wE/WqXw0E2H9xP1xO04p04w1sA.x2f91qU71/2m6a.6kK24O";
 
 export type LoginActionResult =
-  | { ok: true }
-  | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
+  { ok: true } | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
 
 export async function loginAdminAction(formData: unknown): Promise<LoginActionResult> {
   const parseResult = loginSchema.safeParse(formData);

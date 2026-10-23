@@ -19,9 +19,7 @@ export type ChangePasswordActionResult =
   | { ok: true; message: string }
   | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
 
-export async function changePasswordAction(
-  formData: unknown,
-): Promise<ChangePasswordActionResult> {
+export async function changePasswordAction(formData: unknown): Promise<ChangePasswordActionResult> {
   const currentAdmin = await requireAdmin();
 
   const parseResult = changePasswordSchema.safeParse(formData);

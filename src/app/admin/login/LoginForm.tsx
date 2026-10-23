@@ -62,9 +62,7 @@ export function LoginForm() {
           {serverError && (
             <Alert variant="destructive" className="py-2.5">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-xs font-medium">
-                {serverError}
-              </AlertDescription>
+              <AlertDescription className="text-xs font-medium">{serverError}</AlertDescription>
             </Alert>
           )}
 
@@ -82,9 +80,7 @@ export function LoginForm() {
                 {...register("email")}
               />
             </div>
-            {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-1.5">

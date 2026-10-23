@@ -3,7 +3,7 @@
  *
  * Provides administrative account settings and credential management.
  *
- * Location: src/app/admin/settings/page.tsx
+ * Location: src/app/admin/(dashboard)/settings/page.tsx
  * Type: Server Component
  */
 
@@ -37,7 +37,8 @@ export default async function AdminSettingsPage() {
 
       <div className="rounded-lg border bg-card p-4 text-sm text-card-foreground">
         <p className="font-medium text-foreground">
-          Logged in as: <span className="font-semibold text-navy">{admin.name}</span> ({admin.email})
+          Logged in as: <span className="font-semibold text-navy">{admin.name}</span> ({admin.email}
+          )
         </p>
       </div>
 

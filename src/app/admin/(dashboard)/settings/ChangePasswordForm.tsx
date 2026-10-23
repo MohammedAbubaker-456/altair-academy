@@ -4,7 +4,7 @@
  * Client form component enabling authenticated admins to update their credentials
  * with client-side matching validation and server action invocation.
  *
- * Location: src/app/admin/settings/ChangePasswordForm.tsx
+ * Location: src/app/admin/(dashboard)/settings/ChangePasswordForm.tsx
  * Type: Client Component ("use client")
  */
 
@@ -14,11 +14,8 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import {
-  changePasswordSchema,
-  type ChangePasswordInput,
-} from "@/lib/validation/auth";
-import { changePasswordAction } from "./actions";
+import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validation/auth";
+import { changePasswordAction } from "@/app/admin/settings/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,9 +71,7 @@ export function ChangePasswordForm() {
           {serverError && (
             <Alert variant="destructive" className="py-2.5">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-xs font-medium">
-                {serverError}
-              </AlertDescription>
+              <AlertDescription className="text-xs font-medium">{serverError}</AlertDescription>
             </Alert>
           )}
 
@@ -94,9 +89,7 @@ export function ChangePasswordForm() {
               />
             </div>
             {errors.currentPassword && (
-              <p className="text-xs text-destructive">
-                {errors.currentPassword.message}
-              </p>
+              <p className="text-xs text-destructive">{errors.currentPassword.message}</p>
             )}
           </div>
 
@@ -132,9 +125,7 @@ export function ChangePasswordForm() {
               />
             </div>
             {errors.confirmPassword && (
-              <p className="text-xs text-destructive">
-                {errors.confirmPassword.message}
-              </p>
+              <p className="text-xs text-destructive">{errors.confirmPassword.message}</p>
             )}
           </div>
 

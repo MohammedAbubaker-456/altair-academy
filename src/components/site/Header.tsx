@@ -1,13 +1,43 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+"use client";
+
+import { useEffect, useRef, useState, type ComponentProps } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter, usePathname } from "next/navigation";
 import { ChevronDown, ChevronRight, Menu, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { courseMenu, type CourseMenuItem } from "@/data/site";
+import { courseMenu, type CourseMenuItem } from "@/data/menu";
 import logo from "@/assets/altair-academy-logo.png";
 
 const navLinkClass =
   "text-lg font-medium text-primary/80 transition-colors hover:text-brand-red data-[status=active]:text-brand-red";
+
+function NavLink({
+  href,
+  exact = false,
+  className,
+  children,
+  ...props
+}: ComponentProps<typeof Link> & { exact?: boolean }) {
+  const pathname = usePathname();
+  const hrefString = typeof href === "string" ? href : href.pathname ?? "";
+  const active = exact
+    ? pathname === hrefString
+    : pathname === hrefString || pathname.startsWith(hrefString + "/");
+
+  return (
+    <Link
+      href={href}
+      className={className}
+      data-status={active ? "active" : undefined}
+      aria-current={active ? "page" : undefined}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
+}
 
 export function Header() {
   const [coursesOpen, setCoursesOpen] = useState(false);
@@ -16,7 +46,7 @@ export function Header() {
   const [query, setQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     if (!coursesOpen) return;
@@ -43,23 +73,30 @@ export function Header() {
   const submitSearch = (event: React.FormEvent) => {
     event.preventDefault();
     setSearchOpen(false);
-    navigate({ to: "/search", search: { q: query } });
+    router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
   return (
     <header className="relative z-50 w-full border-b border-border bg-background">
       <div className="mx-auto flex h-20 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="shrink-0">
-          <img src={logo} alt="Altair Academy" width={222} height={70} className="h-[70px] w-auto" />
+        <Link href="/" className="shrink-0">
+          <Image
+            src={logo}
+            alt="Altair Academy"
+            width={222}
+            height={70}
+            priority
+            className="h-[70px] w-auto"
+          />
         </Link>
 
         <nav className="ml-auto hidden items-center gap-6 lg:flex" aria-label="Main">
-          <Link to="/" className={navLinkClass} activeOptions={{ exact: true }}>
+          <NavLink href="/" exact className={navLinkClass}>
             Home
-          </Link>
-          <Link to="/about" className={navLinkClass}>
+          </NavLink>
+          <NavLink href="/about" className={navLinkClass}>
             About Us
-          </Link>
+          </NavLink>
 
           <div
             className="relative"
@@ -68,14 +105,13 @@ export function Header() {
             onMouseLeave={() => setCoursesOpen(false)}
           >
             <span className="flex items-center gap-1">
-              <Link
-                to="/courses"
-                search={{}}
+              <NavLink
+                href="/courses"
                 onClick={() => setCoursesOpen(false)}
                 className="py-6 text-lg font-medium text-primary/80 transition-colors hover:text-brand-red data-[status=active]:text-brand-red"
               >
                 Our Courses
-              </Link>
+              </NavLink>
               <button
                 type="button"
                 onClick={() => setCoursesOpen((open) => !open)}
@@ -97,16 +133,15 @@ export function Header() {
             ) : null}
           </div>
 
-
-          <Link to="/instructors" className={navLinkClass}>
+          <NavLink href="/instructors" className={navLinkClass}>
             Instructors
-          </Link>
-          <Link to="/careers" className={navLinkClass}>
+          </NavLink>
+          <NavLink href="/careers" className={navLinkClass}>
             Careers
-          </Link>
-          <Link to="/news" className={navLinkClass}>
+          </NavLink>
+          <NavLink href="/news" className={navLinkClass}>
             News
-          </Link>
+          </NavLink>
         </nav>
 
         <div className="ml-auto flex items-center gap-3 lg:ml-0">
@@ -141,7 +176,7 @@ export function Header() {
           )}
 
           <Button variant="cta" size="default" className="hidden text-base sm:inline-flex" asChild>
-            <Link to="/contact">Contact Us</Link>
+            <Link href="/contact">Contact Us</Link>
           </Button>
 
           <button
@@ -160,17 +195,17 @@ export function Header() {
         <nav className="border-t border-border bg-background px-4 py-4 lg:hidden" aria-label="Mobile">
           <div className="flex flex-col gap-1">
             {[
-              { to: "/", label: "Home" },
-              { to: "/about", label: "About Us" },
-              { to: "/courses", label: "Our Courses" },
-              { to: "/instructors", label: "Instructors" },
-              { to: "/careers", label: "Careers" },
-              { to: "/news", label: "News" },
-              { to: "/contact", label: "Contact Us" },
+              { href: "/", label: "Home" },
+              { href: "/about", label: "About Us" },
+              { href: "/courses", label: "Our Courses" },
+              { href: "/instructors", label: "Instructors" },
+              { href: "/careers", label: "Careers" },
+              { href: "/news", label: "News" },
+              { href: "/contact", label: "Contact Us" },
             ].map((item) => (
               <Link
-                key={item.to}
-                to={item.to}
+                key={item.href}
+                href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className="rounded-md px-3 py-2 text-lg font-medium text-primary/80 hover:bg-secondary"
               >
@@ -202,8 +237,7 @@ function MenuList({
         return (
           <li key={item.name} className="relative border-b border-white/70 last:border-b-0">
             <Link
-              to="/courses"
-              search={{ category: item.category }}
+              href={`/courses?category=${encodeURIComponent(item.category)}`}
               onClick={onNavigate}
               onMouseEnter={() => setOpenIndex(index)}
               className={cn(

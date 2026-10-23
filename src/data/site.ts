@@ -1,3 +1,4 @@
+import type { StaticImageData } from "next/image";
 import courseNdt from "@/assets/course-ndt.jpg";
 import courseCorrosion from "@/assets/course-corrosion.jpg";
 import courseEnergy from "@/assets/course-energy.jpg";
@@ -5,15 +6,8 @@ import courseBim from "@/assets/course-bim.jpg";
 import teamCeo from "@/assets/mr.khaja_.jpg.webp";
 import teamCoo from "@/assets/Sirajul_Hameed.jpg.webp";
 
-export const contactInfo = {
-  phoneDisplay: "+607 386 1617",
-  homepagePhoneDisplay: "+607 386 1617",
-  phoneHref: "+601172633456",
-  whatsapp: "601172633456",
-  email: "anna@altair.academy",
-  address: "129 & 129-01, Jalan Sierra Perdana 4, Taman Sierra Perdana, 81750 Masai, Johor Malaysia",
-  hours: "Mon – Fri, 9:00am – 6:00pm (SST)",
-};
+export { contactInfo } from "./contact";
+export { courseMenu, type CourseMenuItem } from "./menu";
 
 export type Category = { slug: string; name: string; short: string };
 
@@ -32,7 +26,7 @@ export const categories: Category[] = [
 export type Course = {
   slug: string;
   title: string;
-  image: string;
+  image: StaticImageData;
   categorySlug: string;
   level?: string;
   duration: string;
@@ -91,7 +85,7 @@ export type TeamMember = {
   slug: string;
   name: string;
   role: string;
-  image: string;
+  image: StaticImageData;
   bio: string;
 };
 
@@ -116,7 +110,7 @@ export type Instructor = {
   slug: string;
   name: string;
   role: string;
-  image?: string;
+  image?: StaticImageData;
   bio: string;
   expertise: string[];
 };
@@ -126,7 +120,7 @@ export const instructors: Instructor[] = [
     slug: "shaik-khaja-mohiuddin",
     name: "Mr. Shaik Khaja Mohiuddin",
     role: "Chief Executive Officer · Lead NDT Instructor",
-    image: teamCeo.url,
+    image: teamCeo,
     bio: "Mr. Khaja is the founder of Altair Engineering Inspections Pte Ltd. He has served as Director and then CEO since 2008 till date. He has more than 27 years' experience in the NDT industry which covers Oil & Gas, Aerospace, Construction, Infrastructure, Civil, Railways, Manufacturing and Defence. Khaja holds degree in Mechanical Engineering and ASNT/PCN Level 3 certifications in various methods. His experience covers training, examination, consultancy, cross-checking, auditing, inspection system development and architecting automated inspection systems (based on UT & ET). He has worked with many oil and gas majors and defence manufacturers in the development of inspection systems for critical components. He has designed customized scanners for PAUT/TOFD examination of complex components (like BOP, valves, shafts, artillery shells, tube-to-tube sheet welds, etc.). He is presently working on robotic inspection systems and automatic analysis software with the development team.",
     expertise: ["NDT Level III", "API-ICP 510 / 570 / 653", "Welding Inspection"],
   },
@@ -134,7 +128,7 @@ export const instructors: Instructor[] = [
     slug: "sirajul-hameed-mansoor",
     name: "Mr. Sirajul Hameed Masroor",
     role: "Chief Operating Officer · Senior Welding Inspector",
-    image: teamCoo.url,
+    image: teamCoo,
     bio: "Sirajul runs Altair's training operations, instructor network and accreditation compliance. A senior welding inspector by trade, he leads weld inspection and code interpretation classes and keeps every cohort running on schedule and to standard.",
     expertise: ["Weld Inspection", "Code Interpretation", "Accreditation Compliance"],
   },
@@ -323,53 +317,4 @@ export const faqs = [
     q: "How do I get support after the course?",
     a: "Every participant keeps access to our support desk. You can email or WhatsApp our instructors with technical questions long after your class has finished.",
   },
-];
-
-export type CourseMenuItem = {
-  name: string;
-  category: string;
-  children?: CourseMenuItem[];
-};
-
-export const courseMenu: CourseMenuItem[] = [
-  { name: "API-ICP Exam Preparatory", category: "api-icp" },
-  { name: "Building Information Modelling (BIM)", category: "bim" },
-  { name: "Corrosion", category: "corrosion" },
-  { name: "Food & Beverage (F&B)", category: "food-beverage" },
-  {
-    name: "Office Productivity",
-    category: "office-productivity",
-    children: [
-      { name: "Office Productivity – Beginner", category: "office-productivity" },
-      { name: "Office Productivity – Intermediate", category: "office-productivity" },
-    ],
-  },
-  { name: "Management System", category: "management-system" },
-  {
-    name: "Non-Destructive Testing",
-    category: "ndt",
-    children: [
-      {
-        name: "ASNT Courses",
-        category: "ndt",
-        children: [
-          { name: "ASNT – Level 1", category: "ndt" },
-          { name: "ASNT – Level 2", category: "ndt" },
-          { name: "ASNT – Level 3", category: "ndt" },
-        ],
-      },
-      {
-        name: "PCN Courses",
-        category: "ndt",
-        children: [
-          { name: "PCN – Level 1", category: "ndt" },
-          { name: "PCN – Level 2", category: "ndt" },
-          { name: "PCN – Level 3", category: "ndt" },
-        ],
-      },
-      { name: "Special NDT Courses", category: "ndt" },
-    ],
-  },
-  { name: "Plant Maintenance", category: "plant-maintenance" },
-  { name: "Quality", category: "quality" },
 ];

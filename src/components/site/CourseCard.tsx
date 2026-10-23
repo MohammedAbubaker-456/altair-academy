@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
+import Image from "next/image";
 import { Clock, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { categories, type Course } from "@/data/site";
@@ -9,12 +10,12 @@ export function CourseCard({ course }: { course: Course }) {
   return (
     <article className="card-lift group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card">
       <div className="aspect-[4/3] overflow-hidden bg-muted">
-        <img
+        <Image
           src={course.image}
           alt={course.title}
-          loading="lazy"
           width={1200}
           height={800}
+          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
           className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
       </div>
@@ -22,8 +23,7 @@ export function CourseCard({ course }: { course: Course }) {
       <div className="flex flex-1 flex-col p-5">
         <h3 className="font-display text-lg leading-snug font-bold text-primary">
           <Link
-            to="/courses/$slug"
-            params={{ slug: course.slug }}
+            href={`/courses/${course.slug}`}
             className="after:absolute after:inset-0 after:content-['']"
           >
             {course.title}

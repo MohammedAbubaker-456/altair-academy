@@ -1,6 +1,6 @@
 # Altair Academy — Backend & Admin Dashboard Guide
 
-This document describes the backend architecture, MongoDB + Prisma setup, authentication, administration portal, and deployment guidelines for Altair Academy.
+This document describes the backend architecture, MongoDB + Prisma setup, authentication, administration portal, local-disk media storage, and deployment guidelines for Altair Academy.
 
 ---
 
@@ -8,40 +8,53 @@ This document describes the backend architecture, MongoDB + Prisma setup, authen
 
 ### Required Services
 1. **MongoDB (Replica Set required)**: Prisma requires a MongoDB replica set to support multi-document transactions.
-   - **Option A (Production / Cloud)**: MongoDB Atlas (free M0 cluster or higher). Atlas operates as a replica set by default.
-   - **Option B (Local Development)**: Native local MongoDB running as a single-node replica set (see [docs/LOCAL_MONGODB_SETUP.md](file:///d:/Altair.Academy/altair-academy-website-main/docs/LOCAL_MONGODB_SETUP.md)). No Docker.
-2. **Node.js**: v20.9.0 or higher.
+   - **Local Development**: Native local MongoDB running as a single-node replica set (`rs0`). No Docker. Follow the comprehensive setup guide:
+     👉 **[docs/LOCAL_MONGODB_SETUP.md](LOCAL_MONGODB_SETUP.md)**
+   - **Production (GoDaddy Web Hosting Deluxe / cPanel)**: MongoDB Atlas (Europe region nearest hosting data center). Shared cPanel servers cannot run MongoDB services. See the complete deployment guide:
+     👉 **[docs/DEPLOYMENT_GODADDY_DELUXE.md](DEPLOYMENT_GODADDY_DELUXE.md)**
+2. **Node.js**: v20.9.0 or higher (v22 recommended).
 
 ### Environment Configuration (.env)
 Create a `.env` file at the root of the project (modeled after `.env.example`):
 
 ```bash
 # ==============================================================================
-# DATABASE CONFIGURATION (MongoDB with Replica Set)
+# DEVELOPMENT CONFIGURATION (Local Native MongoDB Replica Set)
 # ==============================================================================
-# Atlas example (Production):
-# DATABASE_URL="mongodb+srv://<user>:<url-encoded-password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority"
-# Native Local MongoDB replica set (Development):
 DATABASE_URL="mongodb://127.0.0.1:27017/altair-academy?replicaSet=rs0"
+AUTH_SECRET="development-auth-secret-minimum-32-characters-for-jwt-signing"
+
+# Optional in development (defaults to <project>/uploads outside src)
+# UPLOAD_DIR="./uploads"
+
+# Seed Admin Credentials
+ADMIN_EMAIL="admin@altairacademy.com"
+ADMIN_PASSWORD="ChangeMeInProduction123!"
+
+# ==============================================================================
+# PRODUCTION CONFIGURATION (GoDaddy cPanel / Setup Node.js App)
+# ==============================================================================
+# DATABASE_URL="mongodb+srv://<user>:<url-encoded-password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority"
+# AUTH_SECRET="generate-a-secure-random-64-character-string-via-openssl"
+# UPLOAD_DIR="/home/<cpanel-user>/altair-assets/uploads"
 ```
 
 ---
 
-## 2. Local Database Initialization (Native Replica Set — No Docker)
+## 2. CLI Commands Reference
 
-Prisma requires MongoDB multi-document transactions. For local development, follow the complete native installation and replica set initiation guide in:
-👉 **[docs/LOCAL_MONGODB_SETUP.md](file:///d:/Altair.Academy/altair-academy-website-main/docs/LOCAL_MONGODB_SETUP.md)**
-
-Quick checklist:
-1. Install MongoDB Community Server and `mongosh` natively.
-2. In `mongod.conf` / `mongod.cfg`, add:
-   ```yaml
-   replication:
-     replSetName: rs0
-   ```
-3. Restart the MongoDB service.
-4. Open `mongosh` and execute once: `rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "127.0.0.1:27017" }] })`.
-5. Verify with `npm run db:check`.
+| Command | Purpose | When to Run |
+|---|---|---|
+| `npm run dev` | Starts Next.js development server | Local development |
+| `npm run build` | Compiles Next.js standalone application | Testing production build locally |
+| `npm run db:check` | Verifies MongoDB connection & writable replica set | After starting local MongoDB or testing Atlas |
+| `npm run db:generate` | Generates Prisma Client for native & Linux targets | After modifying `prisma/schema.prisma` |
+| `npm run db:push` | Synchronizes Prisma schema with MongoDB | Schema updates (local or Atlas from local PC) |
+| `npm run db:seed` | Seeds initial categories, courses, team, news, FAQs, admin | Initial database setup |
+| `npm run db:data-migrate` | Runs sequential data migrations from `prisma/data-migrations/` | Schema evolution and transformations |
+| `npm run admin:create` | Interactive CLI to provision additional admins | Account provisioning |
+| `npm run package:cpanel` | Prepares standalone cPanel Linux deployment package | Preparing production release (`deploy/altair-academy-cpanel.zip`) |
+| `npm run lint` | ESLint + Prettier code analysis | Code quality check |
 
 ---
 
@@ -49,9 +62,9 @@ Quick checklist:
 
 MongoDB does not support traditional SQL migration files. Prisma uses schema synchronization via `db push`.
 
-### Step 1: Generate Prisma Client
+### Step 1: Check Database Health
 ```bash
-npm run db:generate
+npm run db:check
 ```
 
 ### Step 2: Push Schema to MongoDB
@@ -110,7 +123,7 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 |---|---|---|
 | `/admin` | System Overview | Counts of active vs inactive entities, quick action shortcuts, database status. |
 | `/admin/courses` | Course Management | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), pagination, optimistic status toggle, preview links. |
-| `/admin/courses/new` | Create Course | Auto-slug generation, category selector, syllabus, duration, price, Cloudinary image upload, home showcase toggle. |
+| `/admin/courses/new` | Create Course | Auto-slug generation, category selector, syllabus, duration, price, server-disk image upload, home showcase toggle. |
 | `/admin/courses/[id]` | Edit Course | Update course details, replace/remove image, modify status. |
 | `/admin/categories` | Categories | Discipline manager, course count tracking, modal create/edit dialog, **safeguard: deletion is blocked if courses are assigned**. |
 | `/admin/team` | Team & Faculty | Search, placement filters (`Management` / `Instructor`), optimistic status toggles. |
@@ -144,35 +157,42 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 
 ---
 
-## 8. On-Demand Cache Revalidation
+## 8. Server-Disk Persistent Image Storage (`UPLOAD_DIR`)
 
-Public pages are served dynamically from the MongoDB database. Whenever an admin creates, updates, deletes, or toggles an entity's status:
-- The server action calls `revalidatePublicData()`.
-- Internally, this executes `revalidatePath("/", "layout")`.
-- Next.js invalidates the full page cache, serving fresh data to public visitors within seconds without full rebuilds.
+All media uploaded via the admin portal is stored directly on the server's local disk, completely replacing third-party image services like Cloudinary:
+
+1. **Storage Structure**:
+   ```
+   UPLOAD_DIR/
+   ├── courses/
+   ├── team/
+   └── news/
+   ```
+2. **Security & Validation**:
+   - Validates file size (max 5 MB).
+   - Validates MIME type AND magic bytes (detects real file content: JPEG, PNG, WebP). Rejects corrupted or spoofed extensions.
+   - Generates collision-proof cryptographically secure filenames (`crypto.randomUUID()`).
+   - Rejects user-supplied filenames and directory traversal characters (`../`).
+3. **Serving Route**:
+   - Serves uploaded media through dynamic route handler `/uploads/[...path]`.
+   - Strictly enforces path confinement within `UPLOAD_DIR`.
+   - Sends security headers: `X-Content-Type-Options: nosniff` and `Cache-Control: public, max-age=31536000, immutable`.
+4. **Production Directory Separation**:
+   - In production, `UPLOAD_DIR` must point to an absolute directory **outside** the application root (e.g. `/home/<cpanel-user>/altair-assets/uploads`).
+   - This ensures uploading new deployment packages or extracting updates never deletes uploaded user images.
 
 ---
 
-## 9. Cloudinary Image Storage
-
-Uploaded images are handled server-side without writing to disk (critical for serverless hosting like Vercel or Netlify):
-- The client sends an image file via `FormData` to `uploadImageAction`.
-- The action verifies admin authentication, validates the MIME type (`image/jpeg`, `image/png`, `image/webp`), and enforces a 5MB maximum file size.
-- The file buffer is streamed directly to Cloudinary into entity-specific folders (`altair-academy/courses`, `altair-academy/team`, `altair-academy/news`).
-- Deleting a course, team member, or news post automatically triggers best-effort deletion of its hosted image from Cloudinary.
-
----
-
-## 10. Troubleshooting
+## 9. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 - **Cause**: Prisma requires MongoDB multi-document transactions, which only function on a replica set. Standalone MongoDB instances will fail.
-- **Solution**: Use MongoDB Atlas (which runs a replica set by default) or configure your native local MongoDB as a replica set following [docs/LOCAL_MONGODB_SETUP.md](file:///d:/Altair.Academy/altair-academy-website-main/docs/LOCAL_MONGODB_SETUP.md).
+- **Solution**: Follow [docs/LOCAL_MONGODB_SETUP.md](LOCAL_MONGODB_SETUP.md) for local replica set or use MongoDB Atlas.
 
 ### Problem: "Could not connect to database / IP address not allowed"
 - **Cause**: MongoDB Atlas Network Access rules are blocking your IP address.
-- **Solution**: In MongoDB Atlas -> Network Access -> Add IP Address -> Add your current IP address (or `0.0.0.0/0` with secure credentials).
+- **Solution**: In MongoDB Atlas -> Network Access -> Add IP Address -> Add your current outbound IP address.
 
 ### Problem: "PrismaClientInitializationError: Prisma Client has not been generated yet"
-- **Cause**: Build system or CI environment did not generate Prisma Client artifacts.
-- **Solution**: The `postinstall` script in `package.json` runs `prisma generate` automatically. Ensure your deployment build step executes `npm run build` with `DATABASE_URL` present.
+- **Cause**: Prisma Client artifacts were not generated.
+- **Solution**: Run `npm run db:generate` or `npm run postinstall`.

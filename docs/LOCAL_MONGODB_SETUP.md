@@ -220,3 +220,7 @@ npm run db:seed
 ### Issue: Windows service restart fails with "Access is denied"
 - **Cause**: Non-elevated command prompt.
 - **Fix**: Right-click Terminal / PowerShell -> "Run as Administrator", then execute `net stop MongoDB && net start MongoDB`.
+
+### Issue: Linux service crashes with Permission Denied on data directory
+- **Cause**: Ownership of `/var/lib/mongodb` was altered.
+- **Fix**: Run `sudo chown -R mongodb:mongodb /var/lib/mongodb /var/log/mongodb` and restart the service.

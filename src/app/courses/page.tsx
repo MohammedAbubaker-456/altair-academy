@@ -1,8 +1,19 @@
+/**
+ * Public Courses Catalog
+ *
+ * Dynamic catalog page displaying active courses with category filtering via query params.
+ * Loads categories and courses from MongoDB.
+ *
+ * Location: src/app/courses/page.tsx
+ * Type: Server Component
+ */
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "@/components/site/PageShell";
 import { CourseCard } from "@/components/site/CourseCard";
-import { categories, courses } from "@/data/site";
+import { getAllActiveCourses } from "@/server/queries/courses";
+import { getActiveCategories } from "@/server/queries/categories";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -27,7 +38,12 @@ export default async function CoursesPage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
   const rawCategory = resolvedParams["category"];
   const category = typeof rawCategory === "string" ? rawCategory : undefined;
-  const filtered = category ? courses.filter((c) => c.categorySlug === category) : courses;
+
+  const [categories, filtered] = await Promise.all([
+    getActiveCategories(),
+    getAllActiveCourses(category),
+  ]);
+
   const activeName = categories.find((c) => c.slug === category)?.name;
 
   return (

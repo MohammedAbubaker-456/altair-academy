@@ -1,166 +1,64 @@
-import type { StaticImageData } from "next/image";
-import courseNdt from "@/assets/course-ndt.jpg";
-import courseCorrosion from "@/assets/course-corrosion.jpg";
-import courseEnergy from "@/assets/course-energy.jpg";
-import courseBim from "@/assets/course-bim.jpg";
-import teamCeo from "@/assets/mr.khaja_.jpg.webp";
-import teamCoo from "@/assets/Sirajul_Hameed.jpg.webp";
+/**
+ * Static Site Data & Shared Constants
+ *
+ * Contains static datasets that remain unchanged: contact information,
+ * navigation menus, testimonials, upcoming sessions, and training formats.
+ * Dynamic entities (Courses, Categories, Team, News, FAQs) are now stored in MongoDB.
+ *
+ * Location: src/data/site.ts
+ * Type: Static Data Module
+ */
 
 export { contactInfo } from "./contact";
 export { courseMenu, type CourseMenuItem } from "./menu";
 
-export type Category = { slug: string; name: string; short: string };
-
-export const categories: Category[] = [
-  { slug: "api-icp", name: "API-ICP Exam Preparatory", short: "API-ICP" },
-  { slug: "bim", name: "Building Information Modelling (BIM)", short: "BIM" },
-  { slug: "corrosion", name: "Corrosion", short: "Corrosion" },
-  { slug: "food-beverage", name: "Food & Beverage (F&B)", short: "F&B" },
-  { slug: "office-productivity", name: "Office Productivity", short: "Office Productivity" },
-  { slug: "management-system", name: "Management System", short: "Management System" },
-  { slug: "ndt", name: "Non-Destructive Testing", short: "NDT" },
-  { slug: "plant-maintenance", name: "Plant Maintenance", short: "Plant Maintenance" },
-  { slug: "quality", name: "Quality", short: "Quality" },
-];
+export type Category = {
+  id?: string;
+  slug: string;
+  name: string;
+  short: string;
+  order?: number;
+};
 
 export type Course = {
+  id?: string;
   slug: string;
   title: string;
-  image: StaticImageData;
-  categorySlug: string;
-  level?: string;
+  image: string | null;
+  categoryId?: string;
+  categorySlug?: string;
+  category?: Category;
+  level?: string | null;
   duration: string;
   price: string;
   summary: string;
-  highlights?: string[];
-  instructor?: { name: string; role: string };
+  isFeatured?: boolean;
+  order?: number;
 };
-
-export const courses: Course[] = [
-  {
-    slug: "visual-testing-vt",
-    title: "Visual Testing (VT)",
-    image: courseNdt,
-    categorySlug: "ndt",
-    level: "Level 1",
-    duration: "3 days · 24 hours",
-    price: "Contact For Pricing",
-    summary:
-      "Learn surface inspection fundamentals, lighting and optics, acceptance criteria and reporting to ISO 9712 requirements.",
-  },
-  {
-    slug: "weld-inspection-wi",
-    title: "Weld Inspection (WI)",
-    image: courseCorrosion,
-    categorySlug: "ndt",
-    level: "Level 2",
-    duration: "5 days · 40 hours",
-    price: "Contact For Pricing",
-    summary:
-      "Weld processes, discontinuities, codes and practical assessment of welded joints for inspectors moving into supervisory work.",
-  },
-  {
-    slug: "iso-50001-energy-management",
-    title: "ISO 50001 Energy Management Systems Awareness",
-    image: courseEnergy,
-    categorySlug: "management-system",
-    duration: "2 days · 16 hours",
-    price: "Contact for pricing",
-    summary:
-      "Understand the energy management standard, baselines, performance indicators and how to run an effective internal review.",
-  },
-  {
-    slug: "infrastructure-asset-assessment-bim",
-    title: "Introduction to Infrastructure Asset Assessment with BIM",
-    image: courseBim,
-    categorySlug: "bim",
-    duration: "4 days · 32 hours",
-    price: "Contact For Pricing",
-    summary:
-      "Model-based asset assessment workflows, data standards and coordination practices for infrastructure teams adopting BIM.",
-  },
-];
 
 export type TeamMember = {
+  id?: string;
   slug: string;
   name: string;
+  instructorName?: string | null;
   role: string;
-  image: StaticImageData;
-  bio: string;
+  instructorRole?: string | null;
+  image: string | null;
+  shortBio: string;
+  fullBio?: string | null;
+  expertise?: string[];
+  placements?: ("MANAGEMENT" | "INSTRUCTOR")[];
 };
 
-export const team: TeamMember[] = [
-  {
-    slug: "shaik-khaja-mohiuddin",
-    name: "Shaik Khaja Mohiuddin",
-    role: "Chief Executive Officer",
-    image: teamCeo,
-    bio: "Over two decades leading inspection and technical training programmes across Asia-Pacific, with a focus on building certification pathways that employers actually recognise.",
-  },
-  {
-    slug: "sirajul-hameed-mansoor",
-    name: "Sirajul Hameed Mansoor",
-    role: "Chief Operating Officer",
-    image: teamCoo,
-    bio: "Runs Altair's training operations, instructor network and accreditation compliance, making sure every cohort runs on schedule and to standard.",
-  },
-];
-
 export type Instructor = {
+  id?: string;
   slug: string;
   name: string;
   role: string;
-  image?: StaticImageData;
+  image?: string | null;
   bio: string;
   expertise: string[];
 };
-
-export const instructors: Instructor[] = [
-  {
-    slug: "shaik-khaja-mohiuddin",
-    name: "Mr. Shaik Khaja Mohiuddin",
-    role: "Chief Executive Officer · Lead NDT Instructor",
-    image: teamCeo,
-    bio: "Mr. Khaja is the founder of Altair Engineering Inspections Pte Ltd. He has served as Director and then CEO since 2008 till date. He has more than 27 years' experience in the NDT industry which covers Oil & Gas, Aerospace, Construction, Infrastructure, Civil, Railways, Manufacturing and Defence. Khaja holds degree in Mechanical Engineering and ASNT/PCN Level 3 certifications in various methods. His experience covers training, examination, consultancy, cross-checking, auditing, inspection system development and architecting automated inspection systems (based on UT & ET). He has worked with many oil and gas majors and defence manufacturers in the development of inspection systems for critical components. He has designed customized scanners for PAUT/TOFD examination of complex components (like BOP, valves, shafts, artillery shells, tube-to-tube sheet welds, etc.). He is presently working on robotic inspection systems and automatic analysis software with the development team.",
-    expertise: ["NDT Level III", "API-ICP 510 / 570 / 653", "Welding Inspection"],
-  },
-  {
-    slug: "sirajul-hameed-mansoor",
-    name: "Mr. Sirajul Hameed Masroor",
-    role: "Chief Operating Officer · Senior Welding Inspector",
-    image: teamCoo,
-    bio: "Sirajul runs Altair's training operations, instructor network and accreditation compliance. A senior welding inspector by trade, he leads weld inspection and code interpretation classes and keeps every cohort running on schedule and to standard.",
-    expertise: ["Weld Inspection", "Code Interpretation", "Accreditation Compliance"],
-  },
-  {
-    slug: "r-martin",
-    name: "Mr. R. Martin",
-    role: "Corrosion & Plant Maintenance Instructor",
-    bio: "Martin brings field-hardened experience in corrosion control and plant maintenance across refineries and petrochemical facilities. His classes lean heavily on failure case studies drawn from live assets.",
-    expertise: ["Corrosion Control", "Plant Maintenance", "Asset Integrity"],
-  },
-  {
-    slug: "ganesh-moorthy",
-    name: "Mr. Ganesh Moorthy",
-    role: "BIM & Digital Assessment Instructor",
-    bio: "Ganesh teaches model-based asset assessment, common data environments and coordination workflows for infrastructure teams moving from drawings to digital delivery.",
-    expertise: ["BIM Coordination", "Infrastructure Assets", "Digital Workflows"],
-  },
-  {
-    slug: "mohamad-suffian-bin-abdul-rahim",
-    name: "Mr. Mohamad Suffian Bin Abdul Rahim",
-    role: "NDT Practical Instructor",
-    bio: "Suffian runs the practical laboratory sessions across visual, penetrant, magnetic particle and ultrasonic methods, coaching candidates through specimen work right up to their certification assessment.",
-    expertise: ["Visual Testing", "Penetrant & MPI", "Ultrasonic Testing"],
-  },
-  {
-    slug: "akhila-shaheen",
-    name: "Ms. Akhila Shaheen",
-    role: "Management Systems & Quality Instructor",
-    bio: "Akhila leads Altair's management system and quality programmes, including ISO 9001 and ISO 50001 awareness and internal auditor training, with a practical focus on documentation teams can actually maintain.",
-    expertise: ["ISO 9001", "ISO 50001", "Internal Auditing"],
-  },
-];
 
 export const testimonials = [
   {
@@ -312,28 +210,5 @@ export const trainingFormats = [
     unit: "/ seat",
     featured: false,
     benefits: ["Instructor-led sessions", "Recorded for revision", "Digital assessment"],
-  },
-];
-
-export const faqs = [
-  {
-    q: "Are Altair certifications recognised by employers?",
-    a: "Yes. Our inspection and management system programmes follow ISO 9712, API and ISO standard syllabi, and our certificates are accepted across oil & gas, construction and manufacturing employers in the region.",
-  },
-  {
-    q: "Do I need prior experience to enrol?",
-    a: "Most Level 1 courses need no prior experience, only basic industry familiarity. Level 2 and supervisory tracks require documented hours, which our course managers will verify with you before enrolment.",
-  },
-  {
-    q: "Can you run a course at our own facility?",
-    a: "We do. In-house delivery lets us build the syllabus around your equipment, procedures and assets, and we can schedule around shift patterns.",
-  },
-  {
-    q: "What is included in the course fee?",
-    a: "Instruction, course materials, practical lab time, assessment and the certificate. Examination body fees, where applicable, are quoted separately so there are no surprises.",
-  },
-  {
-    q: "How do I get support after the course?",
-    a: "Every participant keeps access to our support desk. You can email or WhatsApp our instructors with technical questions long after your class has finished.",
   },
 ];

@@ -1,25 +1,41 @@
+/**
+ * Featured Course Card Component
+ *
+ * Renders prominent course cards on the homepage with highlights, pricing badge,
+ * and instructor credit. Supports string image URLs with placeholder fallback.
+ *
+ * Location: src/components/site/FeaturedCourseCard.tsx
+ * Type: Server Component
+ */
+
 import Link from "next/link";
 import Image from "next/image";
-import { Check, Clock } from "lucide-react";
+import { BookOpen, Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { categories, courseExtras, type Course } from "@/data/site";
+import { courseExtras, type Course } from "@/data/site";
 
 export function FeaturedCourseCard({ course }: { course: Course }) {
-  const category = categories.find((c) => c.slug === course.categorySlug);
+  const categoryShort = course.category?.short ?? course.categorySlug;
   const extra = courseExtras[course.slug];
 
   return (
     <article className="card-lift group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card sm:flex-row">
       <div className="relative sm:w-2/5">
         <div className="h-48 overflow-hidden bg-muted sm:h-full">
-          <Image
-            src={course.image}
-            alt={course.title}
-            width={1200}
-            height={800}
-            sizes="(min-width: 1024px) 40vw, 100vw"
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          {course.image ? (
+            <Image
+              src={course.image}
+              alt={course.title}
+              width={1200}
+              height={800}
+              sizes="(min-width: 1024px) 40vw, 100vw"
+              className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center bg-secondary/50 text-muted-foreground">
+              <BookOpen className="size-12 opacity-30" aria-hidden="true" />
+            </div>
+          )}
         </div>
         <span className="absolute bottom-3 left-3 rounded-md bg-brand-red px-3 py-1 font-display text-sm font-bold text-brand-red-foreground shadow-sm">
           {course.price}
@@ -28,9 +44,9 @@ export function FeaturedCourseCard({ course }: { course: Course }) {
 
       <div className="flex flex-1 flex-col p-5">
         <div className="flex flex-wrap items-center gap-2">
-          {category ? (
+          {categoryShort ? (
             <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary">
-              {category.short}
+              {categoryShort}
             </span>
           ) : null}
           {course.level ? (

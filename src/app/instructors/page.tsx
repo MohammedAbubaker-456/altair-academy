@@ -1,11 +1,23 @@
+/**
+ * Public Instructors Page
+ *
+ * Server Component listing all active instructors loaded dynamically from MongoDB.
+ * Renders instructorName ?? name, instructorRole ?? role, fullBio ?? shortBio, and expertise tags.
+ *
+ * Location: src/app/instructors/page.tsx
+ * Type: Server Component
+ */
+
 import type { Metadata } from "next";
 import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
-import { instructors } from "@/data/site";
+import { getInstructors } from "@/server/queries/team";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-classroom.jpg";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Instructors — Altair Academy",
@@ -31,7 +43,9 @@ function initials(name: string) {
     .join("");
 }
 
-export default function InstructorsPage() {
+export default async function InstructorsPage() {
+  const instructors = await getInstructors();
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
@@ -63,7 +77,11 @@ export default function InstructorsPage() {
         {/* Alternating instructor rows */}
         <section className="bg-secondary/40">
           {instructors.map((person, index) => {
+            const displayName = person.instructorName ?? person.name;
+            const displayRole = person.instructorRole ?? person.role;
+            const displayBio = person.fullBio ?? person.shortBio;
             const flipped = index % 2 === 1;
+
             return (
               <article
                 key={person.slug}
@@ -84,7 +102,7 @@ export default function InstructorsPage() {
                         {person.image ? (
                           <Image
                             src={person.image}
-                            alt={person.name}
+                            alt={displayName}
                             width={800}
                             height={800}
                             sizes="(min-width: 640px) 288px, 224px"
@@ -93,7 +111,7 @@ export default function InstructorsPage() {
                         ) : (
                           <div className="flex size-full items-center justify-center bg-navy">
                             <span className="font-display text-5xl font-bold text-primary-foreground">
-                              {initials(person.name)}
+                              {initials(displayName)}
                             </span>
                           </div>
                         )}
@@ -104,12 +122,12 @@ export default function InstructorsPage() {
                   {/* Copy */}
                   <div className={cn(flipped ? "lg:order-2" : "lg:order-1")}>
                     <h2 className="font-display text-2xl font-bold tracking-tight text-primary sm:text-3xl">
-                      {person.name}
+                      {displayName}
                     </h2>
-                    <p className="eyebrow mt-2">{person.role}</p>
+                    <p className="eyebrow mt-2">{displayRole}</p>
                     <span className="mt-4 block h-px w-16 bg-brand-red/60" aria-hidden="true" />
                     <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-                      {person.bio}
+                      {displayBio}
                     </p>
                     <ul className="mt-6 flex flex-wrap gap-2">
                       {person.expertise.map((item) => (

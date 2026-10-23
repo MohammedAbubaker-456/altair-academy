@@ -7,10 +7,12 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { SectionHeader } from "@/components/site/SectionHeader";
 import { TeamCard } from "@/components/site/TeamCard";
-import { team } from "@/data/site";
+import { getManagementTeam } from "@/server/queries/team";
 import heroImage from "@/assets/hero-classroom.jpg";
 import aboutLab from "@/assets/about-lab.jpg";
 import aboutTeam from "@/assets/about-team.jpg";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "About Altair Academy — Global Leaders of Tomorrow",
@@ -54,7 +56,8 @@ const coreValues = [
   "Quality",
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const managementTeam = await getManagementTeam();
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
@@ -277,7 +280,7 @@ export default function AboutPage() {
               variant="plain"
             />
             <div className="mt-10 flex flex-wrap justify-center gap-6">
-              {team.map((member) => (
+              {managementTeam.map((member) => (
                 <div key={member.slug} className="w-full sm:w-80">
                   <TeamCard member={member} />
                 </div>

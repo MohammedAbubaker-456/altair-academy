@@ -1,3 +1,14 @@
+/**
+ * Public Homepage
+ *
+ * Server Component rendering Altair Academy's landing page.
+ * Loads featured courses, active categories, management team, and FAQs from MongoDB.
+ * Testimonials and upcoming sessions remain static.
+ *
+ * Location: src/app/page.tsx
+ * Type: Server Component
+ */
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -11,7 +22,6 @@ import {
   MessageCircle,
   MonitorPlay,
   Phone,
-  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,17 +36,15 @@ import { SectionHeader } from "@/components/site/SectionHeader";
 import { FeaturedCourseCard } from "@/components/site/FeaturedCourseCard";
 import { TeamCard } from "@/components/site/TeamCard";
 import { Testimonials } from "@/components/site/Testimonials";
-import {
-  categories,
-  contactInfo,
-  courses,
-  faqs,
-  team,
-  trainingFormats,
-  upcomingSessions,
-} from "@/data/site";
+import { contactInfo, upcomingSessions } from "@/data/site";
+import { getFeaturedCourses } from "@/server/queries/courses";
+import { getActiveCategories } from "@/server/queries/categories";
+import { getManagementTeam } from "@/server/queries/team";
+import { getActiveFaqs } from "@/server/queries/faqs";
 import heroImage from "@/assets/hero-classroom.jpg";
 import approachImage from "@/assets/approach-classroom.jpg";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Altair Academy — Accredited Technical Training in Malaysia",
@@ -60,7 +68,7 @@ const pillars = [
     body: "Customised course paths built around the competencies your team is assessed on.",
   },
   {
-    icon: Users,
+    icon: GraduationCap,
     title: "Expert Instructors",
     body: "Every class is taught by a practitioner still working in the field they teach.",
   },
@@ -82,7 +90,14 @@ const aboutPoints = [
   "Course managers who map the right certification level to your career stage",
 ];
 
-export default function Home() {
+export default async function Home() {
+  const [categories, featuredCourses, managementTeam, faqs] = await Promise.all([
+    getActiveCategories(),
+    getFeaturedCourses(),
+    getManagementTeam(),
+    getActiveFaqs(),
+  ]);
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
@@ -236,7 +251,7 @@ export default function Home() {
               </p>
             </div>
             <div className="mt-12 grid gap-6 lg:grid-cols-2">
-              {courses.map((course) => (
+              {featuredCourses.map((course) => (
                 <FeaturedCourseCard key={course.slug} course={course} />
               ))}
             </div>
@@ -259,7 +274,7 @@ export default function Home() {
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {upcomingSessions.map((session) => (
                 <article
-                  key={session.title}
+                  key={session.slug}
                   className="card-lift flex flex-col rounded-xl border border-border bg-card p-5"
                 >
                   <span className="eyebrow">{session.date}</span>
@@ -337,71 +352,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Training formats */}
-        {/* <section className="py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionHeader
-              align="center"
-              label="How we deliver"
-              title="Choose the Training Format That Fits Your Team"
-              variant="plain"
-            />
-            <div className="mt-12 grid gap-6 lg:grid-cols-3">
-              {trainingFormats.map((format) => (
-                <div
-                  key={format.name}
-                  className={
-                    format.featured
-                      ? "relative rounded-2xl bg-navy p-7 text-primary-foreground shadow-xl"
-                      : "relative rounded-2xl border border-border bg-card p-7"
-                  }
-                >
-                  {format.featured ? (
-                    <span className="absolute -top-3 left-7 rounded-full bg-brand-red px-3 py-1 text-xs font-semibold text-brand-red-foreground">
-                      {format.tagline}
-                    </span>
-                  ) : (
-                    <span className="eyebrow">{format.tagline}</span>
-                  )}
-                  <p
-                    className={`mt-4 font-display text-3xl font-bold ${format.featured ? "text-primary-foreground" : "text-brand-red"}`}
-                  >
-                    {format.price}
-                    <span
-                      className={`ml-1 text-sm font-medium ${format.featured ? "text-primary-foreground/70" : "text-muted-foreground"}`}
-                    >
-                      {format.unit}
-                    </span>
-                  </p>
-                  <h3
-                    className={`mt-2 font-display text-lg font-bold ${format.featured ? "text-primary-foreground" : "text-primary"}`}
-                  >
-                    {format.name}
-                  </h3>
-                  <ul className="mt-5 space-y-2">
-                    {format.benefits.map((benefit) => (
-                      <li
-                        key={benefit}
-                        className={`flex items-start gap-2 text-sm ${format.featured ? "text-primary-foreground/80" : "text-muted-foreground"}`}
-                      >
-                        <Check className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
-                        {benefit}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant={format.featured ? "ctaOnDark" : "ctaOutline"}
-                    className="mt-7 w-full text-base"
-                    asChild
-                  >
-                    <Link href="/contact">Request a Quote</Link>
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section> */}
-
         {/* Advisory */}
         <section className="bg-secondary py-20">
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
@@ -465,7 +415,7 @@ export default function Home() {
               variant="plain"
             />
             <div className="mt-12 flex flex-wrap justify-center gap-6">
-              {team.map((member) => (
+              {managementTeam.map((member) => (
                 <div key={member.slug} className="w-full sm:w-80">
                   <TeamCard member={member} />
                 </div>
@@ -499,12 +449,12 @@ export default function Home() {
             <div className="mt-10 grid items-start gap-10 lg:grid-cols-[1.2fr_1fr]">
               <Accordion type="single" collapsible className="w-full">
                 {faqs.map((faq) => (
-                  <AccordionItem key={faq.q} value={faq.q}>
+                  <AccordionItem key={faq.id} value={faq.id}>
                     <AccordionTrigger className="text-left font-display text-base font-semibold text-primary">
-                      {faq.q}
+                      {faq.question}
                     </AccordionTrigger>
                     <AccordionContent className="text-sm text-muted-foreground">
-                      {faq.a}
+                      {faq.answer}
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -521,11 +471,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Closing CTA */}
-        <section className="bg-navy-deep py-20">
-          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-            <span className="eyebrow">Get started</span>
-            <h2 className="mt-3 font-display text-3xl font-bold text-primary-foreground sm:text-4xl">
+        {/* Bottom CTA */}
+        <section className="bg-navy py-16 text-center text-primary-foreground sm:py-20">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+            <span className="eyebrow text-brand-red-foreground">Get certified</span>
+            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">
               Certification Is the Next Step{"\u00a0\n"}Take it With Altair
             </h2>
             <p className="mt-4 text-base text-primary-foreground/70">
@@ -534,10 +484,10 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button variant="cta" size="lg" className="text-base" asChild>
-                <Link href="/contact">Contact Us</Link>
+                <Link href="/courses">Choose a Course</Link>
               </Button>
               <Button variant="ctaOnDark" size="lg" className="text-base" asChild>
-                <Link href="/calendar">Browse the Calendar</Link>
+                <Link href="/calendar">View 2026 Calendar</Link>
               </Button>
             </div>
           </div>

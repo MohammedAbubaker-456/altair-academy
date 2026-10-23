@@ -11,7 +11,8 @@ import {
   Twitter,
   Youtube,
 } from "lucide-react";
-import { categories, contactInfo } from "@/data/site";
+import { contactInfo } from "@/data/site";
+import { courseMenu } from "@/data/menu";
 import logo from "@/assets/altair-academy-logo.png";
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -97,13 +98,13 @@ export function Footer() {
               Course areas
             </h3>
             <ul className="mt-4 space-y-2 text-sm text-primary-foreground/75">
-              {categories.slice(0, 6).map((category) => (
-                <li key={category.slug}>
+              {courseMenu.slice(0, 6).map((item) => (
+                <li key={item.category}>
                   <Link
-                    href={`/courses?category=${encodeURIComponent(category.slug)}`}
+                    href={`/courses?category=${encodeURIComponent(item.category)}`}
                     className="hover:text-primary-foreground"
                   >
-                    {category.name}
+                    {item.name}
                   </Link>
                 </li>
               ))}

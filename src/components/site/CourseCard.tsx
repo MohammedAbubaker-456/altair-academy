@@ -1,23 +1,39 @@
+/**
+ * Course Card Component
+ *
+ * Renders an individual course preview card with image, category badge, duration, and price.
+ * Supports string image URLs and provides a graceful placeholder when image is absent.
+ *
+ * Location: src/components/site/CourseCard.tsx
+ * Type: Server Component
+ */
+
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Tag } from "lucide-react";
+import { BookOpen, Clock, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { categories, type Course } from "@/data/site";
+import type { Course } from "@/data/site";
 
 export function CourseCard({ course }: { course: Course }) {
-  const category = categories.find((c) => c.slug === course.categorySlug);
+  const categoryShort = course.category?.short ?? course.categorySlug;
 
   return (
     <article className="card-lift group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card">
       <div className="aspect-[4/3] overflow-hidden bg-muted">
-        <Image
-          src={course.image}
-          alt={course.title}
-          width={1200}
-          height={800}
-          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-          className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
+        {course.image ? (
+          <Image
+            src={course.image}
+            alt={course.title}
+            width={1200}
+            height={800}
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center bg-secondary/50 text-muted-foreground">
+            <BookOpen className="size-12 opacity-30" aria-hidden="true" />
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-5">
@@ -31,9 +47,9 @@ export function CourseCard({ course }: { course: Course }) {
         </h3>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          {category ? (
+          {categoryShort ? (
             <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary">
-              {category.short}
+              {categoryShort}
             </span>
           ) : null}
           {course.level ? (

@@ -9,7 +9,7 @@ Altair Academy is an accredited technical training website and administrative ma
 
 ```
 altair-academy/
-├── docker-compose.yml           # Local MongoDB single-node replica set for development
+├── docs/LOCAL_MONGODB_SETUP.md  # Native local MongoDB replica set setup guide (no Docker)
 ├── next.config.ts               # Next.js config (Cloudinary remotePatterns, noindex admin headers)
 ├── package.json                 # Dependency definitions and lifecycle scripts
 ├── tsconfig.json                # Strict TypeScript configuration

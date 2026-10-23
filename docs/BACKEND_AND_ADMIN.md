@@ -9,9 +9,8 @@ This document describes the backend architecture, MongoDB + Prisma setup, authen
 ### Required Services
 1. **MongoDB (Replica Set required)**: Prisma requires a MongoDB replica set to support multi-document transactions.
    - **Option A (Production / Cloud)**: MongoDB Atlas (free M0 cluster or higher). Atlas operates as a replica set by default.
-   - **Option B (Local Development)**: Use the included single-node Docker replica set (`docker-compose.yml`).
-2. **Cloudinary**: Free or paid Cloudinary account for media and banner image storage.
-3. **Node.js**: v18.18.0 or higher (v20+ recommended).
+   - **Option B (Local Development)**: Native local MongoDB running as a single-node replica set (see [docs/LOCAL_MONGODB_SETUP.md](file:///d:/Altair.Academy/altair-academy-website-main/docs/LOCAL_MONGODB_SETUP.md)). No Docker.
+2. **Node.js**: v20.9.0 or higher.
 
 ### Environment Configuration (.env)
 Create a `.env` file at the root of the project (modeled after `.env.example`):
@@ -20,51 +19,29 @@ Create a `.env` file at the root of the project (modeled after `.env.example`):
 # ==============================================================================
 # DATABASE CONFIGURATION (MongoDB with Replica Set)
 # ==============================================================================
-# Atlas example:
-# DATABASE_URL="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority"
-# Local Docker replica set:
-DATABASE_URL="mongodb://localhost:27017/altair-academy?replicaSet=rs0&directConnection=true"
-
-# ==============================================================================
-# AUTHENTICATION
-# ==============================================================================
-# Generate a secure 32+ character random string (e.g. `openssl rand -base64 32`)
-AUTH_SECRET="your-32-plus-character-cryptographically-secure-secret-key-here"
-
-# ==============================================================================
-# CLOUDINARY MEDIA STORAGE
-# ==============================================================================
-# From your Cloudinary Dashboard:
-CLOUDINARY_CLOUD_NAME="your_cloud_name"
-CLOUDINARY_API_KEY="your_api_key"
-CLOUDINARY_API_SECRET="your_api_secret"
-
-# ==============================================================================
-# INITIAL SEED CREDENTIALS (Used exclusively during `npm run db:seed`)
-# ==============================================================================
-ADMIN_EMAIL="admin@altair.academy"
-ADMIN_PASSWORD="ChangeThisPasswordImmediately123!"
+# Atlas example (Production):
+# DATABASE_URL="mongodb+srv://<user>:<url-encoded-password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority"
+# Native Local MongoDB replica set (Development):
+DATABASE_URL="mongodb://127.0.0.1:27017/altair-academy?replicaSet=rs0"
 ```
 
 ---
 
-## 2. Local Database Initialization (Docker)
+## 2. Local Database Initialization (Native Replica Set — No Docker)
 
-If developing locally without MongoDB Atlas, run the single-node replica set defined in `docker-compose.yml`:
+Prisma requires MongoDB multi-document transactions. For local development, follow the complete native installation and replica set initiation guide in:
+👉 **[docs/LOCAL_MONGODB_SETUP.md](file:///d:/Altair.Academy/altair-academy-website-main/docs/LOCAL_MONGODB_SETUP.md)**
 
-```bash
-# Start MongoDB replica set container in background
-docker compose up -d
-
-# Verify container status and replica set health
-docker compose ps
-docker compose logs mongodb-init
-```
-
-The connection string for local development is:
-```
-mongodb://localhost:27017/altair-academy?replicaSet=rs0&directConnection=true
-```
+Quick checklist:
+1. Install MongoDB Community Server and `mongosh` natively.
+2. In `mongod.conf` / `mongod.cfg`, add:
+   ```yaml
+   replication:
+     replSetName: rs0
+   ```
+3. Restart the MongoDB service.
+4. Open `mongosh` and execute once: `rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "127.0.0.1:27017" }] })`.
+5. Verify with `npm run db:check`.
 
 ---
 
@@ -190,7 +167,7 @@ Uploaded images are handled server-side without writing to disk (critical for se
 
 ### Problem: "Transactions are not supported by this deployment"
 - **Cause**: Prisma requires MongoDB multi-document transactions, which only function on a replica set. Standalone MongoDB instances will fail.
-- **Solution**: Use MongoDB Atlas (which runs a replica set by default) or run the single-node replica set via `docker compose up -d` with `?replicaSet=rs0&directConnection=true` in `DATABASE_URL`.
+- **Solution**: Use MongoDB Atlas (which runs a replica set by default) or configure your native local MongoDB as a replica set following [docs/LOCAL_MONGODB_SETUP.md](file:///d:/Altair.Academy/altair-academy-website-main/docs/LOCAL_MONGODB_SETUP.md).
 
 ### Problem: "Could not connect to database / IP address not allowed"
 - **Cause**: MongoDB Atlas Network Access rules are blocking your IP address.

@@ -2,36 +2,115 @@
  * Environment Variables Validation Module
  *
  * Validates all required server-side environment variables at runtime using Zod.
- * Enforces security constraints like minimum length for JWT secrets.
+ * Enforces production safety rules for MongoDB connection strings and external
+ * disk storage directories, preventing media loss on shared hosting deployments.
  *
  * Location: src/lib/env.ts
  * Type: Server-Only Module
  */
 
 import "server-only";
+import path from "node:path";
 import { z } from "zod";
 
-const envSchema = z.object({
-  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  AUTH_SECRET: z
-    .string()
-    .min(32, "AUTH_SECRET must be at least 32 characters long for secure JWT signing"),
-  CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_CLOUD_NAME is required"),
-  CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
-  CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required"),
-  ADMIN_EMAIL: z.string().email("ADMIN_EMAIL must be a valid email").optional(),
-  ADMIN_PASSWORD: z.string().min(8, "ADMIN_PASSWORD must be at least 8 characters long").optional(),
-});
+const isProduction = process.env["NODE_ENV"] === "production";
 
-function validateEnv() {
+const envSchema = z
+  .object({
+    DATABASE_URL: z
+      .string({ required_error: "DATABASE_URL is required" })
+      .min(1, "DATABASE_URL cannot be empty")
+      .refine(
+        (url) => url.startsWith("mongodb://") || url.startsWith("mongodb+srv://"),
+        "DATABASE_URL must start with 'mongodb://' or 'mongodb+srv://'",
+      ),
+    AUTH_SECRET: z
+      .string({ required_error: "AUTH_SECRET is required" })
+      .min(32, "AUTH_SECRET must be at least 32 characters long for secure JWT signing"),
+    UPLOAD_DIR: z.string().optional(),
+    ADMIN_EMAIL: z.string().email("ADMIN_EMAIL must be a valid email").optional(),
+    ADMIN_PASSWORD: z
+      .string()
+      .min(8, "ADMIN_PASSWORD must be at least 8 characters long")
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    const rawUploadDir = data.UPLOAD_DIR?.trim();
+
+    if (isProduction) {
+      if (!rawUploadDir) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["UPLOAD_DIR"],
+          message:
+            "UPLOAD_DIR is REQUIRED in production. Please set it in your cPanel 'Setup Node.js App' environment table.",
+        });
+        return;
+      }
+
+      if (!path.isAbsolute(rawUploadDir)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["UPLOAD_DIR"],
+          message: `UPLOAD_DIR must be an absolute path (received: "${rawUploadDir}"). Example: /home/<user>/altair-assets/uploads`,
+        });
+        return;
+      }
+
+      const appRoot = path.resolve(process.cwd());
+      const resolvedUpload = path.resolve(rawUploadDir);
+      const relative = path.relative(appRoot, resolvedUpload);
+      const isInside =
+        resolvedUpload === appRoot || (!relative.startsWith("..") && !path.isAbsolute(relative));
+
+      if (isInside) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["UPLOAD_DIR"],
+          message: `UPLOAD_DIR must NOT be inside the application root ("${appRoot}"). Uploading a new package will wipe application files. Place uploads in an external folder like /home/<user>/altair-assets/uploads`,
+        });
+      }
+    }
+  });
+
+export interface AppEnv {
+  DATABASE_URL: string;
+  AUTH_SECRET: string;
+  UPLOAD_DIR: string;
+  ADMIN_EMAIL?: string | undefined;
+  ADMIN_PASSWORD?: string | undefined;
+}
+
+function validateEnv(): AppEnv {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
-    console.error("❌ Invalid environment variables:", result.error.flatten().fieldErrors);
+    const fieldErrors = result.error.flatten().fieldErrors;
+    console.error("❌ Environment configuration error:");
+    for (const [key, errors] of Object.entries(fieldErrors)) {
+      if (errors && errors.length > 0) {
+        console.error(`   - ${key}: ${errors.join("; ")}`);
+      }
+    }
     throw new Error(
-      "Invalid environment variables. Please check your .env file against .env.example",
+      "Invalid environment configuration. Check server environment variables or .env against .env.example",
     );
   }
-  return result.data;
+
+  const parsed = result.data;
+
+  // Resolve upload directory with development fallback outside src to prevent hot-reload churn
+  const resolvedUploadDir =
+    parsed.UPLOAD_DIR && parsed.UPLOAD_DIR.trim() !== ""
+      ? path.resolve(parsed.UPLOAD_DIR.trim())
+      : path.resolve(process.cwd(), "uploads");
+
+  return {
+    DATABASE_URL: parsed.DATABASE_URL,
+    AUTH_SECRET: parsed.AUTH_SECRET,
+    UPLOAD_DIR: resolvedUploadDir,
+    ...(parsed.ADMIN_EMAIL ? { ADMIN_EMAIL: parsed.ADMIN_EMAIL } : {}),
+    ...(parsed.ADMIN_PASSWORD ? { ADMIN_PASSWORD: parsed.ADMIN_PASSWORD } : {}),
+  };
 }
 
 export const env = validateEnv();

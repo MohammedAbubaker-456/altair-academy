@@ -1,7 +1,7 @@
 /**
  * Course Create / Edit Form Component
  *
- * Full-featured interactive form for course content, image uploading to Cloudinary,
+ * Full-featured interactive form for course content, image uploading to server disk,
  * slug generation, and category relations.
  *
  * Location: src/app/admin/(dashboard)/courses/CourseForm.tsx

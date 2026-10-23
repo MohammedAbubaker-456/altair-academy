@@ -1,9 +1,8 @@
 /**
  * Admin Image Upload Component
  *
- * Provides an interactive UI for uploading images directly to Cloudinary storage,
- * previewing current images, replacing or removing images, and a fallback for
- * directly pasting image URLs.
+ * Provides an interactive UI for uploading images directly to the server's disk storage,
+ * previewing current images, replacing or removing images.
  *
  * Location: src/components/admin/ImageUpload.tsx
  * Type: Client Component ("use client")
@@ -16,14 +15,13 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { uploadImageAction } from "@/app/admin/upload-actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Upload, X, Link as LinkIcon, Loader2, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 
 interface ImageUploadProps {
   value: string | null | undefined;
   onChange: (value: string | null) => void;
-  folder?: string;
-  disabled?: boolean;
+  folder?: string | undefined;
+  disabled?: boolean | undefined;
 }
 
 export function ImageUpload({
@@ -33,8 +31,6 @@ export function ImageUpload({
   disabled = false,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = React.useState(false);
-  const [showUrlInput, setShowUrlInput] = React.useState(false);
-  const [urlInput, setUrlInput] = React.useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,16 +56,6 @@ export function ImageUpload({
       toast.error("Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);
-    }
-  };
-
-  const handleApplyUrl = () => {
-    const trimmed = urlInput.trim();
-    if (trimmed) {
-      onChange(trimmed);
-      setUrlInput("");
-      setShowUrlInput(false);
-      toast.success("Image URL applied");
     }
   };
 
@@ -135,16 +121,6 @@ export function ImageUpload({
                 </>
               )}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              disabled={disabled || isUploading}
-              onClick={() => setShowUrlInput(!showUrlInput)}
-            >
-              <LinkIcon className="mr-2 h-4 w-4" />
-              {showUrlInput ? "Hide URL input" : "Paste image URL"}
-            </Button>
           </div>
         </div>
       )}
@@ -157,29 +133,6 @@ export function ImageUpload({
         className="hidden"
         onChange={handleFileChange}
       />
-
-      {/* Direct URL input fallback */}
-      {showUrlInput && (
-        <div className="flex items-center gap-2 rounded-md border bg-muted/30 p-2">
-          <Input
-            type="url"
-            placeholder="https://... or /seed/course-ndt.jpg"
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            disabled={disabled || isUploading}
-            className="h-8 text-xs"
-          />
-          <Button
-            type="button"
-            size="sm"
-            className="h-8"
-            disabled={disabled || isUploading || !urlInput.trim()}
-            onClick={handleApplyUrl}
-          >
-            Apply
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@
  * News Post Create / Edit Form Component
  *
  * Full-featured interactive form for publishing news posts with dynamic fields
- * depending on article kind (Featured, Story, Pick), date selection, and Cloudinary media upload.
+ * depending on article kind (Featured, Story, Pick), date selection, and server disk media upload.
  *
  * Location: src/app/admin/(dashboard)/news/NewsForm.tsx
  * Type: Client Component ("use client")

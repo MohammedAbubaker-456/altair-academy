@@ -2,7 +2,7 @@
  * Team Member Create / Edit Form Component
  *
  * Full-featured interactive form for team member profiles, faculty placement,
- * expertise tag chips, and Cloudinary image upload.
+ * expertise tag chips, and server disk image upload.
  *
  * Location: src/app/admin/(dashboard)/team/TeamForm.tsx
  * Type: Client Component ("use client")

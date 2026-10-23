@@ -2,7 +2,7 @@
  * Admin Image Upload Server Action
  *
  * Validates admin session, verifies file MIME type and file size (max 5MB),
- * and uploads to Cloudinary storage.
+ * and persists the image to the local disk storage service.
  *
  * Location: src/app/admin/upload-actions.ts
  * Type: Server Actions ("use server")

@@ -25,7 +25,14 @@ export const newsPostSchema = z.object({
   kind: z.enum(["FEATURED", "STORY", "PICK"]),
   category: z.string().trim().max(100).nullable(),
   tags: z.array(z.string().trim().min(1)),
-  image: z.string().trim().nullable(),
+  image: z
+    .string()
+    .trim()
+    .refine(
+      (val) => val.startsWith("/uploads/") || val.startsWith("/seed/"),
+      "Image path must start with '/uploads/' or '/seed/'",
+    )
+    .nullable(),
   publishedAt: z.coerce.date(),
   status: z.enum(["ACTIVE", "INACTIVE"]),
 });

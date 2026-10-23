@@ -27,7 +27,14 @@ export const teamMemberSchema = z.object({
   instructorRole: z.string().trim().max(100).nullable(),
   fullBio: z.string().trim().max(2000).nullable(),
   expertise: z.array(z.string().trim().min(1)),
-  image: z.string().trim().nullable(),
+  image: z
+    .string()
+    .trim()
+    .refine(
+      (val) => val.startsWith("/uploads/") || val.startsWith("/seed/"),
+      "Image path must start with '/uploads/' or '/seed/'",
+    )
+    .nullable(),
   placements: z
     .array(z.enum(["MANAGEMENT", "INSTRUCTOR"]))
     .min(1, "Select at least one placement (Management or Instructor)"),

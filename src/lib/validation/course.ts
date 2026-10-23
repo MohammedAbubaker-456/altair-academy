@@ -46,7 +46,14 @@ export const courseSchema = z.object({
     .trim()
     .min(1, "Summary is required")
     .max(1000, "Summary must be under 1000 characters"),
-  image: z.string().trim().nullable(),
+  image: z
+    .string()
+    .trim()
+    .refine(
+      (val) => val.startsWith("/uploads/") || val.startsWith("/seed/"),
+      "Image path must start with '/uploads/' or '/seed/'",
+    )
+    .nullable(),
   isFeatured: z.boolean(),
   order: z.coerce.number().int().min(0, "Order must be 0 or greater"),
   status: z.enum(["ACTIVE", "INACTIVE"]),

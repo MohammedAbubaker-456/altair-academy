@@ -40,9 +40,7 @@ async function checkDatabase() {
     // Check if the database instance is part of a replica set
     if (!result.setName) {
       console.error("\n❌ MongoDB is running standalone; Prisma needs a replica set.");
-      console.error(
-        "   Prisma ORM requires multi-document transactions, which are only supported",
-      );
+      console.error("   Prisma ORM requires multi-document transactions, which are only supported");
       console.error("   on MongoDB replica sets.\n");
       console.error("👉 Please follow the native setup guide to enable replication (rs0):");
       console.error("   docs/LOCAL_MONGODB_SETUP.md\n");
@@ -103,7 +101,9 @@ async function checkDatabase() {
     } else if (errorMessage.includes("ECONNREFUSED")) {
       console.error("\nReason: Connection refused (127.0.0.1:27017).");
       console.error("👉 The local MongoDB service is not currently running.");
-      console.error("   Start the service: 'net start MongoDB' (Windows) or 'systemctl start mongod' (Linux).");
+      console.error(
+        "   Start the service: 'net start MongoDB' (Windows) or 'systemctl start mongod' (Linux).",
+      );
     } else {
       console.error("\nDetails:", errorMessage);
     }

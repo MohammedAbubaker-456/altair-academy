@@ -219,21 +219,40 @@ export const testimonials = [
   },
 ];
 
-export const courseExtras: Record<string, { highlights: string[]; instructor: { name: string; role: string } }> = {
+export const courseExtras: Record<
+  string,
+  { highlights: string[]; instructor: { name: string; role: string } }
+> = {
   "visual-testing-vt": {
-    highlights: ["Optics, lighting & surface conditions", "ISO 9712 acceptance criteria", "Practical reporting workshop"],
+    highlights: [
+      "Optics, lighting & surface conditions",
+      "ISO 9712 acceptance criteria",
+      "Practical reporting workshop",
+    ],
     instructor: { name: "Shaik Khaja Mohiuddin", role: "Lead NDT Instructor" },
   },
   "weld-inspection-wi": {
-    highlights: ["Weld processes & discontinuities", "Code interpretation practice", "Hands-on joint assessment"],
+    highlights: [
+      "Weld processes & discontinuities",
+      "Code interpretation practice",
+      "Hands-on joint assessment",
+    ],
     instructor: { name: "Sirajul Hameed Mansoor", role: "Senior Welding Inspector" },
   },
   "iso-50001-energy-management": {
-    highlights: ["Energy baselines & EnPIs", "Internal review technique", "Documented information set"],
+    highlights: [
+      "Energy baselines & EnPIs",
+      "Internal review technique",
+      "Documented information set",
+    ],
     instructor: { name: "Nurul Aziz", role: "Management Systems Lead" },
   },
   "infrastructure-asset-assessment-bim": {
-    highlights: ["Model-based asset workflows", "Common data environments", "Coordination & clash review"],
+    highlights: [
+      "Model-based asset workflows",
+      "Common data environments",
+      "Coordination & clash review",
+    ],
     instructor: { name: "Daniel Choo", role: "BIM Coordinator" },
   },
 };

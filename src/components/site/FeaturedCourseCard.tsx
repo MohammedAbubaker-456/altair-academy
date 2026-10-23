@@ -69,7 +69,9 @@ export function FeaturedCourseCard({ course }: { course: Course }) {
               {extra.instructor.name.charAt(0)}
             </span>
             <span className="leading-tight">
-              <span className="block text-sm font-semibold text-primary">{extra.instructor.name}</span>
+              <span className="block text-sm font-semibold text-primary">
+                {extra.instructor.name}
+              </span>
               <span className="block text-xs text-muted-foreground">{extra.instructor.role}</span>
             </span>
           </div>

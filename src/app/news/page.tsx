@@ -21,7 +21,8 @@ export const metadata: Metadata = {
     "Course schedule announcements, accreditation news, industry notes and centre updates from Altair Academy's NDT and inspection training team.",
   openGraph: {
     title: "News & Training Updates — Altair Academy",
-    description: "Intake announcements, accreditation updates and inspection industry notes from Altair Academy.",
+    description:
+      "Intake announcements, accreditation updates and inspection industry notes from Altair Academy.",
     type: "website",
   },
   twitter: {
@@ -100,7 +101,8 @@ const picks = [
   {
     date: "16 May 2026",
     title: "Choosing between PCN and ASNT for your inspection career",
-    excerpt: "What each scheme expects, how employers read them and which route fits the assets you work on.",
+    excerpt:
+      "What each scheme expects, how employers read them and which route fits the assets you work on.",
   },
   {
     date: "3 May 2026",
@@ -110,11 +112,12 @@ const picks = [
   {
     date: "21 April 2026",
     title: "Preparing for your practical NDT assessment in five steps",
-    excerpt: "Specimen handling, reporting discipline and time management advice from our assessors.",
+    excerpt:
+      "Specimen handling, reporting discipline and time management advice from our assessors.",
   },
 ];
 
-const [leadPick, ...otherPicks] = picks as [typeof picks[number], ...typeof picks];
+const [leadPick, ...otherPicks] = picks as [(typeof picks)[number], ...typeof picks];
 
 export default function NewsPage() {
   return (
@@ -139,7 +142,8 @@ export default function NewsPage() {
               NEWS &amp; UPDATES
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/75">
-              Intake announcements, accreditation news and inspection notes from the Altair Academy team.
+              Intake announcements, accreditation news and inspection notes from the Altair Academy
+              team.
             </p>
           </div>
         </section>
@@ -156,7 +160,10 @@ export default function NewsPage() {
               sizes="(min-width: 768px) 66vw, 100vw"
               className="absolute inset-y-0 right-0 h-full w-full object-cover md:w-2/3"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-navy via-navy/90 to-navy/20" aria-hidden="true" />
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-navy via-navy/90 to-navy/20"
+              aria-hidden="true"
+            />
             <div className="relative grid gap-8 p-6 sm:p-10 lg:p-14">
               <div className="max-w-xl bg-background p-6 shadow-xl sm:p-10">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
@@ -241,14 +248,17 @@ export default function NewsPage() {
             <div className="mt-10 grid gap-8 lg:grid-cols-2">
               <article className="group relative isolate flex min-h-80 flex-col justify-end overflow-hidden">
                 <Image
-                  src={leadPick.image}
+                  src={leadPick.image!}
                   alt={leadPick.title}
                   width={900}
                   height={600}
                   sizes="(min-width: 1024px) 50vw, 100vw"
                   className="absolute inset-0 -z-20 size-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 -z-10 bg-gradient-to-t from-navy via-navy/70 to-navy/10" aria-hidden="true" />
+                <div
+                  className="absolute inset-0 -z-10 bg-gradient-to-t from-navy via-navy/70 to-navy/10"
+                  aria-hidden="true"
+                />
                 <div className="p-8">
                   <div className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-primary-foreground/70 uppercase">
                     <CalendarDays className="size-3.5" />
@@ -257,7 +267,9 @@ export default function NewsPage() {
                   <h3 className="mt-3 font-display text-2xl leading-snug font-bold text-primary-foreground">
                     {leadPick.title}
                   </h3>
-                  <p className="mt-3 max-w-lg text-sm text-primary-foreground/75">{leadPick.excerpt}</p>
+                  <p className="mt-3 max-w-lg text-sm text-primary-foreground/75">
+                    {leadPick.excerpt}
+                  </p>
                 </div>
               </article>
 

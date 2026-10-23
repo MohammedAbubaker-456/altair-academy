@@ -1,6 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Twitter, Youtube } from "lucide-react";
+import {
+  Clock,
+  Facebook,
+  Instagram,
+  Linkedin,
+  Mail,
+  MapPin,
+  Phone,
+  Twitter,
+  Youtube,
+} from "lucide-react";
 import { categories, contactInfo } from "@/data/site";
 import logo from "@/assets/altair-academy-logo.png";
 
@@ -26,11 +36,17 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="inline-flex rounded-md bg-background px-3 py-2">
-              <Image src={logo} alt="Altair Academy" width={190} height={60} className="h-8 w-auto" />
+              <Image
+                src={logo}
+                alt="Altair Academy"
+                width={190}
+                height={60}
+                className="h-8 w-auto"
+              />
             </div>
             <p className="mt-4 text-sm text-primary-foreground/70">
-              Accredited technical training in inspection, integrity and management systems — delivered by
-              practising industry specialists.
+              Accredited technical training in inspection, integrity and management systems —
+              delivered by practising industry specialists.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               {socials.map((social) => (
@@ -49,7 +65,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-display text-sm font-bold tracking-widest uppercase">Get in touch</h3>
+            <h3 className="font-display text-sm font-bold tracking-widest uppercase">
+              Get in touch
+            </h3>
             <ul className="mt-4 space-y-3 text-sm text-primary-foreground/75">
               <li className="flex gap-3">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
@@ -75,7 +93,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-display text-sm font-bold tracking-widest uppercase">Course areas</h3>
+            <h3 className="font-display text-sm font-bold tracking-widest uppercase">
+              Course areas
+            </h3>
             <ul className="mt-4 space-y-2 text-sm text-primary-foreground/75">
               {categories.slice(0, 6).map((category) => (
                 <li key={category.slug}>
@@ -93,21 +113,48 @@ export function Footer() {
           <div>
             <h3 className="font-display text-sm font-bold tracking-widest uppercase">Company</h3>
             <ul className="mt-4 space-y-2 text-sm text-primary-foreground/75">
-              <li><Link href="/about" className="hover:text-primary-foreground">About Us</Link></li>
-              <li><Link href="/courses" className="hover:text-primary-foreground">Courses</Link></li>
-              <li><Link href="/instructors" className="hover:text-primary-foreground">Instructors</Link></li>
-              <li><Link href="/careers" className="hover:text-primary-foreground">Careers</Link></li>
-              <li><Link href="/news" className="hover:text-primary-foreground">News</Link></li>
-              
+              <li>
+                <Link href="/about" className="hover:text-primary-foreground">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/courses" className="hover:text-primary-foreground">
+                  Courses
+                </Link>
+              </li>
+              <li>
+                <Link href="/instructors" className="hover:text-primary-foreground">
+                  Instructors
+                </Link>
+              </li>
+              <li>
+                <Link href="/careers" className="hover:text-primary-foreground">
+                  Careers
+                </Link>
+              </li>
+              <li>
+                <Link href="/news" className="hover:text-primary-foreground">
+                  News
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-primary-foreground/15 pt-6 text-sm text-primary-foreground/60 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Altair Academy<br />All Rights Reserved</p>
+          <p>
+            © 2026 Altair Academy
+            <br />
+            All Rights Reserved
+          </p>
           <div className="flex gap-5">
-            <Link href="/privacy" className="hover:text-primary-foreground">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-primary-foreground">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-primary-foreground">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-primary-foreground">
+              Terms of Service
+            </Link>
           </div>
         </div>
       </div>

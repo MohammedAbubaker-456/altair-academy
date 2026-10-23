@@ -23,7 +23,6 @@ const buttonVariants = cva(
           "border border-primary/30 bg-transparent text-primary hover:border-primary hover:bg-primary/5 active:bg-primary/10",
         ctaOnDark:
           "border border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground/10",
-
       },
       size: {
         default: "h-9 px-4 py-2",

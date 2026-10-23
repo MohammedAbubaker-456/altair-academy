@@ -21,13 +21,7 @@ export function SectionHeader({
 }: Props) {
   const centered = align === "center";
   return (
-    <div
-      className={cn(
-        "max-w-2xl",
-        centered && "mx-auto text-center",
-        className,
-      )}
-    >
+    <div className={cn("max-w-2xl", centered && "mx-auto text-center", className)}>
       <div className={cn("flex items-center gap-3", centered && "justify-center")}>
         <span className={cn("eyebrow", onDark && "text-brand-red-foreground/80")}>{label}</span>
         {variant === "divider" ? (
@@ -43,7 +37,12 @@ export function SectionHeader({
         {title}
       </h2>
       {description ? (
-        <p className={cn("mt-3 text-base", onDark ? "text-primary-foreground/75" : "text-muted-foreground")}>
+        <p
+          className={cn(
+            "mt-3 text-base",
+            onDark ? "text-primary-foreground/75" : "text-muted-foreground",
+          )}
+        >
           {description}
         </p>
       ) : null}

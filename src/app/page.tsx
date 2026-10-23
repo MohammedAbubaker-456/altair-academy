@@ -155,10 +155,13 @@ export default function Home() {
           <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
             <div className="mx-auto flex max-w-2xl flex-col items-center gap-3">
               <div className="flex items-center gap-2 text-primary-foreground">
-                <span className="font-display text-lg font-bold whitespace-nowrap">Our Courses</span>
+                <span className="font-display text-lg font-bold whitespace-nowrap">
+                  Our Courses
+                </span>
               </div>
               <p className="text-sm text-primary-foreground/70">
-                Choose a category to see the courses we run across NDT, BIM, management systems and more.
+                Choose a category to see the courses we run across NDT, BIM, management systems and
+                more.
               </p>
             </div>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -189,7 +192,9 @@ export default function Home() {
               />
               <div className="absolute right-4 bottom-4 rounded-xl bg-brand-red px-5 py-4 text-brand-red-foreground shadow-lg">
                 <p className="font-display text-3xl font-bold">10+ Years</p>
-                <p className="text-xs opacity-90">&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Training experience</p>
+                <p className="text-xs opacity-90">
+                  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Training experience
+                </p>
               </div>
             </div>
             <div>
@@ -200,7 +205,10 @@ export default function Home() {
               />
               <ul className="mt-6 space-y-3">
                 {aboutPoints.map((point) => (
-                  <li key={point} className="flex items-start gap-3 border-b border-border pb-3 text-sm text-muted-foreground">
+                  <li
+                    key={point}
+                    className="flex items-start gap-3 border-b border-border pb-3 text-sm text-muted-foreground"
+                  >
                     <Check className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
                     {point}
                   </li>
@@ -223,8 +231,8 @@ export default function Home() {
                 variant="divider"
               />
               <p className="max-w-md text-sm text-muted-foreground">
-                Every programme below runs on a fixed calendar with practical assessment included. Prices
-                shown are per seat for public classroom delivery.
+                Every programme below runs on a fixed calendar with practical assessment included.
+                Prices shown are per seat for public classroom delivery.
               </p>
             </div>
             <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -255,23 +263,34 @@ export default function Home() {
                   className="card-lift flex flex-col rounded-xl border border-border bg-card p-5"
                 >
                   <span className="eyebrow">{session.date}</span>
-                  <h3 className="mt-2 font-display text-base font-bold text-primary">{session.title}</h3>
+                  <h3 className="mt-2 font-display text-base font-bold text-primary">
+                    {session.title}
+                  </h3>
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <MapPin className="size-3.5 text-brand-red" aria-hidden="true" />
                     {session.location}
                   </p>
                   <ul className="mt-4 flex-1 space-y-1.5">
                     {session.points.map((point) => (
-                      <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <Check className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
+                      <li
+                        key={point}
+                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                      >
+                        <Check
+                          className="mt-0.5 size-4 shrink-0 text-brand-red"
+                          aria-hidden="true"
+                        />
                         {point}
                       </li>
                     ))}
                   </ul>
-                  <Button variant="ctaOutline" size="default" className="mt-5 w-full text-base" asChild>
-                    <Link href={`/courses/${session.slug}`}>
-                      Reserve a Seat
-                    </Link>
+                  <Button
+                    variant="ctaOutline"
+                    size="default"
+                    className="mt-5 w-full text-base"
+                    asChild
+                  >
+                    <Link href={`/courses/${session.slug}`}>Reserve a Seat</Link>
                   </Button>
                 </article>
               ))}
@@ -484,7 +503,9 @@ export default function Home() {
                     <AccordionTrigger className="text-left font-display text-base font-semibold text-primary">
                       {faq.q}
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground">{faq.a}</AccordionContent>
+                    <AccordionContent className="text-sm text-muted-foreground">
+                      {faq.a}
+                    </AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
@@ -508,8 +529,8 @@ export default function Home() {
               Certification Is the Next Step{"\u00a0\n"}Take it With Altair
             </h2>
             <p className="mt-4 text-base text-primary-foreground/70">
-              Tell us your role and the standard you work to, and we'll map the shortest credible route to
-              your certification.
+              Tell us your role and the standard you work to, and we'll map the shortest credible
+              route to your certification.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button variant="cta" size="lg" className="text-base" asChild>

@@ -36,7 +36,9 @@ export default async function SearchPage({ searchParams }: Props) {
     <PageShell
       eyebrow="Search"
       title={term ? `Results for “${q}”` : "Search courses"}
-      intro={term ? `${results.length} course(s) found.` : "Use the search icon in the header to begin."}
+      intro={
+        term ? `${results.length} course(s) found.` : "Use the search icon in the header to begin."
+      }
     >
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {results.map((course) => (

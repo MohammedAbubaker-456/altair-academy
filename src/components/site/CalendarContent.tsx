@@ -452,7 +452,9 @@ export function CalendarContent() {
                           <div className="flex items-baseline justify-between">
                             <p className="font-display font-bold text-primary">{name}</p>
                             <span className="text-xs text-muted-foreground">
-                              {codes.length ? `${codes.length} course${codes.length > 1 ? "s" : ""}` : "No intake"}
+                              {codes.length
+                                ? `${codes.length} course${codes.length > 1 ? "s" : ""}`
+                                : "No intake"}
                             </span>
                           </div>
                           <div className="mt-3 flex flex-wrap gap-1.5">

@@ -45,7 +45,14 @@ const highlights = [
   },
 ];
 
-const coreValues = ["Integrity", "Responsibility", "Versatility", "Professional", "Trust", "Quality"];
+const coreValues = [
+  "Integrity",
+  "Responsibility",
+  "Versatility",
+  "Professional",
+  "Trust",
+  "Quality",
+];
 
 export default function AboutPage() {
   return (
@@ -70,8 +77,8 @@ export default function AboutPage() {
               ALTAIR ACADEMY
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/75">
-              An associate company of Altair Engineering Inspections, founded by people passionate about
-              changing how NDT technical professionals learn.
+              An associate company of Altair Engineering Inspections, founded by people passionate
+              about changing how NDT technical professionals learn.
             </p>
           </div>
         </section>
@@ -102,19 +109,20 @@ export default function AboutPage() {
               <div className="mt-5 space-y-4 text-base text-muted-foreground">
                 <p>
                   Altair Academy began its foray into training provision in 2008 as a BINDT-approved
-                  training organisation (ATO) and qualifying body (AQB), and has since won appreciation
-                  and approvals from students, clients, authorities and regulators alike.
+                  training organisation (ATO) and qualifying body (AQB), and has since won
+                  appreciation and approvals from students, clients, authorities and regulators
+                  alike.
                 </p>
                 <p>
-                  Fuelled by our founders' passion for teaching, Altair Academy was established to offer a
-                  diverse array of professional courses including Non-Destructive Testing (NDT), API-ICP
-                  Exam Preparatory, Information Technology, Building Information Modelling (BIM), Food &amp;
-                  Beverage (F&amp;B), Corrosion and many others.
+                  Fuelled by our founders' passion for teaching, Altair Academy was established to
+                  offer a diverse array of professional courses including Non-Destructive Testing
+                  (NDT), API-ICP Exam Preparatory, Information Technology, Building Information
+                  Modelling (BIM), Food &amp; Beverage (F&amp;B), Corrosion and many others.
                 </p>
                 <p>
-                  Equipped with over a decade of experience, carefully selected instructors and a unique
-                  approach to teaching, Altair has become the top choice training provider against our
-                  competitors.
+                  Equipped with over a decade of experience, carefully selected instructors and a
+                  unique approach to teaching, Altair has become the top choice training provider
+                  against our competitors.
                 </p>
               </div>
             </div>
@@ -162,14 +170,20 @@ export default function AboutPage() {
                   </div>
                   <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
                     <li className="flex gap-3">
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-red" aria-hidden="true" />
-                      Empowering people through an extensive range of courses delivered by the best and
-                      most versatile instructors.
+                      <span
+                        className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-red"
+                        aria-hidden="true"
+                      />
+                      Empowering people through an extensive range of courses delivered by the best
+                      and most versatile instructors.
                     </li>
                     <li className="flex gap-3">
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-red" aria-hidden="true" />
-                      Tailoring offered courses according to the latest technological developments and
-                      industrial needs.
+                      <span
+                        className="mt-2 size-1.5 shrink-0 rounded-full bg-brand-red"
+                        aria-hidden="true"
+                      />
+                      Tailoring offered courses according to the latest technological developments
+                      and industrial needs.
                     </li>
                   </ul>
                 </div>
@@ -182,8 +196,8 @@ export default function AboutPage() {
                     <h3 className="font-display text-lg font-bold text-primary">Vision</h3>
                   </div>
                   <p className="mt-3 text-sm text-muted-foreground">
-                    To become the best training provider around the globe — recognised for competence,
-                    integrity and the career outcomes of our graduates.
+                    To become the best training provider around the globe — recognised for
+                    competence, integrity and the career outcomes of our graduates.
                   </p>
                 </div>
                 <div className="flex-1 rounded-lg bg-navy p-7 text-primary-foreground">
@@ -256,7 +270,12 @@ export default function AboutPage() {
         {/* Management team */}
         <section className="bg-secondary py-16 lg:py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionHeader label="Our team" title="Management team" align="center" variant="plain" />
+            <SectionHeader
+              label="Our team"
+              title="Management team"
+              align="center"
+              variant="plain"
+            />
             <div className="mt-10 flex flex-wrap justify-center gap-6">
               {team.map((member) => (
                 <div key={member.slug} className="w-full sm:w-80">

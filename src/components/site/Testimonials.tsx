@@ -10,20 +10,13 @@ function initials(name: string) {
     .toUpperCase();
 }
 
-const columns = [
-  testimonials.slice(0, 3),
-  testimonials.slice(3, 6),
-  testimonials.slice(6, 9),
-];
+const columns = [testimonials.slice(0, 3), testimonials.slice(3, 6), testimonials.slice(6, 9)];
 
 const cycleDuration = 9;
 
 function TestimonialFan({ stack }: { stack: typeof testimonials }) {
   return (
-    <div
-      className="relative mx-auto w-full max-w-xs md:max-w-sm px-4"
-      style={{ height: "440px" }}
-    >
+    <div className="relative mx-auto w-full max-w-xs md:max-w-sm px-4" style={{ height: "440px" }}>
       {stack.map((t, i) => (
         <article
           key={t.name}
@@ -66,10 +59,7 @@ function TestimonialFan({ stack }: { stack: typeof testimonials }) {
               “{t.quote}”
             </p>
 
-            <Quote
-              className="mt-auto mb-4 size-5 text-brand-red"
-              aria-hidden="true"
-            />
+            <Quote className="mt-auto mb-4 size-5 text-brand-red" aria-hidden="true" />
           </div>
         </article>
       ))}

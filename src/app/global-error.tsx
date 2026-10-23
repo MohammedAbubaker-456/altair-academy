@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-html-link-for-pages */
+
 import { useEffect } from "react";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 

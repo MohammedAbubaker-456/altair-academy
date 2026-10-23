@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-html-link-for-pages */
+
 import { startTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { reportLovableError } from "@/lib/lovable-error-reporting";

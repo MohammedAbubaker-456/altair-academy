@@ -21,7 +21,7 @@ function NavLink({
   ...props
 }: ComponentProps<typeof Link> & { exact?: boolean }) {
   const pathname = usePathname();
-  const hrefString = typeof href === "string" ? href : href.pathname ?? "";
+  const hrefString = typeof href === "string" ? href : (href.pathname ?? "");
   const active = exact
     ? pathname === hrefString
     : pathname === hrefString || pathname.startsWith(hrefString + "/");
@@ -121,7 +121,10 @@ export function Header() {
                 className="cursor-pointer p-1 text-primary/80 transition-colors hover:text-brand-red"
               >
                 <ChevronDown
-                  className={cn("size-4 transition-transform duration-200", coursesOpen && "rotate-180")}
+                  className={cn(
+                    "size-4 transition-transform duration-200",
+                    coursesOpen && "rotate-180",
+                  )}
                   aria-hidden="true"
                 />
               </button>
@@ -192,7 +195,10 @@ export function Header() {
       </div>
 
       {mobileOpen ? (
-        <nav className="border-t border-border bg-background px-4 py-4 lg:hidden" aria-label="Mobile">
+        <nav
+          className="border-t border-border bg-background px-4 py-4 lg:hidden"
+          aria-label="Mobile"
+        >
           <div className="flex flex-col gap-1">
             {[
               { href: "/", label: "Home" },
@@ -231,7 +237,10 @@ function MenuList({
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <ul className="w-[320px] border border-white/20 bg-primary" onMouseLeave={() => setOpenIndex(null)}>
+    <ul
+      className="w-[320px] border border-white/20 bg-primary"
+      onMouseLeave={() => setOpenIndex(null)}
+    >
       {items.map((item, index) => {
         const active = openIndex === index;
         return (
@@ -246,7 +255,9 @@ function MenuList({
               )}
             >
               <span>{item.name}</span>
-              {item.children ? <ChevronRight className="size-4 shrink-0" aria-hidden="true" /> : null}
+              {item.children ? (
+                <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
+              ) : null}
             </Link>
             {item.children && active ? (
               <div className="absolute left-full top-0 z-50" style={{ marginTop: 0 }}>

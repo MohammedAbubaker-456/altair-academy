@@ -97,8 +97,8 @@ export function CareersContent() {
               BUILD YOUR CAREER WITH US
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/75">
-              Join a team of practising inspectors and engineers who train the people keeping critical assets
-              safe across the region.
+              Join a team of practising inspectors and engineers who train the people keeping
+              critical assets safe across the region.
             </p>
           </div>
         </section>
@@ -111,10 +111,10 @@ export function CareersContent() {
               <span className="block text-brand-red">every certified inspector</span>
             </h2>
             <p className="text-base text-muted-foreground">
-              Come, be part of our team at Altair Academy. Bring your innovative ideas, ingenuity and
-              determination to make a difference. Across industries and around the globe, we work with
-              exceptional people and leading companies — and we help our students become the next and best
-              versions of themselves.
+              Come, be part of our team at Altair Academy. Bring your innovative ideas, ingenuity
+              and determination to make a difference. Across industries and around the globe, we
+              work with exceptional people and leading companies — and we help our students become
+              the next and best versions of themselves.
             </p>
           </div>
 
@@ -135,7 +135,10 @@ export function CareersContent() {
                 key={perk}
                 className="flex gap-3 rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground"
               >
-                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-brand-red" aria-hidden="true" />
+                <CheckCircle2
+                  className="mt-0.5 size-5 shrink-0 text-brand-red"
+                  aria-hidden="true"
+                />
                 {perk}
               </li>
             ))}
@@ -199,11 +202,13 @@ export function CareersContent() {
                 Submit Your Resume
               </h2>
               <p className="mt-4 text-base text-muted-foreground">
-                Don't see a role that matches? Send us your details anyway — we review every application and
-                get in touch when a matching intake or project opens.
+                Don't see a role that matches? Send us your details anyway — we review every
+                application and get in touch when a matching intake or project opens.
               </p>
               <div className="mt-8 rounded-lg border border-border bg-secondary/50 p-6">
-                <p className="text-sm text-muted-foreground">Prefer email? Send your CV directly to</p>
+                <p className="text-sm text-muted-foreground">
+                  Prefer email? Send your CV directly to
+                </p>
                 <a
                   href={`mailto:${contactInfo.email}`}
                   className="mt-1 block font-display text-lg font-bold text-primary hover:text-brand-red"
@@ -228,7 +233,13 @@ export function CareersContent() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="career-email">Email</Label>
-                  <Input id="career-email" name="email" type="email" required placeholder="you@email.com" />
+                  <Input
+                    id="career-email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="you@email.com"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="career-phone">Contact number</Label>
@@ -236,7 +247,11 @@ export function CareersContent() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="career-specialisation">Specialisation</Label>
-                  <Input id="career-specialisation" name="specialisation" placeholder="e.g. UT Level III" />
+                  <Input
+                    id="career-specialisation"
+                    name="specialisation"
+                    placeholder="e.g. UT Level III"
+                  />
                 </div>
               </div>
 

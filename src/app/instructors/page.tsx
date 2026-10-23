@@ -13,7 +13,8 @@ export const metadata: Metadata = {
     "Meet the practising NDT, corrosion, BIM and management system specialists who lead every Altair Academy training programme.",
   openGraph: {
     title: "Leading Instructors — Altair Academy",
-    description: "Practising specialists in NDT, welding, corrosion, BIM and quality leading every Altair class.",
+    description:
+      "Practising specialists in NDT, welding, corrosion, BIM and quality leading every Altair class.",
     type: "website",
   },
   twitter: {
@@ -53,8 +54,8 @@ export default function InstructorsPage() {
               MEET OUR TEAM
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/75">
-              Every Altair programme is taught by a certified practitioner who still works in the discipline
-              they teach — not a lecturer reading from a slide deck.
+              Every Altair programme is taught by a certified practitioner who still works in the
+              discipline they teach — not a lecturer reading from a slide deck.
             </p>
           </div>
         </section>
@@ -107,7 +108,9 @@ export default function InstructorsPage() {
                     </h2>
                     <p className="eyebrow mt-2">{person.role}</p>
                     <span className="mt-4 block h-px w-16 bg-brand-red/60" aria-hidden="true" />
-                    <p className="mt-5 text-base leading-relaxed text-muted-foreground">{person.bio}</p>
+                    <p className="mt-5 text-base leading-relaxed text-muted-foreground">
+                      {person.bio}
+                    </p>
                     <ul className="mt-6 flex flex-wrap gap-2">
                       {person.expertise.map((item) => (
                         <li

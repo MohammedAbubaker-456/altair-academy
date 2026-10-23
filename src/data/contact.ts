@@ -4,6 +4,7 @@ export const contactInfo = {
   phoneHref: "+601172633456",
   whatsapp: "601172633456",
   email: "anna@altair.academy",
-  address: "129 & 129-01, Jalan Sierra Perdana 4, Taman Sierra Perdana, 81750 Masai, Johor Malaysia",
+  address:
+    "129 & 129-01, Jalan Sierra Perdana 4, Taman Sierra Perdana, 81750 Masai, Johor Malaysia",
   hours: "Mon – Fri, 9:00am – 6:00pm (SST)",
 };

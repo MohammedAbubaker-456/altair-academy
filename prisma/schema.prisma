@@ -1,0 +1,130 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum NewsKind {
+  FEATURED
+  STORY
+  PICK
+}
+
+enum TeamPlacement {
+  MANAGEMENT
+  INSTRUCTOR
+}
+
+model AdminUser {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model LoginAttempt {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  key         String   @unique
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+}
+
+model MigrationLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String   @unique
+  appliedAt DateTime @default(now())
+}
+
+model Category {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug      String   @unique
+  name      String
+  short     String
+  order     Int      @default(0)
+  status    Status   @default(ACTIVE)
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Course {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  slug         String    @unique
+  title        String
+  image        String?
+  categoryId   String    @db.ObjectId
+  category     Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  level        String?
+  duration     String
+  price        String
+  summary      String
+  isFeatured   Boolean   @default(false)
+  order        Int       @default(0)
+  status       Status    @default(ACTIVE)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status, order])
+  @@index([categoryId])
+}
+
+model TeamMember {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  slug            String          @unique
+  name            String
+  instructorName  String?
+  role            String
+  instructorRole  String?
+  shortBio        String
+  fullBio         String?
+  expertise       String[]
+  image           String?
+  placements      TeamPlacement[]
+  managementOrder Int             @default(0)
+  instructorOrder Int             @default(0)
+  status          Status          @default(ACTIVE)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([status, managementOrder])
+  @@index([status, instructorOrder])
+}
+
+model NewsPost {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String   @unique
+  title       String
+  excerpt     String
+  kind        NewsKind
+  category    String?
+  tags        String[]
+  image       String?
+  publishedAt DateTime
+  status      Status   @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, kind, publishedAt])
+}
+
+model Faq {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  question  String
+  answer    String
+  order     Int      @default(0)
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, order])
+}

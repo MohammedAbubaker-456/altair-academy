@@ -6,7 +6,9 @@ import nextPlugin from "@next/eslint-plugin-next";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: [".next", "dist", ".output", ".vinxi", "node_modules", "next-env.d.ts"] },
+  {
+    ignores: [".next", "dist", ".output", ".vinxi", "node_modules", "next-env.d.ts", "deploy"],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

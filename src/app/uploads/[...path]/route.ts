@@ -13,6 +13,8 @@ import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
 
+export const dynamic = "force-dynamic";
+
 const MIME_MAP: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",

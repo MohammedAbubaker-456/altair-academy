@@ -14,6 +14,10 @@ import path from "node:path";
 import { z } from "zod";
 
 const isProduction = process.env["NODE_ENV"] === "production";
+const isBuildPhase =
+  process.env["NEXT_PHASE"] === "phase-production-build" ||
+  process.env["npm_lifecycle_event"] === "build" ||
+  process.env["NEXT_IS_BUILD"] === "true";
 
 const envSchema = z
   .object({
@@ -37,7 +41,8 @@ const envSchema = z
   .superRefine((data, ctx) => {
     const rawUploadDir = data.UPLOAD_DIR?.trim();
 
-    if (isProduction) {
+    // Enforce production UPLOAD_DIR constraints during runtime on the server
+    if (isProduction && !isBuildPhase) {
       if (!rawUploadDir) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,

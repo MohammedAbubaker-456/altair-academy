@@ -3,8 +3,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// -----------------------------------------------------------------------------
+// PRISMA CLIENT GENERATOR & TARGET PLATFORMS
+// -----------------------------------------------------------------------------
+// Server target placeholder: "rhel-openssl-3.0.x" (GoDaddy Web Hosting Deluxe / CloudLinux).
+// Update this single place if server SSH facts (openssl version) require a different target.
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 enum Status {

@@ -1,5 +1,16 @@
+/**
+ * Public Training Calendar Page
+ *
+ * Server Component rendering the 2026 course schedule.
+ *
+ * Location: src/app/calendar/page.tsx
+ * Type: Server Component
+ */
+
 import type { Metadata } from "next";
 import { CalendarContent } from "@/components/site/CalendarContent";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "2026 Training Calendar | Altair Academy",

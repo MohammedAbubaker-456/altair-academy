@@ -1,8 +1,19 @@
+/**
+ * Public Website Footer Component
+ *
+ * Server Component rendering database-backed contact details, social links,
+ * course navigation, and dynamic footer legal pages.
+ *
+ * Location: src/components/site/Footer.tsx
+ * Type: Server Component
+ */
+
 import Link from "next/link";
 import Image from "next/image";
 import {
   Clock,
   Facebook,
+  Globe,
   Instagram,
   Linkedin,
   Mail,
@@ -11,9 +22,10 @@ import {
   Twitter,
   Youtube,
 } from "lucide-react";
-import { contactInfo } from "@/data/site";
 import { courseMenu } from "@/data/menu";
 import logo from "@/assets/altair-academy-logo.png";
+import { getContactDetails } from "@/server/queries/contact";
+import { getFooterLegalLinks } from "@/server/queries/legal";
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -21,16 +33,49 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const socials = [
-  { label: "Facebook", icon: Facebook, href: "https://facebook.com" },
-  { label: "LinkedIn", icon: Linkedin, href: "https://linkedin.com" },
-  { label: "Instagram", icon: Instagram, href: "https://instagram.com" },
-  { label: "X", icon: Twitter, href: "https://x.com" },
-  { label: "YouTube", icon: Youtube, href: "https://youtube.com" },
-  { label: "WhatsApp", icon: WhatsAppIcon, href: `https://wa.me/${contactInfo.whatsapp}` },
-];
+function getSocialIcon(label: string | null) {
+  const norm = (label ?? "").toLowerCase();
+  if (norm.includes("facebook")) return Facebook;
+  if (norm.includes("linkedin")) return Linkedin;
+  if (norm.includes("instagram")) return Instagram;
+  if (norm.includes("twitter") || norm === "x") return Twitter;
+  if (norm.includes("youtube")) return Youtube;
+  if (norm.includes("whatsapp")) return WhatsAppIcon;
+  return Globe;
+}
 
-export function Footer() {
+export async function Footer() {
+  const [contactDetails, legalLinks] = await Promise.all([
+    getContactDetails(),
+    getFooterLegalLinks(),
+  ]);
+
+  // Build social icons list: active SOCIAL entries + WHATSAPP entry if available
+  const socialItems = contactDetails.SOCIAL.map((s) => ({
+    key: s.id,
+    label: s.label || s.value,
+    href: s.link || s.value,
+    Icon: getSocialIcon(s.label || s.value),
+  }));
+
+  const hasWhatsAppSocial = socialItems.some((s) => s.label.toLowerCase().includes("whatsapp"));
+  const wa = contactDetails.WHATSAPP[0];
+  if (!hasWhatsAppSocial && wa) {
+    const waDigits = wa.link || wa.value;
+    socialItems.push({
+      key: wa.id,
+      label: wa.label || "WhatsApp",
+      href: `https://wa.me/${waDigits}`,
+      Icon: WhatsAppIcon,
+    });
+  }
+
+  const hasContactInfo =
+    contactDetails.ADDRESS.length > 0 ||
+    contactDetails.PHONE.length > 0 ||
+    contactDetails.EMAIL.length > 0 ||
+    contactDetails.HOURS.length > 0;
+
   return (
     <footer className="bg-navy-deep text-primary-foreground">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
@@ -49,48 +94,70 @@ export function Footer() {
               Accredited technical training in inspection, integrity and management systems —
               delivered by practising industry specialists.
             </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {socials.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  aria-label={social.label}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex size-9 items-center justify-center rounded-full bg-primary-foreground/10 transition-colors hover:bg-brand-red"
-                >
-                  <social.icon className="size-4" />
-                </a>
-              ))}
-            </div>
+            {socialItems.length > 0 && (
+              <div className="mt-5 flex flex-wrap gap-2">
+                {socialItems.map((social) => {
+                  const Icon = social.Icon;
+                  return (
+                    <a
+                      key={social.key}
+                      href={social.href}
+                      aria-label={social.label}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex size-9 items-center justify-center rounded-full bg-primary-foreground/10 transition-colors hover:bg-brand-red"
+                    >
+                      <Icon className="size-4" />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div>
             <h3 className="font-display text-sm font-bold tracking-widest uppercase">
               Get in touch
             </h3>
-            <ul className="mt-4 space-y-3 text-sm text-primary-foreground/75">
-              <li className="flex gap-3">
-                <MapPin className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
-                <span>{contactInfo.address}</span>
-              </li>
-              <li className="flex gap-3">
-                <Phone className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
-                <a href={`tel:${contactInfo.phoneHref}`} className="hover:text-primary-foreground">
-                  {contactInfo.phoneDisplay}
-                </a>
-              </li>
-              <li className="flex gap-3">
-                <Mail className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
-                <a href={`mailto:${contactInfo.email}`} className="hover:text-primary-foreground">
-                  {contactInfo.email}
-                </a>
-              </li>
-              <li className="flex gap-3">
-                <Clock className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
-                <span>{contactInfo.hours}</span>
-              </li>
-            </ul>
+            {hasContactInfo ? (
+              <ul className="mt-4 space-y-3 text-sm text-primary-foreground/75">
+                {contactDetails.ADDRESS.map((addr) => (
+                  <li key={addr.id} className="flex gap-3">
+                    <MapPin className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
+                    <span>{addr.value}</span>
+                  </li>
+                ))}
+                {contactDetails.PHONE.map((phone) => (
+                  <li key={phone.id} className="flex gap-3">
+                    <Phone className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
+                    <a
+                      href={`tel:${phone.link || phone.value}`}
+                      className="hover:text-primary-foreground"
+                    >
+                      {phone.value}
+                    </a>
+                  </li>
+                ))}
+                {contactDetails.EMAIL.map((email) => (
+                  <li key={email.id} className="flex gap-3">
+                    <Mail className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
+                    <a href={`mailto:${email.value}`} className="hover:text-primary-foreground">
+                      {email.value}
+                    </a>
+                  </li>
+                ))}
+                {contactDetails.HOURS.map((hours) => (
+                  <li key={hours.id} className="flex gap-3">
+                    <Clock className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
+                    <span>{hours.value}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm text-primary-foreground/60 italic">
+                Contact information unavailable.
+              </p>
+            )}
           </div>
 
           <div>
@@ -149,13 +216,12 @@ export function Footer() {
             <br />
             All Rights Reserved
           </p>
-          <div className="flex gap-5">
-            <Link href="/privacy" className="hover:text-primary-foreground">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:text-primary-foreground">
-              Terms of Service
-            </Link>
+          <div className="flex flex-wrap gap-5">
+            {legalLinks.map((link) => (
+              <Link key={link.id} href={link.href} className="hover:text-primary-foreground">
+                {link.title}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

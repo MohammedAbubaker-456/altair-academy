@@ -49,3 +49,27 @@ export async function getNewsFeed() {
     picks,
   };
 }
+
+export async function getNewsPostBySlug(slug: string) {
+  return db.newsPost.findFirst({
+    where: {
+      slug,
+      status: "ACTIVE",
+    },
+  });
+}
+
+export async function getLatestNewsExcluding(id: string, limit = 3) {
+  return db.newsPost.findMany({
+    where: {
+      status: "ACTIVE",
+      id: {
+        not: id,
+      },
+    },
+    orderBy: {
+      publishedAt: "desc",
+    },
+    take: limit,
+  });
+}

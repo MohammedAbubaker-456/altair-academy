@@ -32,6 +32,19 @@ const envSchema = z
       .string({ required_error: "AUTH_SECRET is required" })
       .min(32, "AUTH_SECRET must be at least 32 characters long for secure JWT signing"),
     UPLOAD_DIR: z.string().optional(),
+    SITE_URL: z
+      .string()
+      .trim()
+      .optional()
+      .refine((val) => {
+        if (!val) return true;
+        try {
+          const url = new URL(val);
+          return url.protocol === "http:" || url.protocol === "https:";
+        } catch {
+          return false;
+        }
+      }, "SITE_URL must be a valid absolute URL (e.g. 'https://altair.academy')"),
     ADMIN_EMAIL: z.string().email("ADMIN_EMAIL must be a valid email").optional(),
     ADMIN_PASSWORD: z
       .string()
@@ -82,6 +95,7 @@ export interface AppEnv {
   DATABASE_URL: string;
   AUTH_SECRET: string;
   UPLOAD_DIR: string;
+  SITE_URL?: string | undefined;
   ADMIN_EMAIL?: string | undefined;
   ADMIN_PASSWORD?: string | undefined;
 }
@@ -113,6 +127,7 @@ function validateEnv(): AppEnv {
     DATABASE_URL: parsed.DATABASE_URL,
     AUTH_SECRET: parsed.AUTH_SECRET,
     UPLOAD_DIR: resolvedUploadDir,
+    ...(parsed.SITE_URL ? { SITE_URL: parsed.SITE_URL.replace(/\/+$/, "") } : {}),
     ...(parsed.ADMIN_EMAIL ? { ADMIN_EMAIL: parsed.ADMIN_EMAIL } : {}),
     ...(parsed.ADMIN_PASSWORD ? { ADMIN_PASSWORD: parsed.ADMIN_PASSWORD } : {}),
   };

@@ -22,7 +22,10 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const siteUrl = process.env["SITE_URL"]?.trim();
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
   title: "Altair Academy — Accredited Technical Training",
   description:
     "Accredited NDT, corrosion, BIM and management system training led by practising industry specialists.",

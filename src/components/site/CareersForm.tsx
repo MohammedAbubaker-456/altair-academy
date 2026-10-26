@@ -12,7 +12,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -76,12 +76,17 @@ export function CareersForm() {
           onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
         />
       </div>
-
+      {/* 
       <Button type="submit" variant="cta" size="lg" className="mt-6 w-full text-base">
         Submit Application
-      </Button>
-
-      {submitted ? (
+      </Button> */}
+      <button
+        type="submit"
+        className="mt-6 w-full rounded-md bg-red-600 px-8 py-2 text-base text-white"
+      >
+        Submit Application
+      </button>
+      {/* {submitted ? (
         <p
           role="status"
           className="mt-4 flex items-center gap-2 text-sm font-medium text-brand-red"
@@ -89,7 +94,34 @@ export function CareersForm() {
           <CheckCircle2 className="size-4" aria-hidden="true" />
           Thanks — your application has been noted. Our team will be in touch shortly.
         </p>
-      ) : null}
+      ) : null} */}
+      {submitted && (
+        <p className="mt-4 text-sm text-green-600">
+          Application submitted successfully!
+        </p>
+      )}
     </form>
   );
+
 }
+// "use client";
+
+// export function CareersForm() {
+//   return (
+//     <form
+//       onSubmit={(e) => {
+//         e.preventDefault();
+//         console.log("Submitted");
+//       }}
+//     >
+//       <input
+//         name="name"
+//         placeholder="Full name"
+//       />
+
+//       <button type="submit">
+//         Submit
+//       </button>
+//     </form>
+//   );
+// }

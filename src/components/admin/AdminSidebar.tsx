@@ -1,8 +1,8 @@
 /**
  * Admin Dashboard Sidebar Navigation
  *
- * Renders the primary navigation links with active state styling,
- * brand badges, and links to public frontend.
+ * Renders categorized navigation links (Content & Site Settings),
+ * brand badges, active state styling, and public frontend links.
  *
  * Location: src/components/admin/AdminSidebar.tsx
  * Type: Client Component ("use client")
@@ -21,6 +21,9 @@ import {
   Users,
   Newspaper,
   HelpCircle,
+  Briefcase,
+  PhoneCall,
+  FileText,
   Settings,
   ExternalLink,
 } from "lucide-react";
@@ -30,23 +33,30 @@ interface AdminSidebarProps {
   className?: string | undefined;
 }
 
-const navItems = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
+const contentNavItems = [
   { href: "/admin/courses", label: "Courses", icon: GraduationCap },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
   { href: "/admin/team", label: "Team & Instructors", icon: Users },
   { href: "/admin/news", label: "News & Insights", icon: Newspaper },
   { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
+  { href: "/admin/careers", label: "Careers", icon: Briefcase },
+];
+
+const settingsNavItems = [
+  { href: "/admin/contact", label: "Contact Details", icon: PhoneCall },
+  { href: "/admin/legal", label: "Legal Pages", icon: FileText },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export function AdminSidebar({ onItemClick, className }: AdminSidebarProps) {
   const pathname = usePathname();
 
+  const isOverviewActive = pathname === "/admin";
+
   return (
     <aside
       className={cn(
-        "flex h-full flex-col justify-between border-r border-border bg-card p-4",
+        "flex h-full flex-col justify-between border-r border-border bg-card p-4 overflow-y-auto",
         className,
       )}
     >
@@ -66,36 +76,89 @@ export function AdminSidebar({ onItemClick, className }: AdminSidebarProps) {
           </div>
         </div>
 
-        {/* Navigation items */}
-        <nav className="space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+        {/* Navigation Sections */}
+        <nav className="space-y-5">
+          {/* Overview */}
+          <div>
+            <Link
+              href="/admin"
+              {...(onItemClick ? { onClick: onItemClick } : {})}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                isOverviewActive
+                  ? "bg-navy text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <LayoutDashboard className="h-4 w-4 shrink-0" />
+              <span>Overview</span>
+            </Link>
+          </div>
 
-            const clickProps = onItemClick ? { onClick: onItemClick } : {};
+          {/* Content Group */}
+          <div>
+            <span className="px-3 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase">
+              Content
+            </span>
+            <div className="mt-1 space-y-1">
+              {contentNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname.startsWith(item.href);
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                {...clickProps}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-navy text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    {...(onItemClick ? { onClick: onItemClick } : {})}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-navy text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Site Settings Group */}
+          <div>
+            <span className="px-3 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase">
+              Site Settings
+            </span>
+            <div className="mt-1 space-y-1">
+              {settingsNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname.startsWith(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    {...(onItemClick ? { onClick: onItemClick } : {})}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-navy text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </nav>
       </div>
 
       {/* External Public Site link */}
-      <div className="border-t border-border pt-4">
+      <div className="border-t border-border pt-4 mt-6">
         <Link
           href="/"
           target="_blank"

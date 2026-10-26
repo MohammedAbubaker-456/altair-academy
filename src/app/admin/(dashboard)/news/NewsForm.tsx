@@ -33,7 +33,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, ArrowLeft, X, Plus } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { MarkdownPreview } from "@/components/site/MarkdownContent";
+import { Loader2, ArrowLeft, X, Plus, ExternalLink, AlertTriangle } from "lucide-react";
 import type { NewsKind } from "@prisma/client";
 
 interface NewsPostInitialData {
@@ -41,6 +43,7 @@ interface NewsPostInitialData {
   title: string;
   slug: string;
   excerpt: string;
+  body?: string | null;
   kind: NewsKind;
   category: string | null;
   tags: string[];
@@ -76,6 +79,7 @@ export function NewsForm({ initialData }: NewsFormProps) {
       title: initialData?.title ?? "",
       slug: initialData?.slug ?? "",
       excerpt: initialData?.excerpt ?? "",
+      body: initialData?.body ?? "",
       kind: initialData?.kind ?? "STORY",
       category: initialData?.category ?? null,
       tags: initialData?.tags ?? [],
@@ -87,6 +91,9 @@ export function NewsForm({ initialData }: NewsFormProps) {
 
   const selectedKind = watch("kind");
   const currentTags = watch("tags") || [];
+  const currentSlug = watch("slug") || "";
+  const currentStatus = watch("status");
+  const currentBody = watch("body") || "";
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue("title", e.target.value, { shouldValidate: true });
@@ -180,13 +187,41 @@ export function NewsForm({ initialData }: NewsFormProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="news-slug">URL Slug</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="news-slug">URL Slug</Label>
+                  {currentSlug && currentStatus === "ACTIVE" && (
+                    <Link
+                      href={`/news/${currentSlug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-brand-red hover:underline"
+                    >
+                      <span>View live</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </Link>
+                  )}
+                </div>
                 <Input
                   id="news-slug"
                   placeholder="e.g. next-generation-phased-array"
                   {...register("slug")}
                 />
                 {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
+                {initialData && currentSlug !== initialData.slug && (
+                  <div className="flex items-start gap-1.5 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-2 rounded border border-amber-200 dark:border-amber-900/50">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                    <span>
+                      Changing the slug of a published post will break existing bookmarks or links
+                      pointing to /news/{initialData.slug}.
+                    </span>
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  Public URL:{" "}
+                  <code className="bg-muted px-1 py-0.5 rounded text-[11px]">
+                    /news/{currentSlug || "slug"}
+                  </code>
+                </p>
               </div>
 
               <div className="space-y-1.5">
@@ -285,6 +320,73 @@ export function NewsForm({ initialData }: NewsFormProps) {
                 <p className="text-xs text-destructive">{errors.excerpt.message}</p>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Article Body (Markdown) */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-lg font-display">Body (Markdown)</CardTitle>
+              <CardDescription>
+                Full article content rendered with safe Markdown formatting on the detail page.
+              </CardDescription>
+            </div>
+            <span className="text-xs text-muted-foreground font-mono">
+              {currentBody.length.toLocaleString()} / 50,000
+            </span>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Tabs defaultValue="write" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 max-w-[240px]">
+                <TabsTrigger value="write">Write</TabsTrigger>
+                <TabsTrigger value="preview">Preview</TabsTrigger>
+              </TabsList>
+              <TabsContent value="write" className="space-y-3 pt-2">
+                <Textarea
+                  id="news-body"
+                  rows={14}
+                  placeholder="Write article content in Markdown here...&#10;&#10;## Section Heading&#10;&#10;Detailed explanation and technical findings..."
+                  className="font-mono text-sm leading-relaxed"
+                  {...register("body")}
+                />
+                {errors.body && <p className="text-xs text-destructive">{errors.body.message}</p>}
+
+                <div className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground space-y-1.5">
+                  <p className="font-semibold text-foreground">Markdown Cheat Sheet:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 font-mono text-[11px]">
+                    <div>
+                      <code>## Heading 2</code>, <code>### Heading 3</code>
+                    </div>
+                    <div>
+                      <code>**Bold text**</code>, <code>*Italic text*</code>
+                    </div>
+                    <div>
+                      <code>- Bullet list item</code>
+                    </div>
+                    <div>
+                      <code>1. Numbered list item</code>
+                    </div>
+                    <div>
+                      <code>[Link text](https://example.com)</code>
+                    </div>
+                    <div>
+                      <code>&gt; Blockquote text</code>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/80 italic pt-1">
+                    Note: Raw HTML and images are sanitized for security. Links open safely in new
+                    tabs.
+                  </p>
+                </div>
+              </TabsContent>
+              <TabsContent value="preview" className="pt-2">
+                <MarkdownPreview
+                  content={currentBody}
+                  placeholder="No article body written yet. Switch to the Write tab to draft Markdown."
+                />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 

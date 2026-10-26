@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type ComponentProps } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type FormEvent } from "react";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
+
 import { ChevronDown, ChevronRight, Menu, Search, X } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { courseMenu, type CourseMenuItem } from "@/data/menu";
@@ -21,7 +24,9 @@ function NavLink({
   ...props
 }: ComponentProps<typeof Link> & { exact?: boolean }) {
   const pathname = usePathname();
+
   const hrefString = typeof href === "string" ? href : (href.pathname ?? "");
+
   const active = exact
     ? pathname === hrefString
     : pathname === hrefString || pathname.startsWith(hrefString + "/");
@@ -44,41 +49,87 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
+
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+
   const router = useRouter();
 
+  // Courses dropdown outside click and Escape
   useEffect(() => {
     if (!coursesOpen) return;
+
     const onPointerDown = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setCoursesOpen(false);
       }
     };
+
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setCoursesOpen(false);
+      if (event.key === "Escape") {
+        setCoursesOpen(false);
+      }
     };
+
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKey);
+
     return () => {
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKey);
     };
   }, [coursesOpen]);
 
+  // Search popup focus, outside click, and Escape
   useEffect(() => {
-    if (searchOpen) searchRef.current?.focus();
+    if (!searchOpen) return;
+
+    searchRef.current?.focus();
+
+    const onPointerDown = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setSearchOpen(false);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [searchOpen]);
 
-  const submitSearch = (event: React.FormEvent) => {
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
+      searchRef.current?.focus();
+      return;
+    }
+
     setSearchOpen(false);
-    router.push(`/search?q=${encodeURIComponent(query)}`);
+
+    router.push(`/search?q=${encodeURIComponent(trimmedQuery)}`);
   };
 
   return (
     <header className="relative z-50 w-full border-b border-border bg-background">
       <div className="mx-auto flex h-20 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
         <Link href="/" className="shrink-0">
           <Image
             src={logo}
@@ -90,14 +141,17 @@ export function Header() {
           />
         </Link>
 
+        {/* Desktop Navigation */}
         <nav className="ml-auto hidden items-center gap-6 lg:flex" aria-label="Main">
           <NavLink href="/" exact className={navLinkClass}>
             Home
           </NavLink>
+
           <NavLink href="/about" className={navLinkClass}>
             About Us
           </NavLink>
 
+          {/* Courses Dropdown */}
           <div
             className="relative"
             ref={dropdownRef}
@@ -112,6 +166,7 @@ export function Header() {
               >
                 Our Courses
               </NavLink>
+
               <button
                 type="button"
                 onClick={() => setCoursesOpen((open) => !open)}
@@ -129,6 +184,7 @@ export function Header() {
                 />
               </button>
             </span>
+
             {coursesOpen ? (
               <div className="absolute left-0 top-full z-50 w-[320px] shadow-2xl">
                 <MenuList items={courseMenu} onNavigate={() => setCoursesOpen(false)} />
@@ -139,49 +195,79 @@ export function Header() {
           <NavLink href="/instructors" className={navLinkClass}>
             Instructors
           </NavLink>
+
           <NavLink href="/careers" className={navLinkClass}>
             Careers
           </NavLink>
+
           <NavLink href="/news" className={navLinkClass}>
             News
           </NavLink>
         </nav>
 
+        {/* Header Actions */}
+
+        {/* Header Actions */}
         <div className="ml-auto flex items-center gap-3 lg:ml-0">
-          {searchOpen ? (
-            <form onSubmit={submitSearch} className="flex items-center gap-1" role="search">
-              <input
-                ref={searchRef}
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search courses…"
-                aria-label="Search courses"
-                className="h-9 w-40 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-primary sm:w-56"
-              />
-              <button
-                type="button"
-                aria-label="Close search"
-                onClick={() => setSearchOpen(false)}
-                className="cursor-pointer p-2 text-primary/70 hover:text-brand-red"
-              >
-                <X className="size-4" />
-              </button>
-            </form>
-          ) : (
+          {/* Search Container */}
+          <div className="relative shrink-0">
+            {/* Search Icon */}
             <button
               type="button"
               aria-label="Search courses"
-              onClick={() => setSearchOpen(true)}
-              className="cursor-pointer rounded-md p-2 text-primary/70 transition-colors hover:bg-secondary hover:text-brand-red"
+              aria-expanded={searchOpen}
+              onClick={() => setSearchOpen((open) => !open)}
+              className="relative z-10 cursor-pointer rounded-md p-2 text-primary/70 transition-colors hover:bg-secondary hover:text-brand-red"
             >
               <Search className="size-[18px]" />
             </button>
-          )}
 
+            {/* Search Popup */}
+            {searchOpen && (
+              <div className="absolute right-0 top-full z-[9999] mt-3 w-max">
+                <form
+                  onSubmit={submitSearch}
+                  role="search"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-background p-2 shadow-xl"
+                >
+                  <input
+                    ref={searchRef}
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Search courses..."
+                    aria-label="Search courses"
+                    className="h-9 w-48 rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-primary sm:w-56"
+                  />
+
+                  {/* Submit Search */}
+                  <button
+                    type="submit"
+                    aria-label="Submit search"
+                    className="cursor-pointer rounded-md p-2 text-primary/70 hover:bg-secondary hover:text-brand-red"
+                  >
+                    <Search className="size-4" />
+                  </button>
+
+                  {/* Close Search */}
+                  <button
+                    type="button"
+                    aria-label="Close search"
+                    onClick={() => setSearchOpen(false)}
+                    className="cursor-pointer rounded-md p-2 text-primary/70 hover:bg-secondary hover:text-brand-red"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+
+          {/* Contact Us */}
           <Button variant="cta" size="default" className="hidden text-base sm:inline-flex" asChild>
             <Link href="/contact">Contact Us</Link>
           </Button>
 
+          {/* Mobile Menu */}
           <button
             type="button"
             aria-label="Toggle menu"
@@ -194,6 +280,7 @@ export function Header() {
         </div>
       </div>
 
+      {/* Mobile Navigation */}
       {mobileOpen ? (
         <nav
           className="border-t border-border bg-background px-4 py-4 lg:hidden"
@@ -243,6 +330,7 @@ function MenuList({
     >
       {items.map((item, index) => {
         const active = openIndex === index;
+
         return (
           <li key={item.name} className="relative border-b border-white/70 last:border-b-0">
             <Link
@@ -255,12 +343,14 @@ function MenuList({
               )}
             >
               <span>{item.name}</span>
+
               {item.children ? (
                 <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
               ) : null}
             </Link>
+
             {item.children && active ? (
-              <div className="absolute left-full top-0 z-50" style={{ marginTop: 0 }}>
+              <div className="absolute left-full top-0 z-50">
                 <MenuList items={item.children} onNavigate={onNavigate} depth={depth + 1} />
               </div>
             ) : null}

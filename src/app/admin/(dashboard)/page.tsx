@@ -20,6 +20,9 @@ import {
   Users,
   Newspaper,
   HelpCircle,
+  Briefcase,
+  PhoneCall,
+  FileText,
   Plus,
   ArrowRight,
   ShieldCheck,
@@ -80,6 +83,30 @@ export default async function AdminDashboardPage() {
       newHref: null,
       description: "Frequently asked questions for prospective students",
     },
+    {
+      title: "Careers",
+      stats: stats.careers,
+      icon: Briefcase,
+      href: "/admin/careers",
+      newHref: "/admin/careers/new",
+      description: "Job openings and instructor opportunities",
+    },
+    {
+      title: "Contact Details",
+      stats: stats.contact,
+      icon: PhoneCall,
+      href: "/admin/contact",
+      newHref: null,
+      description: "Phone numbers, emails, addresses, hours, and social media",
+    },
+    {
+      title: "Legal Pages",
+      stats: stats.legal,
+      icon: FileText,
+      href: "/admin/legal",
+      newHref: "/admin/legal/new",
+      description: "Privacy policy, terms of service, and custom legal pages",
+    },
   ];
 
   return (
@@ -96,7 +123,7 @@ export default async function AdminDashboardPage() {
         </div>
         <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1 self-start sm:self-auto">
           <ShieldCheck className="h-3.5 w-3.5" />
-          <span>Database & Session Secure</span>
+          <span>Database &amp; Session Secure</span>
         </div>
       </div>
 

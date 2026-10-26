@@ -32,14 +32,8 @@ export interface LegalPageDTO {
   updatedAt: Date;
 }
 
-/**
- * Returns canonical public path for a legal page slug.
- */
-export function legalHref(slug: string): string {
-  if (slug === "privacy") return "/privacy";
-  if (slug === "terms") return "/terms";
-  return `/legal/${slug}`;
-}
+import { legalHref } from "@/lib/legal";
+export { legalHref };
 
 /**
  * Fetches active legal pages marked to appear in the footer.

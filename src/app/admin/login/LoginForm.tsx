@@ -74,7 +74,7 @@ export function LoginForm() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="admin@altair.academy"
+                placeholder="Enter Your Email"
                 className="pl-9"
                 disabled={isPending}
                 {...register("email")}
@@ -91,7 +91,7 @@ export function LoginForm() {
                 id="password"
                 type="password"
                 autoComplete="current-password"
-                placeholder="••••••••••••"
+                placeholder="Enter Your Password"
                 className="pl-9"
                 disabled={isPending}
                 {...register("password")}

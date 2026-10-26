@@ -22,6 +22,7 @@ export const newsPostSchema = z.object({
       "Slug must contain only lowercase alphanumeric characters and dashes",
     ),
   excerpt: z.string().trim().min(1, "Excerpt is required").max(1000),
+  body: z.string().max(50000, "Body must not exceed 50,000 characters").nullable().optional(),
   kind: z.enum(["FEATURED", "STORY", "PICK"]),
   category: z.string().trim().max(100).nullable(),
   tags: z.array(z.string().trim().min(1)),

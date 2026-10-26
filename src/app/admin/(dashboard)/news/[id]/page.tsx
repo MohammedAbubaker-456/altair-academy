@@ -41,6 +41,7 @@ export default async function AdminEditNewsPostPage({ params }: AdminEditNewsPos
         title: post.title,
         slug: post.slug,
         excerpt: post.excerpt,
+        body: post.body,
         kind: post.kind,
         category: post.category,
         tags: post.tags,

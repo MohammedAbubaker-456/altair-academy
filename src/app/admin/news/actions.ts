@@ -33,7 +33,7 @@ export async function createNewsPostAction(input: unknown): Promise<NewsActionRe
     };
   }
 
-  const { title, slug, excerpt, kind, category, tags, image, publishedAt, status } =
+  const { title, slug, excerpt, body, kind, category, tags, image, publishedAt, status } =
     parseResult.data;
 
   try {
@@ -42,6 +42,7 @@ export async function createNewsPostAction(input: unknown): Promise<NewsActionRe
         title,
         slug,
         excerpt,
+        body: body || null,
         kind,
         category: category || null,
         tags,
@@ -85,7 +86,7 @@ export async function updateNewsPostAction(id: string, input: unknown): Promise<
     return { ok: false, message: "News post not found" };
   }
 
-  const { title, slug, excerpt, kind, category, tags, image, publishedAt, status } =
+  const { title, slug, excerpt, body, kind, category, tags, image, publishedAt, status } =
     parseResult.data;
 
   try {
@@ -95,6 +96,7 @@ export async function updateNewsPostAction(id: string, input: unknown): Promise<
         title,
         slug,
         excerpt,
+        body: body || null,
         kind,
         category: category || null,
         tags,

@@ -18,6 +18,22 @@ enum Status {
   INACTIVE
 }
 
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum ContactType {
+  ADDRESS
+  PHONE
+  WHATSAPP
+  EMAIL
+  HOURS
+  SOCIAL
+}
+
 enum NewsKind {
   FEATURED
   STORY
@@ -111,6 +127,7 @@ model NewsPost {
   slug        String   @unique
   title       String
   excerpt     String
+  body        String?
   kind        NewsKind
   category    String?
   tags        String[]
@@ -134,3 +151,49 @@ model Faq {
 
   @@index([status, order])
 }
+
+model JobOpening {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  employmentType EmploymentType @default(FULL_TIME)
+  location       String
+  scope          String
+  summary        String
+  order          Int            @default(0)
+  status         Status         @default(ACTIVE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([status, order])
+}
+
+model ContactDetail {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  type      ContactType
+  label     String?
+  value     String
+  link      String?
+  order     Int         @default(0)
+  status    Status      @default(ACTIVE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([status, type, order])
+}
+
+model LegalPage {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug            String   @unique
+  title           String
+  metaDescription String?
+  body            String
+  showInFooter    Boolean  @default(true)
+  isCore          Boolean  @default(false)
+  order           Int      @default(0)
+  status          Status   @default(ACTIVE)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, order])
+}
+

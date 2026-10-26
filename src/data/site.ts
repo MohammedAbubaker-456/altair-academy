@@ -9,7 +9,6 @@
  * Type: Static Data Module
  */
 
-export { contactInfo } from "./contact";
 export { courseMenu, type CourseMenuItem } from "./menu";
 
 export type Category = {

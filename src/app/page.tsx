@@ -36,11 +36,12 @@ import { SectionHeader } from "@/components/site/SectionHeader";
 import { FeaturedCourseCard } from "@/components/site/FeaturedCourseCard";
 import { TeamCard } from "@/components/site/TeamCard";
 import { Testimonials } from "@/components/site/Testimonials";
-import { contactInfo, upcomingSessions } from "@/data/site";
+import { upcomingSessions } from "@/data/site";
 import { getFeaturedCourses } from "@/server/queries/courses";
 import { getActiveCategories } from "@/server/queries/categories";
 import { getManagementTeam } from "@/server/queries/team";
 import { getActiveFaqs } from "@/server/queries/faqs";
+import { getContactInfo } from "@/server/queries/contact";
 import heroImage from "@/assets/hero-classroom.jpg";
 import approachImage from "@/assets/approach-classroom.jpg";
 
@@ -91,11 +92,12 @@ const aboutPoints = [
 ];
 
 export default async function Home() {
-  const [categories, featuredCourses, managementTeam, faqs] = await Promise.all([
+  const [categories, featuredCourses, managementTeam, faqs, contactInfo] = await Promise.all([
     getActiveCategories(),
     getFeaturedCourses(),
     getManagementTeam(),
     getActiveFaqs(),
+    getContactInfo(),
   ]);
 
   return (
@@ -366,22 +368,26 @@ export default async function Home() {
                 <Button variant="cta" className="text-base" asChild>
                   <Link href="/contact">Get Help Choosing</Link>
                 </Button>
-                <a
-                  href={`tel:${contactInfo.phoneHref}`}
-                  className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-card px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary/5"
-                >
-                  <Phone className="size-4 text-brand-red" aria-hidden="true" />
-                  {contactInfo.homepagePhoneDisplay}
-                </a>
-                <a
-                  href={`https://wa.me/${contactInfo.whatsapp}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-card px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary/5"
-                >
-                  <MessageCircle className="size-4 text-brand-red" aria-hidden="true" />
-                  Chat on WhatsApp
-                </a>
+                {contactInfo.phoneHref && contactInfo.homepagePhoneDisplay ? (
+                  <a
+                    href={`tel:${contactInfo.phoneHref}`}
+                    className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-card px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary/5"
+                  >
+                    <Phone className="size-4 text-brand-red" aria-hidden="true" />
+                    {contactInfo.homepagePhoneDisplay}
+                  </a>
+                ) : null}
+                {contactInfo.whatsapp ? (
+                  <a
+                    href={`https://wa.me/${contactInfo.whatsapp}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-card px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary/5"
+                  >
+                    <MessageCircle className="size-4 text-brand-red" aria-hidden="true" />
+                    Chat on WhatsApp
+                  </a>
+                ) : null}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

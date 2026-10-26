@@ -3,7 +3,7 @@
  *
  * Server Component rendering the latest news feed from MongoDB.
  * Features the primary announcement, latest stories grid, and editor's picks.
- * Uses deterministic date formatting via formatNewsDate to prevent hydration drift.
+ * All news cards link directly to their dynamic detail page at /news/[slug].
  *
  * Location: src/app/news/page.tsx
  * Type: Server Component
@@ -16,6 +16,7 @@ import { ArrowRight, CalendarDays } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { SectionHeader } from "@/components/site/SectionHeader";
+import { NewsStoryCard } from "@/components/site/NewsStoryCard";
 import { Button } from "@/components/ui/button";
 import { getNewsFeed } from "@/server/queries/news";
 import { formatNewsDate } from "@/lib/format";
@@ -103,12 +104,19 @@ export default async function NewsPage() {
                   </div>
                   <span className="mt-4 block h-px w-12 bg-brand-red" aria-hidden="true" />
                   <h2 className="mt-5 font-display text-2xl leading-tight font-bold text-primary sm:text-3xl">
-                    {featured.title}
+                    <Link
+                      href={`/news/${featured.slug}`}
+                      className="hover:text-brand-red transition-colors"
+                    >
+                      {featured.title}
+                    </Link>
                   </h2>
                   <p className="mt-4 text-base text-muted-foreground">{featured.excerpt}</p>
-                  <Button variant="cta" size="lg" className="mt-6 text-base">
-                    Read Full Story
-                    <ArrowRight className="size-4" />
+                  <Button variant="cta" size="lg" className="mt-6 text-base" asChild>
+                    <Link href={`/news/${featured.slug}`}>
+                      Read Full Story
+                      <ArrowRight className="size-4" />
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -127,51 +135,8 @@ export default async function NewsPage() {
 
             <div className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
               {stories.map((story) => (
-                <article key={story.id} className="group">
-                  <div className="relative pr-6 pb-6">
-                    {story.image ? (
-                      <Image
-                        src={story.image}
-                        alt={story.title}
-                        width={640}
-                        height={420}
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                        className="h-52 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                      />
-                    ) : (
-                      <div className="h-52 w-full bg-secondary" />
-                    )}
-                    <span
-                      className="absolute right-0 bottom-0 h-14 w-20 bg-background"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <h3 className="font-display text-xl leading-snug font-bold text-primary transition-colors group-hover:text-brand-red">
-                    {story.title}
-                  </h3>
-                  <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                    <span>{formatNewsDate(story.publishedAt)}</span>
-                    {story.tags.length > 0 ? (
-                      <>
-                        <span className="text-brand-red">•</span>
-                        <span>{story.tags.join(", ")}</span>
-                      </>
-                    ) : null}
-                  </div>
-                  <span className="mt-3 block h-px w-10 bg-brand-red/60" aria-hidden="true" />
-                  <p className="mt-3 text-sm text-muted-foreground">{story.excerpt}</p>
-                  <span className="mt-4 inline-flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-brand-red uppercase">
-                    Read more
-                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" />
-                  </span>
-                </article>
+                <NewsStoryCard key={story.id} story={story} />
               ))}
-            </div>
-
-            <div className="mt-12 flex justify-center">
-              <Button variant="ctaOutline" size="lg" className="text-base">
-                More Posts
-              </Button>
             </div>
           </section>
         ) : null}
@@ -189,6 +154,9 @@ export default async function NewsPage() {
 
               <div className="mt-10 grid gap-8 lg:grid-cols-2">
                 <article className="group relative isolate flex min-h-80 flex-col justify-end overflow-hidden">
+                  <Link href={`/news/${leadPick.slug}`} className="absolute inset-0 z-10">
+                    <span className="sr-only">Read {leadPick.title}</span>
+                  </Link>
                   {leadPick.image ? (
                     <Image
                       src={leadPick.image}
@@ -208,7 +176,7 @@ export default async function NewsPage() {
                       <CalendarDays className="size-3.5" />
                       {formatNewsDate(leadPick.publishedAt)}
                     </div>
-                    <h3 className="mt-3 font-display text-2xl leading-snug font-bold text-primary-foreground">
+                    <h3 className="mt-3 font-display text-2xl leading-snug font-bold text-primary-foreground transition-colors group-hover:text-brand-red-foreground">
                       {leadPick.title}
                     </h3>
                     <p className="mt-3 max-w-lg text-sm text-primary-foreground/75">
@@ -227,7 +195,7 @@ export default async function NewsPage() {
                             {formatNewsDate(pick.publishedAt)}
                           </div>
                           <h3 className="mt-2 font-display text-lg leading-snug font-bold text-primary-foreground transition-colors group-hover:text-brand-red-foreground">
-                            {pick.title}
+                            <Link href={`/news/${pick.slug}`}>{pick.title}</Link>
                           </h3>
                           <p className="mt-2 text-sm text-primary-foreground/70">{pick.excerpt}</p>
                         </div>

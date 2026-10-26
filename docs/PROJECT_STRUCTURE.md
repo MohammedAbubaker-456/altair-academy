@@ -55,21 +55,25 @@ altair-academy/
 │   ├── styles.css                   # Tailwind CSS v4 design system, @theme inline tokens, and fonts
 │   │
 │   ├── app/                         # Next.js App Router route hierarchy
-│   │   ├── layout.tsx               # Global HTML shell and Google Fonts configuration
-│   │   ├── page.tsx                 # Public Home (Featured courses, pills, leadership, FAQs)
+│   │   ├── layout.tsx               # Global HTML shell, metadataBase (SITE_URL), Google Fonts
+│   │   ├── page.tsx                 # Public Home (Featured courses, pills, leadership, FAQs, dynamic contact)
 │   │   ├── about/page.tsx           # Public About page with management leadership team
 │   │   ├── courses/                 # Public Course catalog with discipline filtering
 │   │   │   ├── page.tsx             # /courses catalog
 │   │   │   └── [slug]/page.tsx      # Dynamic course syllabus and certification page
 │   │   ├── instructors/page.tsx     # Public Faculty directory with biographies and expertise tags
-│   │   ├── news/page.tsx            # Public News magazine (Hero featured, stories, editor picks)
+│   │   ├── news/                    # Public News magazine & dynamic articles
+│   │   │   ├── page.tsx             # /news magazine (Hero featured, stories, editor picks with slug links)
+│   │   │   └── [slug]/page.tsx      # /news/[slug] article detail page with Markdown body, hero, & latest stories
 │   │   ├── search/page.tsx          # Server-side case-insensitive course search
 │   │   ├── team/[slug]/page.tsx     # Individual leadership member biography
-│   │   ├── calendar/page.tsx        # Static course calendar
-│   │   ├── careers/page.tsx         # Static instructor & career application form
-│   │   ├── contact/page.tsx         # Static contact enquiry form
-│   │   ├── privacy/page.tsx         # Privacy policy
-│   │   ├── terms/page.tsx           # Terms of service
+│   │   ├── calendar/page.tsx        # Dynamic contact-backed course calendar (Server Component + CalendarViewer)
+│   │   ├── careers/page.tsx         # Dynamic "Currently Open Positions" from DB (Server Component + CareersForm)
+│   │   ├── contact/page.tsx         # Dynamic contact channels & enquiry form from DB
+│   │   ├── privacy/page.tsx         # DB-backed Privacy Policy with Markdown & dynamic token replacement
+│   │   ├── terms/page.tsx           # DB-backed Terms of Service with Markdown & dynamic token replacement
+│   │   ├── legal/                   # Custom policy & compliance routes
+│   │   │   └── [slug]/page.tsx      # Dynamic legal page with 308 permanent redirects for /privacy & /terms
 │   │   ├── robots.ts                # Dynamic robots.txt excluding /admin routes
 │   │   │
 │   │   ├── api/
@@ -85,46 +89,81 @@ altair-academy/
 │   │       ├── categories/actions.ts# Category server actions (CRUD + delete blocking)
 │   │       ├── courses/actions.ts   # Course server actions (CRUD + image cleanup)
 │   │       ├── team/actions.ts      # Team & faculty server actions (CRUD + image cleanup)
-│   │       ├── news/actions.ts      # News post server actions (CRUD + image cleanup)
+│   │       ├── news/actions.ts      # News post server actions (CRUD + body persistence + image cleanup)
 │   │       ├── faqs/actions.ts      # FAQ server actions (CRUD)
+│   │       ├── careers/actions.ts   # Careers server actions (CRUD + status toggle + revalidation)
+│   │       ├── contact/actions.ts   # Contact details server actions (CRUD + status toggle + layout revalidation)
+│   │       ├── legal/actions.ts     # Legal pages server actions (CRUD + core protection + layout revalidation)
 │   │       │
 │   │       └── (dashboard)/         # Protected Dashboard Route Group (requireAdmin enforced)
 │   │           ├── layout.tsx       # Dashboard layout (Sidebar, top navigation, admin identity)
-│   │           ├── page.tsx         # /admin Overview metrics (active vs inactive counts)
+│   │           ├── page.tsx         # /admin Overview metrics (active vs inactive counts for all entities)
 │   │           ├── categories/      # /admin/categories management dialogs & table
 │   │           ├── courses/         # /admin/courses list, /new, and /[id] forms
 │   │           ├── team/            # /admin/team list, /new, and /[id] forms
-│   │           ├── news/            # /admin/news list, /new, and /[id] forms
+│   │           ├── news/            # /admin/news list, /new, and /[id] forms (Markdown body & live preview)
 │   │           ├── faqs/            # /admin/faqs list & modal dialogs
+│   │           ├── careers/         # /admin/careers table, /new, and /[id] forms
+│   │           ├── contact/         # /admin/contact grouped channels table, adaptive dialog, & footer preview
+│   │           ├── legal/           # /admin/legal table, /new, and /[id] forms (core protected)
 │   │           └── settings/        # /admin/settings change-password form
 │   │
 │   ├── components/
 │   │   ├── admin/                   # Dedicated admin UI components
 │   │   │   ├── AdminHeader.tsx      # Top bar with profile display, logout, and mobile trigger
-│   │   │   ├── AdminSidebar.tsx     # Sidebar navigation and active route styling
+│   │   │   ├── AdminSidebar.tsx     # Sidebar with Content & Site Settings groups
 │   │   │   ├── DeleteDialog.tsx     # Accessible confirmation modal for destructive operations
 │   │   │   ├── ImageUpload.tsx      # File uploader, preview, replace, and remove (no URL pasting)
 │   │   │   └── StatusSwitch.tsx     # Optimistic toggle switch for ACTIVE/INACTIVE statuses
-│   │   ├── site/                    # Public website components (CourseCard, Header, Footer, etc.)
+│   │   ├── site/                    # Public website components
+│   │   │   ├── Header.tsx           # Main navigation header
+│   │   │   ├── Footer.tsx           # Async Server Component querying dynamic contact & legal links
+│   │   │   ├── MarkdownContent.tsx  # Safe Markdown renderer & admin MarkdownPreview (react-markdown)
+│   │   │   ├── NewsStoryCard.tsx    # Reusable news card linking to /news/[slug]
+│   │   │   ├── CareersContent.tsx   # Server Component rendering dynamic openings
+│   │   │   ├── CareersForm.tsx      # Client Component handling resume submission
+│   │   │   ├── CalendarContent.tsx  # Server Component with dynamic contact
+│   │   │   └── CalendarViewer.tsx   # Client Component for month navigation & modal schedule
 │   │   └── ui/                      # Reusable shadcn/ui components (Radix primitives)
 │   │
 │   ├── lib/
-│   │   ├── env.ts                   # Runtime environment validation (Zod, UPLOAD_DIR isolation rules)
+│   │   ├── env.ts                   # Runtime environment validation (Zod, optional SITE_URL, UPLOAD_DIR)
 │   │   ├── db.ts                    # Global cached PrismaClient singleton
+│   │   ├── safe-url.ts              # URL scheme allow-lists, phone, WhatsApp, and slug validation
+│   │   ├── careers.ts               # Employment type labels and formatters
+│   │   ├── legal.ts                 # Canonical legal URL resolution (legalHref)
 │   │   ├── storage.ts               # Local disk persistent storage driver (magic bytes, UUID filenames)
 │   │   ├── auth/
 │   │   │   ├── session.ts           # Jose HS256 JWT cookie session management & requireAdmin()
 │   │   │   └── password.ts          # Bcrypt password hashing (cost factor 12) & timing equalization
-│   │   └── validation/              # Shared Zod validation schemas enforcing /uploads/ or /seed/ paths
+│   │   └── validation/              # Shared Zod validation schemas
 │   │       ├── course.ts
 │   │       ├── team.ts
-│   │       └── news.ts
+│   │       ├── news.ts              # News schema with optional body (Markdown <= 50,000)
+│   │       ├── careers.ts           # JobOpening validation schema
+│   │       ├── contact.ts           # ContactDetail schema with per-type refinements
+│   │       └── legal.ts             # LegalPage validation schema with reserved slug guards
 │   │
 │   └── server/
-│       └── queries/                 # Public read-only queries strictly enforcing status: "ACTIVE"
-│           ├── courses.ts
-│           ├── categories.ts
-│           ├── team.ts
-│           ├── news.ts
-│           └── faqs.ts
+│       ├── admin/                   # Administrative data queries (requireAdmin enforced)
+│       │   ├── stats.ts             # Dashboard overview stats across all models
+│       │   ├── courses.ts
+│       │   ├── categories.ts
+│       │   ├── team.ts
+│       │   ├── news.ts
+│       │   ├── careers.ts           # Careers admin search, pagination & ID query
+│       │   ├── contact.ts           # Contact channels grouped & per-type counts
+│       │   └── legal.ts             # Legal pages query & ID lookup
+│       │
+│       ├── queries/                 # Public read-only queries strictly enforcing status: "ACTIVE"
+│       │   ├── courses.ts
+│       │   ├── categories.ts
+│       │   ├── team.ts
+│       │   ├── news.ts              # News queries + getNewsPostBySlug & getLatestNewsExcluding
+│       │   ├── faqs.ts
+│       │   ├── careers.ts           # getActiveJobOpenings (ordered)
+│       │   ├── contact.ts           # getContactDetails (grouped) & getContactInfo (legacy adapter)
+│       │   └── legal.ts             # getFooterLegalLinks, getActiveLegalPageBySlug, replaceLegalTokens
+│       │
+│       └── revalidate.ts            # Next.js on-demand cache revalidation (revalidatePath("/", "layout"))
 ```

@@ -24,10 +24,13 @@ Create a `.env` file at the root of the project (modeled after `.env.example`):
 DATABASE_URL="mongodb://127.0.0.1:27017/altair-academy?replicaSet=rs0"
 AUTH_SECRET="development-auth-secret-minimum-32-characters-for-jwt-signing"
 
+# Optional: Public site canonical origin (recommended for canonical URLs & OG metadata)
+# SITE_URL="http://localhost:3000"
+
 # Optional in development (defaults to <project>/uploads outside src)
 # UPLOAD_DIR="./uploads"
 
-# Seed Admin Credentials
+# Seed Admin Credentials (Minimum 12 characters password required)
 ADMIN_EMAIL="admin@altairacademy.com"
 ADMIN_PASSWORD="ChangeMeInProduction123!"
 
@@ -37,7 +40,18 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 # DATABASE_URL="mongodb+srv://<user>:<url-encoded-password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority"
 # AUTH_SECRET="generate-a-secure-random-64-character-string-via-openssl"
 # UPLOAD_DIR="/home/<cpanel-user>/altair-assets/uploads"
+# SITE_URL="https://altairacademy.com"
 ```
+
+> [!IMPORTANT]
+> **Database Synchronization Note**:
+> When pulling these updates to an existing repository, you **MUST** run:
+> ```bash
+> npm run db:push
+> npm run db:seed
+> ```
+> `db:push` syncs the new MongoDB collections (`JobOpening`, `ContactDetail`, `LegalPage`) and schema fields (`NewsPost.body`).
+> `db:seed` populates default job openings, contact channels, and core legal documents.
 
 ---
 
@@ -50,7 +64,7 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 | `npm run db:check` | Verifies MongoDB connection & writable replica set | After starting local MongoDB or testing Atlas |
 | `npm run db:generate` | Generates Prisma Client for native & Linux targets | After modifying `prisma/schema.prisma` |
 | `npm run db:push` | Synchronizes Prisma schema with MongoDB | Schema updates (local or Atlas from local PC) |
-| `npm run db:seed` | Seeds initial categories, courses, team, news, FAQs, admin | Initial database setup |
+| `npm run db:seed` | Seeds categories, courses, team, news, FAQs, careers, contact, legal, admin | Initial database setup & feature migrations |
 | `npm run db:data-migrate` | Runs sequential data migrations from `prisma/data-migrations/` | Schema evolution and transformations |
 | `npm run admin:create` | Interactive CLI to provision additional admins | Account provisioning |
 | `npm run package:cpanel` | Prepares standalone cPanel Linux deployment package | Preparing production release (`deploy/altair-academy-cpanel.zip`) |
@@ -58,7 +72,7 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 
 ---
 
-## 3. Database Sync & Seeding
+## 3. Database Sync & Seed Safety
 
 MongoDB does not support traditional SQL migration files. Prisma uses schema synchronization via `db push`.
 
@@ -74,11 +88,17 @@ npm run db:push
 ```
 
 ### Step 3: Seed Initial Data & First Administrator
-Populates all categories, courses, unified team members, news posts, FAQs, and creates the first admin user:
+Populates categories, courses, team members, news posts, FAQs, job openings, contact channels, legal pages, and creates the first admin user:
 ```bash
 npm run db:seed
 ```
-*Note: The seed script is completely idempotent. Running it multiple times safely upserts records without creating duplicates.*
+
+> [!TIP]
+> **Strict Insert-Only Seed Safety**:
+> All seed operations across all models are strictly **insert-only** (`create` only if matching slug/title/type does not exist).
+> - Seeding **NEVER** overwrites, resets, or reverts edits made by administrators through the admin portal.
+> - If an administrator with `ADMIN_EMAIL` already exists, the seed script skips creation and **never resets the administrator's password**.
+> - Seed script requires `ADMIN_EMAIL` and `ADMIN_PASSWORD` (minimum 12 characters) in `.env` and rejects execution with clear feedback if credentials are missing.
 
 ---
 
@@ -121,22 +141,46 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 
 | Route | Purpose | Key Features |
 |---|---|---|
-| `/admin` | System Overview | Counts of active vs inactive entities, quick action shortcuts, database status. |
+| `/admin` | System Overview | Counts of active vs inactive entities across all collections, database status. |
 | `/admin/courses` | Course Management | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), pagination, optimistic status toggle, preview links. |
-| `/admin/courses/new` | Create Course | Auto-slug generation, category selector, syllabus, duration, price, server-disk image upload, home showcase toggle. |
-| `/admin/courses/[id]` | Edit Course | Update course details, replace/remove image, modify status. |
-| `/admin/categories` | Categories | Discipline manager, course count tracking, modal create/edit dialog, **safeguard: deletion is blocked if courses are assigned**. |
+| `/admin/courses/new` & `/[id]` | Course Form | Auto-slug generation, category selector, syllabus, duration, price, server-disk image upload, home showcase toggle. |
+| `/admin/categories` | Categories | Discipline manager, course count tracking, modal create/edit dialog, **safeguard: deletion blocked if courses assigned**. |
 | `/admin/team` | Team & Faculty | Search, placement filters (`Management` / `Instructor`), optimistic status toggles. |
-| `/admin/team/new` & `/[id]` | Team Member Form | Unified leadership and instructor profile, placement checkboxes, interactive expertise tag chips, portrait photo upload. |
-| `/admin/news` | News Articles | Filter by section (`FEATURED`, `STORY`, `PICK`), status switch. |
-| `/admin/news/new` & `/[id]` | News Post Form | Contextual fields (Category label for Hero, tag chips for Stories), date picker, media upload. |
+| `/admin/team/new` & `/[id]` | Team Member Form | Leadership and instructor profiles, placement checkboxes, expertise tag chips, portrait photo upload. |
+| `/admin/news` | News Articles | Filter by section (`FEATURED`, `STORY`, `PICK`), status switch, public article links. |
+| `/admin/news/new` & `/[id]` | News Post Form | Contextual fields, date picker, media upload, **Body (Markdown)** textarea with Write/Preview tabs, slug change warning. |
+| `/admin/careers` | Careers & Job Openings | Table of openings with search, employment type tags, order, optimistic status switch, deletion confirmation. |
+| `/admin/careers/new` & `/[id]` | Job Opening Form | Title, employment type (Full Time / Part Time / Contract / Internship), location, scope, summary counter (max 600 chars), order. |
+| `/admin/contact` | Contact Details & Channels | Grouped by type (Address, Phone, WhatsApp, Email, Hours, Social) with adaptive dialog, status switch, and **Live Footer Preview**. |
+| `/admin/legal` | Legal & Policy Documents | Table of documents with canonical URLs, footer link status, last updated, status switch, and **core document protection**. |
+| `/admin/legal/new` & `/[id]` | Legal Page Form | Title, slug (auto-suggested, locked for core pages), meta description (max 200), **Markdown body (Write/Preview tabs)**, dynamic placeholder tokens, footer placement toggle. |
 | `/admin/faqs` | FAQs | Question and answer list, display order configuration, modal create/edit dialog. |
 | `/admin/settings` | Account Security | Change admin password with current password verification. |
 | `/admin/login` | Authentication Portal | Rate-limited login (max 5 failed attempts / 15 min), timing equalization, session cookie issuance. |
 
 ---
 
-## 7. Security Architecture & Controls
+## 7. Markdown Content & Dynamic Placeholder Tokens
+
+The administrative portal supports rich text formatting powered by `react-markdown`:
+
+### Markdown Security Rules
+- **No Raw HTML**: HTML tags are never interpreted as raw DOM elements to prevent XSS.
+- **No Embedded Images**: `<img>` elements in Markdown are disallowed to preserve layout integrity.
+- **Strict URL Scheme Validation**: Links only allow `https://`, `http://`, `mailto:`, `tel:`, or relative paths (`/path`). Protocols like `javascript:` and `data:` are rejected.
+- **External Link Safeguards**: All external hyperlinks open in a new tab with `rel="noopener noreferrer"`.
+- **Shared Design Tokens**: Markdown headings, body text, lists, and code blocks use identical typography and colors (`font-display`, `text-muted-foreground`, `brand-red`).
+
+### Dynamic Placeholder Tokens in Legal Documents
+Policy documents (`Privacy Policy`, `Terms of Service`, etc.) support dynamic placeholders that are replaced on the server at render time from the active contact details in MongoDB:
+- `{{email}}`: Replaced with the first active email address.
+- `{{phone}}`: Replaced with the first active phone number.
+- `{{address}}`: Replaced with the first active office address.
+- Any unrecognized tokens remain unchanged as plain text.
+
+---
+
+## 8. Security Architecture & Controls
 
 1. **Server-Side Enforcement**:
    - Every admin route and server action invokes `await requireAdmin()`.

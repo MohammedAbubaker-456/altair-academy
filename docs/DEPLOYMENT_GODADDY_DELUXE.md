@@ -284,9 +284,18 @@ In **cPanel -> Setup Node.js App**, edit your application and navigate to the **
 | `DATABASE_URL` | `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority` | URL-encode password special characters |
 | `AUTH_SECRET` | *(64-char random string)* | Generate with `openssl rand -hex 32` |
 | `UPLOAD_DIR` | `/home/<cpanel-user>/altair-assets/uploads` | Must be absolute, outside app root |
+| `SITE_URL` | `https://<your-domain>` | Recommended for canonical URLs, metadataBase, & OpenGraph |
 | `PORT` | `3000` | Port Passenger assigns `[VERIFY]` |
 
 Click **Save** and click **Restart Application**.
+
+> [!IMPORTANT]
+> **Package Rebuild Required for Updates**:
+> When deploying features from branch `feature/careers-news-contact-legal` (Careers, News Inner Pages, Dynamic Contact Channels, Legal Pages), you must rebuild the standalone package:
+> ```bash
+> npm run package:cpanel
+> ```
+> Upload the newly generated `deploy/altair-academy-cpanel.zip` to `/home/<cpanel-user>/altair-app` and extract it, replacing the old application files.
 
 ---
 
@@ -297,25 +306,35 @@ Run tests in this exact order:
 1. **Health Check Probe**:
    Visit: `https://<your-domain>/api/health`
    Expected response: HTTP 200 `{ "ok": true }`.
-2. **Public Website**:
+2. **Public Website & Dynamic Footer**:
    Visit: `https://<your-domain>/`
-   Verify typography, CSS styling, header, footer, and seeded images.
+   Verify typography, CSS styling, header, footer with database-backed contact channels (phones, email, address, WhatsApp, social links), and legal links.
 3. **Course Catalog**:
    Visit: `https://<your-domain>/courses`
    Verify dynamic courses render from MongoDB Atlas with `/seed/...` cover images.
-4. **Admin Dashboard Authentication**:
+4. **News Magazine & Detail Pages**:
+   Visit: `https://<your-domain>/news`
+   Click on any news story card to verify it navigates to `/news/[slug]` with article body, hero image, and latest stories.
+5. **Careers Dynamic Openings**:
+   Visit: `https://<your-domain>/careers`
+   Verify open positions render from database with scope pills and application anchor.
+6. **Legal Pages**:
+   Visit: `https://<your-domain>/privacy` and `https://<your-domain>/terms`
+   Verify policy text renders with Markdown styling and contact placeholder tokens (`{{email}}`, etc.) replaced.
+7. **Admin Dashboard Authentication & New Modules**:
    Visit: `https://<your-domain>/admin/login`
    Log in with your seeded administrator credentials.
-5. **Image Upload & Persistence Test**:
+   Verify access to `/admin/careers`, `/admin/contact`, `/admin/legal`, and news Markdown editor.
+8. **Image Upload & Persistence Test**:
    - Go to **Courses** -> Edit a course.
    - Upload a new image (PNG, JPEG, or WebP under 5 MB).
    - Save the course.
    - Verify the image displays on both `/admin/courses` and the public `/courses/[slug]` page.
    - Inspect the image URL: it should start with `/uploads/courses/<uuid>.<ext>`.
-6. **Restart Persistence Check**:
+9. **Restart Persistence Check**:
    - In cPanel, click **Restart** (or run `touch tmp/restart.txt` over SSH).
    - Refresh the page and confirm the uploaded image continues to display.
-7. **Simulate Update Deploy**:
+10. **Simulate Update Deploy**:
    - Deploying an updated package to `/home/<cpanel-user>/altair-app` must NOT delete files in `/home/<cpanel-user>/altair-assets/uploads`.
 
 ---

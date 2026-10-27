@@ -34,6 +34,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MarkdownPreview } from "@/components/site/MarkdownContent";
+import { cn } from "@/lib/utils";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 interface CategoryOption {
@@ -51,6 +54,14 @@ interface CourseInitialData {
   price: string;
   summary: string;
   image: string | null;
+  objective?: string | null;
+  content?: string | null;
+  whoShouldAttend?: string | null;
+  certification?: string | null;
+  notesAndEquipment?: string | null;
+  classCapacity?: string | null;
+  feeDetails?: string | null;
+  courseSupport?: string | null;
   isFeatured: boolean;
   order: number;
   status: "ACTIVE" | "INACTIVE";
@@ -59,6 +70,136 @@ interface CourseInitialData {
 interface CourseFormProps {
   initialData?: CourseInitialData | null;
   categories: CategoryOption[];
+}
+
+function MarkdownFormField({
+  id,
+  label,
+  value,
+  onChange,
+  maxLength,
+  hint,
+  rows = 5,
+  placeholder,
+  error,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  maxLength: number;
+  hint?: string | undefined;
+  rows?: number | undefined;
+  placeholder?: string | undefined;
+  error?: string | undefined;
+}) {
+  const [tab, setTab] = React.useState<"write" | "preview">("write");
+  const length = (value || "").length;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id}>{label}</Label>
+        <span
+          className={cn(
+            "text-xs font-mono",
+            length > maxLength ? "text-destructive font-semibold" : "text-muted-foreground",
+          )}
+        >
+          {length.toLocaleString()} / {maxLength.toLocaleString()} characters
+        </span>
+      </div>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "write" | "preview")}>
+        <div className="flex items-center justify-between gap-2">
+          <TabsList className="grid w-36 grid-cols-2 h-8">
+            <TabsTrigger value="write" className="text-xs">
+              Write
+            </TabsTrigger>
+            <TabsTrigger value="preview" className="text-xs">
+              Preview
+            </TabsTrigger>
+          </TabsList>
+          {hint && <span className="text-xs text-muted-foreground hidden sm:inline">{hint}</span>}
+        </div>
+        <TabsContent value="write" className="pt-2">
+          <Textarea
+            id={id}
+            rows={rows}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            maxLength={maxLength}
+          />
+        </TabsContent>
+        <TabsContent value="preview" className="pt-2">
+          <MarkdownPreview
+            content={value}
+            placeholder={`No ${label.toLowerCase()} drafted yet. Switch to Write tab to add Markdown content.`}
+          />
+        </TabsContent>
+      </Tabs>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+function PlainTextFormField({
+  id,
+  label,
+  value,
+  onChange,
+  maxLength,
+  placeholder,
+  error,
+  isTextarea = false,
+  rows = 3,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  maxLength: number;
+  placeholder?: string | undefined;
+  error?: string | undefined;
+  isTextarea?: boolean | undefined;
+  rows?: number | undefined;
+}) {
+  const length = (value || "").length;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id}>{label}</Label>
+        <span
+          className={cn(
+            "text-xs font-mono",
+            length > maxLength ? "text-destructive font-semibold" : "text-muted-foreground",
+          )}
+        >
+          {length.toLocaleString()} / {maxLength.toLocaleString()} characters
+        </span>
+      </div>
+      {isTextarea ? (
+        <Textarea
+          id={id}
+          rows={rows}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          maxLength={maxLength}
+        />
+      ) : (
+        <Input
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          maxLength={maxLength}
+        />
+      )}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
 }
 
 export function CourseForm({ initialData, categories }: CourseFormProps) {
@@ -82,6 +223,14 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
       price: initialData?.price ?? "",
       summary: initialData?.summary ?? "",
       image: initialData?.image ?? null,
+      objective: initialData?.objective ?? "",
+      content: initialData?.content ?? "",
+      whoShouldAttend: initialData?.whoShouldAttend ?? "",
+      certification: initialData?.certification ?? "",
+      notesAndEquipment: initialData?.notesAndEquipment ?? "",
+      classCapacity: initialData?.classCapacity ?? "",
+      feeDetails: initialData?.feeDetails ?? "",
+      courseSupport: initialData?.courseSupport ?? "",
       isFeatured: initialData?.isFeatured ?? false,
       order: initialData?.order ?? 0,
       status: initialData?.status ?? "ACTIVE",
@@ -145,7 +294,7 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
             <CardTitle className="text-lg font-display">Core Information</CardTitle>
             <CardDescription>Basic course details and public identifiers.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="space-y-1.5">
               <Label htmlFor="course-title">Course Title</Label>
               <Input
@@ -205,6 +354,164 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
               {errors.summary && (
                 <p className="text-xs text-destructive">{errors.summary.message}</p>
               )}
+            </div>
+
+            {/* Detailed Course Sections */}
+            <div className="border-t border-border pt-6 space-y-6">
+              <div>
+                <h3 className="font-display text-base font-semibold text-foreground">
+                  Detailed Syllabus &amp; Specifications
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Optional sections rendered on the public course detail page. Markdown is supported where indicated.
+                </p>
+              </div>
+
+              {/* 1. Course Objective (Markdown, max 5,000) */}
+              <Controller
+                name="objective"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-objective"
+                    label="Course Objective"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={5000}
+                    hint="Supports Markdown (lists, bold, safe links). Max 5,000 chars."
+                    placeholder="Comprehensive objectives and target competencies..."
+                    error={errors.objective?.message}
+                  />
+                )}
+              />
+
+              {/* 2. Course Content (Markdown, max 10,000) */}
+              <Controller
+                name="content"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-content"
+                    label="Course Content"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={10000}
+                    rows={7}
+                    hint="Supports Markdown outline and body of knowledge. Max 10,000 chars."
+                    placeholder="* Module 1: Introduction\n* Module 2: Inspection procedures..."
+                    error={errors.content?.message}
+                  />
+                )}
+              />
+
+              {/* 3. Who Should Attend (Markdown, max 5,000) */}
+              <Controller
+                name="whoShouldAttend"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-who-should-attend"
+                    label="Who Should Attend"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={5000}
+                    hint="Supports Markdown bullet list styling. Max 5,000 chars."
+                    placeholder="* Quality control and assurance personnel...\n* Plant managers and supervisors..."
+                    error={errors.whoShouldAttend?.message}
+                  />
+                )}
+              />
+
+              {/* 4. Certification (plain text, max 300) */}
+              <Controller
+                name="certification"
+                control={control}
+                render={({ field }) => (
+                  <PlainTextFormField
+                    id="course-certification"
+                    label="Certification"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={300}
+                    placeholder="e.g. Certificate of attendance / API 510 Inspector Certificate"
+                    error={errors.certification?.message}
+                  />
+                )}
+              />
+
+              {/* 5. Course Notes and Equipment (plain text, max 1,000) */}
+              <Controller
+                name="notesAndEquipment"
+                control={control}
+                render={({ field }) => (
+                  <PlainTextFormField
+                    id="course-notes-and-equipment"
+                    label="Course Notes and Equipment"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={1000}
+                    isTextarea
+                    rows={3}
+                    placeholder="e.g. Course notes, quizzes, and mockup exam papers supplied."
+                    error={errors.notesAndEquipment?.message}
+                  />
+                )}
+              />
+
+              {/* 6. Class Capacity (plain text, max 100) */}
+              <Controller
+                name="classCapacity"
+                control={control}
+                render={({ field }) => (
+                  <PlainTextFormField
+                    id="course-class-capacity"
+                    label="Class Capacity"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={100}
+                    placeholder="e.g. 20 people"
+                    error={errors.classCapacity?.message}
+                  />
+                )}
+              />
+
+              {/* 7. Course Fee (optional override) (Markdown, max 2,000) */}
+              <Controller
+                name="feeDetails"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-fee-details"
+                    label="Course Fee (Optional Override)"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={2000}
+                    rows={4}
+                    hint="Leave empty to display default email/WhatsApp inquiries block."
+                    placeholder="Custom fee details or pricing schedule (Markdown supported)..."
+                    error={errors.feeDetails?.message}
+                  />
+                )}
+              />
+
+              {/* 8. Course Support (Markdown, max 2,000) */}
+              <Controller
+                name="courseSupport"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-support"
+                    label="Course Support"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={2000}
+                    rows={4}
+                    hint="Online revision sessions, mentor support, etc. Max 2,000 chars."
+                    placeholder="e.g. Complementary one-day online session and unlimited support on WhatsApp group..."
+                    error={errors.courseSupport?.message}
+                  />
+                )}
+              />
             </div>
           </CardContent>
         </Card>

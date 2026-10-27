@@ -21,6 +21,12 @@ export type CourseActionResult =
   | { ok: true; message: string; id?: string }
   | { ok: false; message: string; authError?: boolean; fieldErrors?: Record<string, string[]> };
 
+const toNullableString = (val?: string | null) => {
+  if (!val) return null;
+  const trimmed = val.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
 export async function createCourseAction(input: unknown): Promise<CourseActionResult> {
   const auth = await verifyAdminAction();
   if (!auth.ok) return auth;
@@ -44,6 +50,14 @@ export async function createCourseAction(input: unknown): Promise<CourseActionRe
     price,
     summary,
     image,
+    objective,
+    content,
+    whoShouldAttend,
+    certification,
+    notesAndEquipment,
+    classCapacity,
+    feeDetails,
+    courseSupport,
     isFeatured,
     order,
     status,
@@ -67,11 +81,19 @@ export async function createCourseAction(input: unknown): Promise<CourseActionRe
         title,
         slug,
         categoryId,
-        level: level || null,
+        level: toNullableString(level),
         duration,
         price,
         summary,
-        image: image || null,
+        image: toNullableString(image),
+        objective: toNullableString(objective),
+        content: toNullableString(content),
+        whoShouldAttend: toNullableString(whoShouldAttend),
+        certification: toNullableString(certification),
+        notesAndEquipment: toNullableString(notesAndEquipment),
+        classCapacity: toNullableString(classCapacity),
+        feeDetails: toNullableString(feeDetails),
+        courseSupport: toNullableString(courseSupport),
         isFeatured,
         order,
         status,
@@ -124,6 +146,14 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
     price,
     summary,
     image,
+    objective,
+    content,
+    whoShouldAttend,
+    certification,
+    notesAndEquipment,
+    classCapacity,
+    feeDetails,
+    courseSupport,
     isFeatured,
     order,
     status,
@@ -136,11 +166,19 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
         title,
         slug,
         categoryId,
-        level: level || null,
+        level: toNullableString(level),
         duration,
         price,
         summary,
-        image: image || null,
+        image: toNullableString(image),
+        objective: toNullableString(objective),
+        content: toNullableString(content),
+        whoShouldAttend: toNullableString(whoShouldAttend),
+        certification: toNullableString(certification),
+        notesAndEquipment: toNullableString(notesAndEquipment),
+        classCapacity: toNullableString(classCapacity),
+        feeDetails: toNullableString(feeDetails),
+        courseSupport: toNullableString(courseSupport),
         isFeatured,
         order,
         status,

@@ -119,6 +119,86 @@ async function main() {
   }
   console.log(`✅ Checked ${seedCourses.length} courses (${newCourses} created)`);
 
+  // 3b. API 510 Course (Check, fill-only-nulls, or create INACTIVE draft)
+  const api510Objective =
+    "API 510 is an important standard for the safety and reliability of pressure vessels in the petroleum and chemical industries. The API 510 standard provides guidelines and procedures for the safe operation and maintenance of pressure vessels, including the inspection, repair, and replacement of components, as well as the determination of the maximum allowable operating pressure (MAOP) of the vessel. This course is designed to provide participants with the knowledge and skills necessary to pass the API 510 Pressure Vessel Inspection Code certification exam.";
+  const api510Content =
+    "* Refer to API 510 Publications Effectivity Sheet and API 510 Body of Knowledge on [https://www.api.org/products-and-services/individual-certification-programs/certifications/api510](https://www.api.org/products-and-services/individual-certification-programs/certifications/api510)";
+  const api510WhoShouldAttend =
+    "* Quality control and quality assurance personnel who work in the pressure vessel industry and want to gain a deeper understanding of the API 510 Pressure Vessel Inspection Code.\n* Manufacturing and design engineers who are involved in the design, construction, repair, and maintenance of pressure vessels.\n* Plant managers and supervisors who are responsible for ensuring that pressure vessels are in compliance with API standards and regulations.\n* Operations and maintenance personnel who work in facilities that use pressure vessels and want to learn about the API 510 Pressure Vessel Inspection Code.\n* Regulators and inspectors who are responsible for enforcing API standards and regulations for pressure vessels.\n* Professionals who are aspiring or involved in the inspection, repair, and maintenance of pressure vessels.";
+  const api510Certification = "Certificate of attendance";
+  const api510NotesAndEquipment = "Course notes, quizzes, and mockup exam papers";
+  const api510ClassCapacity = "20 people";
+  const api510CourseSupport =
+    "Complementary one-day online session and unlimited support on WhatsApp group until the day before the examination.";
+
+  const existingApi510 = await prisma.course.findFirst({
+    where: {
+      OR: [
+        { slug: "api-510-pressure-vessel-inspector" },
+        { title: { contains: "API 510", mode: "insensitive" } },
+      ],
+    },
+  });
+
+  if (existingApi510) {
+    const updateData: Record<string, string> = {};
+    if (!existingApi510.objective) updateData["objective"] = api510Objective;
+    if (!existingApi510.content) updateData["content"] = api510Content;
+    if (!existingApi510.whoShouldAttend) updateData["whoShouldAttend"] = api510WhoShouldAttend;
+    if (!existingApi510.certification) updateData["certification"] = api510Certification;
+    if (!existingApi510.notesAndEquipment) updateData["notesAndEquipment"] = api510NotesAndEquipment;
+    if (!existingApi510.classCapacity) updateData["classCapacity"] = api510ClassCapacity;
+    if (!existingApi510.courseSupport) updateData["courseSupport"] = api510CourseSupport;
+
+    if (Object.keys(updateData).length > 0) {
+      await prisma.course.update({
+        where: { id: existingApi510.id },
+        data: updateData,
+      });
+      console.log(
+        `✅ API 510 course already exists ("${existingApi510.title}"). Filled ${Object.keys(updateData).length} newly added empty fields.`,
+      );
+    } else {
+      console.log(
+        `ℹ️ API 510 course already exists ("${existingApi510.title}") and all new fields were already populated.`,
+      );
+    }
+  } else {
+    const categoryId = categoryMap.get("api-icp");
+    if (!categoryId) {
+      console.warn("⚠️ Warning: Category api-icp not found for API 510 draft course");
+    } else {
+      await prisma.course.create({
+        data: {
+          slug: "api-510-pressure-vessel-inspector",
+          title: "API 510 Pressure Vessel Inspector Exam Preparatory",
+          image: null,
+          categoryId,
+          level: null,
+          duration: "6 days (42 hours)",
+          price: "Contact For Pricing",
+          summary:
+            "API 510 is an important standard for the safety and reliability of pressure vessels in the petroleum and chemical industries.",
+          objective: api510Objective,
+          content: api510Content,
+          whoShouldAttend: api510WhoShouldAttend,
+          certification: api510Certification,
+          notesAndEquipment: api510NotesAndEquipment,
+          classCapacity: api510ClassCapacity,
+          feeDetails: null,
+          courseSupport: api510CourseSupport,
+          isFeatured: false,
+          order: 5,
+          status: "INACTIVE",
+        },
+      });
+      console.log(
+        "✅ Created API 510 course as an INACTIVE draft (slug: api-510-pressure-vessel-inspector) for admin review.",
+      );
+    }
+  }
+
   // 4. Team Members & Instructors (Insert-Only by Slug)
   let newTeam = 0;
   for (const member of seedTeamMembers) {

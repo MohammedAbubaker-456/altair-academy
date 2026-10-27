@@ -54,6 +54,46 @@ export const courseSchema = z.object({
       "Image path must start with '/uploads/' or '/seed/'",
     )
     .nullable(),
+  objective: z
+    .string()
+    .max(5000, "Course Objective must be under 5,000 characters")
+    .optional()
+    .nullable(),
+  content: z
+    .string()
+    .max(10000, "Course Content must be under 10,000 characters")
+    .optional()
+    .nullable(),
+  whoShouldAttend: z
+    .string()
+    .max(5000, "Who Should Attend must be under 5,000 characters")
+    .optional()
+    .nullable(),
+  certification: z
+    .string()
+    .max(300, "Certification must be under 300 characters")
+    .optional()
+    .nullable(),
+  notesAndEquipment: z
+    .string()
+    .max(1000, "Course Notes and Equipment must be under 1,000 characters")
+    .optional()
+    .nullable(),
+  classCapacity: z
+    .string()
+    .max(100, "Class Capacity must be under 100 characters")
+    .optional()
+    .nullable(),
+  feeDetails: z
+    .string()
+    .max(2000, "Course Fee must be under 2,000 characters")
+    .optional()
+    .nullable(),
+  courseSupport: z
+    .string()
+    .max(2000, "Course Support must be under 2,000 characters")
+    .optional()
+    .nullable(),
   isFeatured: z.boolean(),
   order: z.coerce.number().int().min(0, "Order must be 0 or greater"),
   status: z.enum(["ACTIVE", "INACTIVE"]),

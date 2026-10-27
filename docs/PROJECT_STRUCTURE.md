@@ -48,7 +48,10 @@ altair-academy/
 │   ├── connectivity-check.mjs       # Raw DNS SRV resolution and TCP socket probe to Atlas on port 27017
 │   └── check-db.mjs                 # Runtime Prisma client probe executing raw MongoDB `hello` command
 │
-├── uploads/                         # Development persistent media storage (outside src/)
+├── uploads/                         # Development persistent public media storage (outside src/)
+│   └── .gitkeep
+│
+├── private-uploads/                 # Development private resumes storage (gitignored, outside public/)
 │   └── .gitkeep
 │
 ├── src/
@@ -61,7 +64,7 @@ altair-academy/
 │   │   ├── about/page.tsx           # Public About page with management leadership team
 │   │   ├── courses/                 # Public Course catalog with discipline filtering
 │   │   │   ├── page.tsx             # /courses catalog
-│   │   │   └── [slug]/page.tsx      # Dynamic course syllabus and certification page
+│   │   │   └── [slug]/page.tsx      # Dynamic course syllabus (Objective, Content, Fee, Support)
 │   │   ├── instructors/page.tsx     # Public Faculty directory with biographies and expertise tags
 │   │   ├── news/                    # Public News magazine & dynamic articles
 │   │   │   ├── page.tsx             # /news magazine (Hero featured, stories, editor picks with slug links)
@@ -69,8 +72,12 @@ altair-academy/
 │   │   ├── search/page.tsx          # Server-side case-insensitive course search
 │   │   ├── team/[slug]/page.tsx     # Individual leadership member biography
 │   │   ├── calendar/page.tsx        # Dynamic contact-backed course calendar (Server Component + CalendarViewer)
-│   │   ├── careers/page.tsx         # Dynamic "Currently Open Positions" from DB (Server Component + CareersForm)
-│   │   ├── contact/page.tsx         # Dynamic contact channels & enquiry form from DB
+│   │   ├── careers/                 # Careers & Job Openings
+│   │   │   ├── actions.ts           # Public Server Action submitApplication with private resume storage
+│   │   │   └── page.tsx             # Dynamic "Currently Open Positions" + CareersForm
+│   │   ├── contact/                 # Contact & WhatsApp Lead Flow
+│   │   │   ├── actions.ts           # Public Server Action createLead with honeypot & HMAC rate limiting
+│   │   │   └── page.tsx             # Dynamic contact channels & interactive WhatsApp lead form
 │   │   ├── privacy/page.tsx         # DB-backed Privacy Policy with Markdown & dynamic token replacement
 │   │   ├── terms/page.tsx           # DB-backed Terms of Service with Markdown & dynamic token replacement
 │   │   ├── legal/                   # Custom policy & compliance routes
@@ -88,19 +95,25 @@ altair-academy/
 │   │       ├── upload-actions.ts    # Server action for local disk image uploads
 │   │       ├── login/               # Authentication portal (rate-limited, timing equalization)
 │   │       ├── categories/actions.ts# Category server actions (CRUD + delete blocking)
-│   │       ├── courses/actions.ts   # Course server actions (CRUD + image cleanup)
+│   │       ├── courses/actions.ts   # Course server actions (CRUD + syllabus fields + image cleanup)
 │   │       ├── team/actions.ts      # Team & faculty server actions (CRUD + image cleanup)
 │   │       ├── news/actions.ts      # News post server actions (CRUD + body persistence + image cleanup)
 │   │       ├── faqs/actions.ts      # FAQ server actions (CRUD)
 │   │       ├── careers/actions.ts   # Careers server actions (CRUD + status toggle + revalidation)
 │   │       ├── contact/actions.ts   # Contact details server actions (CRUD + status toggle + layout revalidation)
 │   │       ├── legal/actions.ts     # Legal pages server actions (CRUD + core protection + layout revalidation)
+│   │       ├── leads/actions.ts     # Lead server actions (setStatus, delete + admin revalidation)
+│   │       ├── applications/        # Applications actions & secure resume streaming route
+│   │       │   ├── actions.ts       # Application server actions (setStatus, delete + resume file cleanup)
+│   │       │   └── [id]/resume/route.ts # Authenticated private resume streaming route (PDF/DOC/DOCX)
 │   │       │
 │   │       └── (dashboard)/         # Protected Dashboard Route Group (requireAdmin enforced)
 │   │           ├── layout.tsx       # Dashboard layout (Sidebar, top navigation, admin identity)
-│   │           ├── page.tsx         # /admin Overview metrics (active vs inactive counts for all entities)
+│   │           ├── page.tsx         # /admin Overview metrics (NEW leads & applications, active vs inactive)
+│   │           ├── leads/           # /admin/leads management table & /[id] detail viewer
+│   │           ├── applications/    # /admin/applications candidate table & /[id] resume viewer
 │   │           ├── categories/      # /admin/categories management dialogs & table
-│   │           ├── courses/         # /admin/courses list, /new, and /[id] forms
+│   │           ├── courses/         # /admin/courses list, /new, and /[id] forms (detailed syllabus)
 │   │           ├── team/            # /admin/team list, /new, and /[id] forms
 │   │           ├── news/            # /admin/news list, /new, and /[id] forms (Markdown body & live preview)
 │   │           ├── faqs/            # /admin/faqs list & modal dialogs
@@ -112,33 +125,41 @@ altair-academy/
 │   ├── components/
 │   │   ├── admin/                   # Dedicated admin UI components
 │   │   │   ├── AdminHeader.tsx      # Top bar with profile display, logout, and mobile trigger
-│   │   │   ├── AdminSidebar.tsx     # Sidebar with Content & Site Settings groups
+│   │   │   ├── AdminSidebar.tsx     # Sidebar with Inbox, Content & Site Settings groups
+│   │   │   ├── nav-items.ts         # Canonical navigation single source of truth (Overview, Inbox, Content, Settings)
 │   │   │   ├── DeleteDialog.tsx     # Accessible confirmation modal for destructive operations
 │   │   │   ├── ImageUpload.tsx      # File uploader, preview, replace, and remove (no URL pasting)
 │   │   │   └── StatusSwitch.tsx     # Optimistic toggle switch for ACTIVE/INACTIVE statuses
 │   │   ├── site/                    # Public website components
 │   │   │   ├── Header.tsx           # Main navigation header
-│   │   │   ├── Footer.tsx           # Async Server Component querying dynamic contact & legal links
+│   │   │   ├── Footer.tsx           # Async Server Component querying dynamic contact & legal links + FloatingWhatsApp
+│   │   │   ├── FloatingWhatsApp.tsx # Fixed bottom-right WhatsApp quick-access button
+│   │   │   ├── ContactForm.tsx      # Client Component contact form with popup-safe WhatsApp redirect
 │   │   │   ├── MarkdownContent.tsx  # Safe Markdown renderer & admin MarkdownPreview (react-markdown)
 │   │   │   ├── NewsStoryCard.tsx    # Reusable news card linking to /news/[slug]
 │   │   │   ├── CareersContent.tsx   # Server Component rendering dynamic openings
-│   │   │   ├── CareersForm.tsx      # Client Component handling resume submission
+│   │   │   ├── CareersForm.tsx      # Server Action form with useActionState & private resume upload
 │   │   │   ├── CalendarContent.tsx  # Server Component with dynamic contact
 │   │   │   └── CalendarViewer.tsx   # Client Component for month navigation & modal schedule
 │   │   └── ui/                      # Reusable shadcn/ui components (Radix primitives)
 │   │
 │   ├── lib/
-│   │   ├── env.ts                   # Runtime environment validation (Zod, optional SITE_URL, UPLOAD_DIR)
+│   │   ├── env.ts                   # Runtime environment validation (Zod, UPLOAD_DIR, PRIVATE_UPLOAD_DIR)
 │   │   ├── db.ts                    # Global cached PrismaClient singleton
+│   │   ├── date.ts                  # Deterministic timezone date formatters (Asia/Kuala_Lumpur)
+│   │   ├── rate-limit.ts            # Spam protection & HMAC-SHA256 client fingerprinting
+│   │   ├── private-storage.ts       # Secure private file storage driver (magic bytes, MIME check, UUID names)
 │   │   ├── safe-url.ts              # URL scheme allow-lists, phone, WhatsApp, and slug validation
 │   │   ├── careers.ts               # Employment type labels and formatters
 │   │   ├── legal.ts                 # Canonical legal URL resolution (legalHref)
-│   │   ├── storage.ts               # Local disk persistent storage driver (magic bytes, UUID filenames)
+│   │   ├── storage.ts               # Local disk persistent public media storage driver
 │   │   ├── auth/
 │   │   │   ├── session.ts           # Jose HS256 JWT cookie session management & requireAdmin()
 │   │   │   └── password.ts          # Bcrypt password hashing (cost factor 12) & timing equalization
 │   │   └── validation/              # Shared Zod validation schemas
-│   │       ├── course.ts
+│   │       ├── course.ts            # Course schema with 8 new syllabus & fee override fields
+│   │       ├── lead.ts              # Contact lead validation schema (phone sanitization & honeypot)
+│   │       ├── application.ts       # Careers application schema (phone, specialisation, resume validation)
 │   │       ├── team.ts
 │   │       ├── news.ts              # News schema with optional body (Markdown <= 50,000)
 │   │       ├── careers.ts           # JobOpening validation schema
@@ -147,7 +168,9 @@ altair-academy/
 │   │
 │   └── server/
 │       ├── admin/                   # Administrative data queries (requireAdmin enforced)
-│       │   ├── stats.ts             # Dashboard overview stats across all models
+│       │   ├── stats.ts             # Dashboard overview stats across all models + NEW lead/app counts
+│       │   ├── leads.ts             # Leads admin search, status filter, pagination & ID query
+│       │   ├── applications.ts      # Applications admin search, status filter, pagination & ID query
 │       │   ├── courses.ts
 │       │   ├── categories.ts
 │       │   ├── team.ts
@@ -165,6 +188,5 @@ altair-academy/
 │       │   ├── careers.ts           # getActiveJobOpenings (ordered)
 │       │   ├── contact.ts           # getContactDetails (grouped) & getContactInfo (legacy adapter)
 │       │   └── legal.ts             # getFooterLegalLinks, getActiveLegalPageBySlug, replaceLegalTokens
-│       │
 │       └── revalidate.ts            # Next.js on-demand cache revalidation (revalidatePath("/", "layout"))
 ```

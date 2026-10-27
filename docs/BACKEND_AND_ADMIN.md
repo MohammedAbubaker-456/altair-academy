@@ -32,6 +32,9 @@ AUTH_SECRET="development-auth-secret-minimum-32-characters-for-jwt-signing"
 # Optional in development (defaults to <project>/uploads outside src)
 # UPLOAD_DIR="./uploads"
 
+# Optional in development (defaults to <project>/private-uploads outside src and gitignored)
+# PRIVATE_UPLOAD_DIR="./private-uploads"
+
 # Seed Admin Credentials (Minimum 12 characters password required)
 ADMIN_EMAIL="admin@altairacademy.com"
 ADMIN_PASSWORD="ChangeMeInProduction123!"
@@ -42,6 +45,7 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 # DATABASE_URL="mongodb+srv://<user>:<url-encoded-password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority"
 # AUTH_SECRET="generate-a-secure-random-64-character-string-via-openssl"
 # UPLOAD_DIR="/home/<cpanel-user>/altair-assets/uploads"
+# PRIVATE_UPLOAD_DIR="/home/<cpanel-user>/altair-assets/private-uploads"
 # SITE_URL="https://altairacademy.com"
 ```
 
@@ -54,8 +58,8 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 > npm run db:seed
 > ```
 >
-> `db:push` syncs the new MongoDB collections (`JobOpening`, `ContactDetail`, `LegalPage`) and schema fields (`NewsPost.body`).
-> `db:seed` populates default job openings, contact channels, and core legal documents.
+> - `db:push` syncs the new MongoDB collections (`Lead`, `CareerApplication`), adds indexes (`@@index([status, createdAt])`), and creates new `Course` syllabus fields (`objective`, `content`, `whoShouldAttend`, `certification`, `notesAndEquipment`, `classCapacity`, `feeDetails`, `courseSupport`).
+> - `db:seed` performs safe, insert-only population: provisions or supplements the "API 510 Pressure Vessel Inspector" course draft without overwriting any existing administrator customizations.
 
 ---
 
@@ -170,9 +174,13 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 
 | Route                          | Purpose                    | Key Features                                                                                                                                                                  |
 | ------------------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/admin`                       | System Overview            | Counts of active vs inactive entities across all collections, database status.                                                                                                |
+| `/admin`                       | System Overview            | Counts of active vs inactive entities across all collections, new leads & applications summary, database status.                                                             |
+| `/admin/leads`                 | Contact Leads Inbox        | Search (?q= over name/email/phone/message), status filter (NEW / CONTACTED / CLOSED), pagination, UTC date with explicit MYT (Asia/Kuala_Lumpur) display.                    |
+| `/admin/leads/[id]`            | Lead Detail Viewer         | Inspect candidate enquiry, status transition select, direct mailto and tel actions, message rendering with whitespace preservation, delete confirmation.                     |
+| `/admin/applications`          | Careers Applications Inbox | Search candidate name/email/phone/specialisation, status filter (NEW / REVIEWING / SHORTLISTED / REJECTED), attachment badges, pagination.                                     |
+| `/admin/applications/[id]`     | Application Detail Viewer  | Full candidate profile, status management, cover note, and **Resume Panel** with secure "View" and "Download" actions.                                                       |
 | `/admin/courses`               | Course Management          | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), pagination, optimistic status toggle, preview links.                                                                |
-| `/admin/courses/new` & `/[id]` | Course Form                | Auto-slug generation, category selector, syllabus, duration, price, server-disk image upload, home showcase toggle.                                                           |
+| `/admin/courses/new` & `/[id]` | Course Form                | Auto-slug, category selector, detailed syllabus (Objective, Content, Who Should Attend, Certification, Notes, Capacity, Fee override, Support) with Write/Preview & counters.   |
 | `/admin/categories`            | Categories                 | Discipline manager, course count tracking, modal create/edit dialog, **safeguard: deletion blocked if courses assigned**.                                                     |
 | `/admin/team`                  | Team & Faculty             | Search, placement filters (`Management` / `Instructor`), optimistic status toggles.                                                                                           |
 | `/admin/team/new` & `/[id]`    | Team Member Form           | Leadership and instructor profiles, placement checkboxes, expertise tag chips, portrait photo upload.                                                                         |
@@ -212,30 +220,36 @@ Policy documents (`Privacy Policy`, `Terms of Service`, etc.) support dynamic pl
 
 ---
 
-## 8. Security Architecture & Controls
+## 8. Security Architecture & Spam Protection
 
 1. **Server-Side Enforcement**:
-   - Every admin route and server action invokes `await requireAdmin()`.
+   - Every admin route, query, and server action invokes `await requireAdmin()`.
    - Never relies on client cookies or edge middleware alone; JWT verification occurs with cryptographic HS256 validation.
 2. **Timing Attack Protection**:
    - Failed email lookups during login run `bcrypt.compare` against a pre-computed dummy hash to equalize response times against user enumeration.
-3. **Brute-Force Rate Limiting**:
+3. **Login Rate Limiting**:
    - Managed via the `LoginAttempt` MongoDB collection.
    - 5 failed login attempts per 15-minute window per IP + Email results in an automatic lock with retry timer.
-4. **Data Isolation**:
+4. **Public Form Rate Limiting & Spam Protection**:
+   - Generalised rate limiter backed by `LoginAttempt` with scope prefixes: `lead` (5 submissions / hour) and `application` (3 submissions / hour).
+   - Keyed by a keyed HMAC-SHA256 hash of the client IP address (`x-forwarded-for`) using `AUTH_SECRET`. **Raw IP addresses and user agents are never persisted in the database.**
+   - Hidden honeypot fields (`website`) detect automated bots and silently return success without database writes.
+5. **Data Isolation**:
    - Public queries in `src/server/queries/` **always** enforce `status: "ACTIVE"`.
    - Inactive items immediately disappear from public pages.
    - Passwords (`passwordHash`) are never selected in session queries and never leave the server.
-5. **Crawler Protection**:
+6. **Crawler Protection**:
    - `next.config.ts` sends `X-Robots-Tag: noindex, nofollow` on all `/admin/:path*` routes.
    - `src/app/robots.ts` explicitly disallows `/admin` routes.
    - Admin layouts specify `robots: { index: false, follow: false }`.
 
 ---
 
-## 8. Server-Disk Persistent Image Storage (`UPLOAD_DIR`)
+## 9. Media & File Storage Architecture
 
-All media uploaded via the admin portal is stored directly on the server's local disk, completely replacing third-party image services like Cloudinary:
+### Public Image Media (`UPLOAD_DIR`)
+
+All media uploaded via the admin portal (course banners, team portraits, news heroes) is stored on local disk:
 
 1. **Storage Structure**:
    ```
@@ -253,13 +267,44 @@ All media uploaded via the admin portal is stored directly on the server's local
    - Serves uploaded media through dynamic route handler `/uploads/[...path]`.
    - Strictly enforces path confinement within `UPLOAD_DIR`.
    - Sends security headers: `X-Content-Type-Options: nosniff` and `Cache-Control: public, max-age=31536000, immutable`.
-4. **Production Directory Separation**:
-   - In production, `UPLOAD_DIR` must point to an absolute directory **outside** the application root (e.g. `/home/<cpanel-user>/altair-assets/uploads`).
-   - This ensures uploading new deployment packages or extracting updates never deletes uploaded user images.
+
+### Private Resume Storage (`PRIVATE_UPLOAD_DIR`)
+
+Candidate resumes uploaded through `/careers` are treated with strict confidentiality and must **NEVER** be publicly accessible:
+
+1. **Storage Confinement**:
+   - Resumes are written exclusively to `PRIVATE_UPLOAD_DIR/resumes/<uuid>.<ext>`.
+   - Never stored inside `public/`, `src/assets/`, or the public `UPLOAD_DIR`.
+   - In development: defaults to `<project>/private-uploads` (gitignored).
+   - In production: strictly required to be an absolute path **outside the application root** (e.g. `/home/<cpanel-user>/altair-assets/private-uploads`).
+2. **Strict File & Magic Byte Verification**:
+   - Maximum file size: 5 MB.
+   - Extension allow-list: `.pdf`, `.doc`, `.docx`.
+   - Magic bytes verification protects against renamed executables or malicious files:
+     - PDF: `%PDF-` header.
+     - DOCX: Zip archive magic bytes `PK\x03\x04`.
+     - DOC: Microsoft Compound File Binary OLE header `D0 CF 11 E0 A1 B1 1A E1`.
+3. **Protected Admin-Only Streaming Route**:
+   - Accessible only via `GET /admin/applications/[id]/resume` (add `?download=1` for forced attachment).
+   - Session verification: returns HTTP 401 if not authenticated as an admin.
+   - Sends defensive HTTP response headers:
+     - `Content-Type`: strictly set from the verified MIME type.
+     - `X-Content-Type-Options: nosniff`.
+     - `Cache-Control: private, no-store`.
+     - `Content-Disposition`: `inline` for PDFs (allowing in-browser preview) and `attachment` for Word documents or when requested with `?download=1`.
 
 ---
 
-## 9. Troubleshooting
+## 10. Floating WhatsApp Quick-Access Button
+
+- Rendered from `src/components/site/Footer.tsx` so it appears automatically across all public pages while strictly excluded from `/admin/*`.
+- Dynamically queries the first active `WHATSAPP` channel from MongoDB; if no active WhatsApp channel exists, renders nothing.
+- Positioned fixed at `bottom-5 right-5` with iOS safe-area inset support (`env(safe-area-inset-bottom)`).
+- Styled in official WhatsApp green (`#25D366`), 56px round with hover lift and focus outline. Respects `prefers-reduced-motion` and is hidden in print.
+
+---
+
+## 11. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 

@@ -90,6 +90,14 @@ model Course {
   duration     String
   price        String
   summary      String
+  objective    String?
+  content      String?
+  whoShouldAttend String?
+  certification String?
+  notesAndEquipment String?
+  classCapacity String?
+  feeDetails   String?
+  courseSupport String?
   isFeatured   Boolean   @default(false)
   order        Int       @default(0)
   status       Status    @default(ACTIVE)
@@ -98,6 +106,51 @@ model Course {
 
   @@index([status, order])
   @@index([categoryId])
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+model Lead {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  phone     String
+  message   String
+  status    LeadStatus @default(NEW)
+  source    String     @default("contact-page")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([status, createdAt])
+}
+
+enum ApplicationStatus {
+  NEW
+  REVIEWING
+  SHORTLISTED
+  REJECTED
+}
+
+model CareerApplication {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  email              String
+  phone              String
+  specialisation     String?
+  message            String?
+  resumeOriginalName String?
+  resumeStoredName   String?
+  resumeMime         String?
+  resumeSize         Int?
+  status             ApplicationStatus @default(NEW)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([status, createdAt])
 }
 
 model TeamMember {

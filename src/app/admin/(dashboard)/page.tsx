@@ -176,7 +176,8 @@ export default async function AdminDashboardPage() {
             <CardContent className="pt-0">
               <div className="flex items-center justify-between border-t pt-3">
                 <span className="text-xs text-muted-foreground">
-                  <strong className="text-foreground font-semibold">{stats.leads.new}</strong> awaiting response
+                  <strong className="text-foreground font-semibold">{stats.leads.new}</strong>{" "}
+                  awaiting response
                 </span>
                 <Button variant="outline" size="sm" asChild className="text-xs">
                   <Link href="/admin/leads">
@@ -220,7 +221,10 @@ export default async function AdminDashboardPage() {
             <CardContent className="pt-0">
               <div className="flex items-center justify-between border-t pt-3">
                 <span className="text-xs text-muted-foreground">
-                  <strong className="text-foreground font-semibold">{stats.applications.new}</strong> pending initial review
+                  <strong className="text-foreground font-semibold">
+                    {stats.applications.new}
+                  </strong>{" "}
+                  pending initial review
                 </span>
                 <Button variant="outline" size="sm" asChild className="text-xs">
                   <Link href="/admin/applications">
@@ -244,67 +248,67 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {entityCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <Card
-              key={card.title}
-              className="flex flex-col justify-between border-border/80 shadow-xs hover:border-primary/40 transition-colors"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy/5 text-navy">
-                    <Icon className="h-5 w-5" />
+          {entityCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Card
+                key={card.title}
+                className="flex flex-col justify-between border-border/80 shadow-xs hover:border-primary/40 transition-colors"
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy/5 text-navy">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="text-right">
+                      <span className="text-2xl font-bold font-display text-foreground">
+                        {card.stats.total}
+                      </span>
+                      <span className="text-xs text-muted-foreground block">Total</span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold font-display text-foreground">
-                      {card.stats.total}
-                    </span>
-                    <span className="text-xs text-muted-foreground block">Total</span>
-                  </div>
-                </div>
-                <CardTitle className="text-lg font-display mt-2">{card.title}</CardTitle>
-                <p className="text-xs text-muted-foreground">{card.description}</p>
-              </CardHeader>
+                  <CardTitle className="text-lg font-display mt-2">{card.title}</CardTitle>
+                  <p className="text-xs text-muted-foreground">{card.description}</p>
+                </CardHeader>
 
-              <CardContent className="pt-0">
-                <div className="flex items-center gap-3 py-2 text-xs border-y my-3">
-                  <div className="flex items-center gap-1.5">
-                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-                    <span className="font-medium text-foreground">{card.stats.active}</span>
-                    <span className="text-muted-foreground">Active</span>
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-3 py-2 text-xs border-y my-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+                      <span className="font-medium text-foreground">{card.stats.active}</span>
+                      <span className="text-muted-foreground">Active</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
+                      <span className="font-medium text-foreground">{card.stats.inactive}</span>
+                      <span className="text-muted-foreground">Inactive</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
-                    <span className="font-medium text-foreground">{card.stats.inactive}</span>
-                    <span className="text-muted-foreground">Inactive</span>
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <Button variant="outline" size="sm" asChild className="text-xs">
-                    <Link href={card.href}>
-                      Manage <ArrowRight className="ml-1.5 h-3 w-3" />
-                    </Link>
-                  </Button>
-                  {card.newHref && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      asChild
-                      className="text-xs text-navy hover:text-navy hover:bg-navy/10"
-                    >
-                      <Link href={card.newHref}>
-                        <Plus className="mr-1 h-3 w-3" /> Add New
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <Button variant="outline" size="sm" asChild className="text-xs">
+                      <Link href={card.href}>
+                        Manage <ArrowRight className="ml-1.5 h-3 w-3" />
                       </Link>
                     </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                    {card.newHref && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        className="text-xs text-navy hover:text-navy hover:bg-navy/10"
+                      >
+                        <Link href={card.newHref}>
+                          <Plus className="mr-1 h-3 w-3" /> Add New
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

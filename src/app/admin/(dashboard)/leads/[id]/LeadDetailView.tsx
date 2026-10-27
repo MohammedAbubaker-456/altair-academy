@@ -95,7 +95,7 @@ export function LeadDetailView({ lead }: LeadDetailViewProps) {
     }
   };
 
-  const cleanPhone = lead.phone.replace(/[\s\-\(\)]/g, "");
+  const cleanPhone = lead.phone.replace(/[\s\-()]/g, "");
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -218,12 +218,16 @@ export function LeadDetailView({ lead }: LeadDetailViewProps) {
               <div>
                 <span className="block font-medium text-foreground">Submitted</span>
                 <span>{formatDateTime(lead.createdAt)}</span>
-                <span className="block text-[11px] text-muted-foreground/75">({TIMEZONE_LABEL})</span>
+                <span className="block text-[11px] text-muted-foreground/75">
+                  ({TIMEZONE_LABEL})
+                </span>
               </div>
               <div>
                 <span className="block font-medium text-foreground">Last Updated</span>
                 <span>{formatDateTime(lead.updatedAt)}</span>
-                <span className="block text-[11px] text-muted-foreground/75">({TIMEZONE_LABEL})</span>
+                <span className="block text-[11px] text-muted-foreground/75">
+                  ({TIMEZONE_LABEL})
+                </span>
               </div>
               <div>
                 <span className="block font-medium text-foreground">Source Channel</span>

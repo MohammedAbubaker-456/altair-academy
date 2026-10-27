@@ -52,7 +52,8 @@ export default async function AdminLeadsPage({ searchParams }: AdminLeadsPagePro
             Customer Leads &amp; Enquiries
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            View, track, and manage all student and corporate course inquiries received via /contact.
+            View, track, and manage all student and corporate course inquiries received via
+            /contact.
           </p>
         </div>
       </div>

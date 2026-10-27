@@ -90,10 +90,15 @@ export function detectDocumentType(
 /**
  * Sanitizes original filenames for display purposes only.
  */
+/* eslint-disable no-control-regex */
 export function sanitizeOriginalFilename(rawName: string): string {
-  const base = path.basename(rawName).replace(/[\x00-\x1F\x7F\\/]/g, "").trim();
+  const base = path
+    .basename(rawName)
+    .replace(/[\x00-\x1F\x7F\\/]/g, "")
+    .trim();
   return base.slice(0, 100) || "resume-document";
 }
+/* eslint-enable no-control-regex */
 
 /**
  * Validates and stores an uploaded resume document into PRIVATE_UPLOAD_DIR/resumes.
@@ -112,7 +117,9 @@ export async function saveResume(file: File): Promise<SaveResumeResult> {
   const originalName = file.name || "resume.pdf";
   const ext = path.extname(originalName).toLowerCase();
   if (!ALLOWED_RESUME_EXTENSIONS.includes(ext as (typeof ALLOWED_RESUME_EXTENSIONS)[number])) {
-    throw new Error("Invalid file type. Only PDF (.pdf) and Word documents (.doc, .docx) are accepted.");
+    throw new Error(
+      "Invalid file type. Only PDF (.pdf) and Word documents (.doc, .docx) are accepted.",
+    );
   }
 
   // 3. Validate declared MIME type
@@ -126,7 +133,9 @@ export async function saveResume(file: File): Promise<SaveResumeResult> {
 
   const detected = detectDocumentType(buffer);
   if (!detected) {
-    throw new Error("Invalid file content signature. File appears corrupted or is not an authentic PDF or Word document.");
+    throw new Error(
+      "Invalid file content signature. File appears corrupted or is not an authentic PDF or Word document.",
+    );
   }
 
   // 5. Ensure declared extension matches detected magic byte format

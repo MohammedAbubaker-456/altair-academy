@@ -70,7 +70,10 @@ export default async function ContactPage() {
               {contactDetails.EMAIL.map((email) => (
                 <li key={email.id} className="flex gap-3">
                   <Mail className="mt-1 size-5 shrink-0 text-brand-red" aria-hidden="true" />
-                  <a href={`mailto:${email.value}`} className="hover:text-primary transition-colors">
+                  <a
+                    href={`mailto:${email.value}`}
+                    className="hover:text-primary transition-colors"
+                  >
                     {email.value}
                   </a>
                 </li>

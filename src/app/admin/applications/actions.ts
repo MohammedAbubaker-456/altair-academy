@@ -18,8 +18,7 @@ import { deleteResume } from "@/lib/private-storage";
 import type { ApplicationStatus } from "@prisma/client";
 
 export type ApplicationActionResult =
-  | { ok: true; message: string }
-  | { ok: false; message: string; authError?: boolean };
+  { ok: true; message: string } | { ok: false; message: string; authError?: boolean };
 
 const OBJECT_ID_REGEX = /^[a-f0-9]{24}$/;
 

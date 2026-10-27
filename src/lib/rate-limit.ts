@@ -19,8 +19,7 @@ import { env } from "@/lib/env";
 export type RateLimitScope = "lead" | "application";
 
 export type RateLimitResult =
-  | { allowed: true }
-  | { allowed: false; retryAfterMinutes: number; message: string };
+  { allowed: true } | { allowed: false; retryAfterMinutes: number; message: string };
 
 const LIMITS: Record<RateLimitScope, { max: number; windowMs: number; label: string }> = {
   lead: {

@@ -31,9 +31,7 @@ interface AdminApplicationsPageProps {
   }>;
 }
 
-export default async function AdminApplicationsPage({
-  searchParams,
-}: AdminApplicationsPageProps) {
+export default async function AdminApplicationsPage({ searchParams }: AdminApplicationsPageProps) {
   const resolvedParams = await searchParams;
   const q = resolvedParams.q;
   const status = resolvedParams.status as ApplicationStatus | "ALL" | undefined;
@@ -54,7 +52,8 @@ export default async function AdminApplicationsPage({
             Candidate Job Applications
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Review instructor resumes, candidate specialisations, and applicant qualifications submitted via /careers.
+            Review instructor resumes, candidate specialisations, and applicant qualifications
+            submitted via /careers.
           </p>
         </div>
       </div>

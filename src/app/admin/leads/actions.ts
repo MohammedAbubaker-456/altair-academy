@@ -16,8 +16,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import type { LeadStatus } from "@prisma/client";
 
 export type LeadActionResult =
-  | { ok: true; message: string }
-  | { ok: false; message: string; authError?: boolean };
+  { ok: true; message: string } | { ok: false; message: string; authError?: boolean };
 
 const OBJECT_ID_REGEX = /^[a-f0-9]{24}$/;
 

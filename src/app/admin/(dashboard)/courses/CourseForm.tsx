@@ -363,7 +363,8 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
                   Detailed Syllabus &amp; Specifications
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Optional sections rendered on the public course detail page. Markdown is supported where indicated.
+                  Optional sections rendered on the public course detail page. Markdown is supported
+                  where indicated.
                 </p>
               </div>
 

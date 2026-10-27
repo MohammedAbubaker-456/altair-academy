@@ -144,11 +144,9 @@ export function Header() {
         {/* Desktop Navigation */}
         {/* <nav className="ml-auto hidden items-center gap-6 lg:flex" aria-label="Main"> */}
         <nav className="hidden items-center gap-6 lg:flex" aria-label="Main">
-
           <NavLink href="/" exact className={navLinkClass}>
             Home
           </NavLink>
-
 
           <NavLink href="/about" className={navLinkClass}>
             About Us

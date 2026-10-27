@@ -111,7 +111,7 @@ export function ApplicationDetailView({ application }: ApplicationDetailViewProp
     }
   };
 
-  const cleanPhone = application.phone.replace(/[\s\-\(\)]/g, "");
+  const cleanPhone = application.phone.replace(/[\s\-()]/g, "");
   const hasResume = Boolean(application.resumeStoredName);
 
   return (
@@ -240,12 +240,16 @@ export function ApplicationDetailView({ application }: ApplicationDetailViewProp
               <div>
                 <span className="block font-medium text-foreground">Submitted</span>
                 <span>{formatDateTime(application.createdAt)}</span>
-                <span className="block text-[11px] text-muted-foreground/75">({TIMEZONE_LABEL})</span>
+                <span className="block text-[11px] text-muted-foreground/75">
+                  ({TIMEZONE_LABEL})
+                </span>
               </div>
               <div>
                 <span className="block font-medium text-foreground">Last Updated</span>
                 <span>{formatDateTime(application.updatedAt)}</span>
-                <span className="block text-[11px] text-muted-foreground/75">({TIMEZONE_LABEL})</span>
+                <span className="block text-[11px] text-muted-foreground/75">
+                  ({TIMEZONE_LABEL})
+                </span>
               </div>
               <div>
                 <span className="block font-medium text-foreground">Application ID</span>
@@ -296,7 +300,12 @@ export function ApplicationDetailView({ application }: ApplicationDetailViewProp
                           View
                         </a>
                       </Button>
-                      <Button variant="default" size="sm" asChild className="text-xs bg-navy hover:bg-navy/90 text-primary-foreground">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        asChild
+                        className="text-xs bg-navy hover:bg-navy/90 text-primary-foreground"
+                      >
                         <a href={`/admin/applications/${application.id}/resume?download=1`}>
                           <Download className="h-3.5 w-3.5 mr-1" />
                           Download

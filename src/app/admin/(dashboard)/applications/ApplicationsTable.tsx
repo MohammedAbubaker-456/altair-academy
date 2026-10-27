@@ -78,12 +78,7 @@ interface ApplicationsTableProps {
   totalPages: number;
 }
 
-export function ApplicationsTable({
-  items,
-  total,
-  page,
-  totalPages,
-}: ApplicationsTableProps) {
+export function ApplicationsTable({ items, total, page, totalPages }: ApplicationsTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -263,7 +258,7 @@ export function ApplicationsTable({
                     </TableCell>
                     <TableCell>
                       <a
-                        href={`tel:${app.phone.replace(/[\s\-\(\)]/g, "")}`}
+                        href={`tel:${app.phone.replace(/[\s\-()]/g, "")}`}
                         className="text-xs font-mono text-muted-foreground hover:text-foreground flex items-center gap-1"
                       >
                         <Phone className="h-3 w-3 shrink-0" />

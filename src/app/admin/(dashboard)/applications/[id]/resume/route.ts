@@ -5,7 +5,7 @@
  * Enforces session verification (returning 401 on missing session), nosniff protection,
  * non-cacheable private headers, and inline vs attachment Content-Disposition.
  *
- * Location: src/app/admin/applications/[id]/resume/route.ts
+ * Location: src/app/admin/(dashboard)/applications/[id]/resume/route.ts
  * Type: Route Handler (Server-Side)
  */
 
@@ -17,10 +17,7 @@ import { getResumeFilePath } from "@/lib/private-storage";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // 1. Enforce admin authentication (401 for no session)
   const admin = await getAdmin();
   if (!admin) {

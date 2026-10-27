@@ -217,9 +217,7 @@ export function LeadsTable({ items, total, page, totalPages }: LeadsTableProps) 
               items.map((lead) => {
                 const currentStatusValue = localStatuses[lead.id] || lead.status;
                 const messageSnippet =
-                  lead.message.length > 75
-                    ? `${lead.message.slice(0, 75).trim()}…`
-                    : lead.message;
+                  lead.message.length > 75 ? `${lead.message.slice(0, 75).trim()}…` : lead.message;
 
                 return (
                   <TableRow key={lead.id} className="hover:bg-muted/20">
@@ -245,7 +243,7 @@ export function LeadsTable({ items, total, page, totalPages }: LeadsTableProps) 
                     </TableCell>
                     <TableCell>
                       <a
-                        href={`tel:${lead.phone.replace(/[\s\-\(\)]/g, "")}`}
+                        href={`tel:${lead.phone.replace(/[\s\-()]/g, "")}`}
                         className="text-xs font-mono text-muted-foreground hover:text-foreground flex items-center gap-1"
                       >
                         <Phone className="h-3 w-3 shrink-0" />
@@ -264,9 +262,7 @@ export function LeadsTable({ items, total, page, totalPages }: LeadsTableProps) 
                     <TableCell>
                       <Select
                         value={currentStatusValue}
-                        onValueChange={(val) =>
-                          handleQuickStatusChange(lead.id, val as LeadStatus)
-                        }
+                        onValueChange={(val) => handleQuickStatusChange(lead.id, val as LeadStatus)}
                       >
                         <SelectTrigger className="h-7 w-[125px] text-xs">
                           <SelectValue>{getStatusBadge(currentStatusValue)}</SelectValue>

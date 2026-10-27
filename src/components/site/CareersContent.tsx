@@ -91,9 +91,9 @@ export function CareersContent({ openings, contactInfo }: CareersContentProps) {
 
         {/* Why teach with us */}
         {/* <section className="py-16 sm:py-20"> */}
-          {/* <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid gap-12 lg:grid-cols-2 lg:items-center"> */}
-              {/* <div>
+        {/* <div>
                 <span className="eyebrow text-brand-red">Why Altair Academy</span>
                 <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl">
                   Built by inspectors, for inspectors
@@ -120,7 +120,7 @@ export function CareersContent({ openings, contactInfo }: CareersContentProps) {
                   ))}
                 </div>
               </div> */}
-              {/* <div className="relative aspect-4/3 overflow-hidden rounded-2xl shadow-xl">
+        {/* <div className="relative aspect-4/3 overflow-hidden rounded-2xl shadow-xl">
                 <Image
                   src={teamImage}
                   alt="Altair Academy training team"
@@ -129,7 +129,7 @@ export function CareersContent({ openings, contactInfo }: CareersContentProps) {
                   className="object-cover"
                 />
               </div> */}
-            {/* </div>
+        {/* </div>
           </div> */}
         {/* </section> */}
 

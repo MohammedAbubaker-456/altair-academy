@@ -147,7 +147,8 @@ async function main() {
     if (!existingApi510.content) updateData["content"] = api510Content;
     if (!existingApi510.whoShouldAttend) updateData["whoShouldAttend"] = api510WhoShouldAttend;
     if (!existingApi510.certification) updateData["certification"] = api510Certification;
-    if (!existingApi510.notesAndEquipment) updateData["notesAndEquipment"] = api510NotesAndEquipment;
+    if (!existingApi510.notesAndEquipment)
+      updateData["notesAndEquipment"] = api510NotesAndEquipment;
     if (!existingApi510.classCapacity) updateData["classCapacity"] = api510ClassCapacity;
     if (!existingApi510.courseSupport) updateData["courseSupport"] = api510CourseSupport;
 

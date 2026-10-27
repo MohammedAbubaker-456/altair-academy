@@ -11,12 +11,14 @@
 
 import { z } from "zod";
 
+/* eslint-disable no-control-regex */
 function stripControlCharacters(str: string): string {
   return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
 }
+/* eslint-enable no-control-regex */
 
 function isValidPhone(phone: string): boolean {
-  const stripped = phone.replace(/[\s\-\(\)\.]/g, "");
+  const stripped = phone.replace(/[\s\-().]/g, "");
   const digits = stripped.startsWith("+") ? stripped.slice(1) : stripped;
   return /^\d{6,15}$/.test(digits);
 }
@@ -70,12 +72,7 @@ export const applicationSchema = z.object({
     .string()
     .transform(stripControlCharacters)
     .pipe(
-      z
-        .string()
-        .trim()
-        .max(2000, "Message must be under 2,000 characters")
-        .optional()
-        .nullable(),
+      z.string().trim().max(2000, "Message must be under 2,000 characters").optional().nullable(),
     )
     .optional()
     .nullable(),

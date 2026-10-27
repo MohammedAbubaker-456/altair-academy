@@ -54,19 +54,19 @@ export function CareersForm() {
       {/* Honeypot field (hidden from real users) */}
       <div className="sr-only" aria-hidden="true">
         <Label htmlFor="career-website">Website</Label>
-        <input
-          id="career-website"
-          type="text"
-          name="website"
-          tabIndex={-1}
-          autoComplete="off"
-        />
+        <input id="career-website" type="text" name="website" tabIndex={-1} autoComplete="off" />
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="career-name">Name</Label>
-          <Input id="career-name" name="name" required placeholder="Full name" disabled={isPending} />
+          <Input
+            id="career-name"
+            name="name"
+            required
+            placeholder="Full name"
+            disabled={isPending}
+          />
           {state.fieldErrors?.["name"] && (
             <p className="text-xs text-destructive">{state.fieldErrors["name"][0]}</p>
           )}
@@ -74,7 +74,14 @@ export function CareersForm() {
 
         <div className="space-y-2">
           <Label htmlFor="career-email">Email</Label>
-          <Input id="career-email" name="email" type="email" required placeholder="you@email.com" disabled={isPending} />
+          <Input
+            id="career-email"
+            name="email"
+            type="email"
+            required
+            placeholder="you@email.com"
+            disabled={isPending}
+          />
           {state.fieldErrors?.["email"] && (
             <p className="text-xs text-destructive">{state.fieldErrors["email"][0]}</p>
           )}
@@ -82,7 +89,13 @@ export function CareersForm() {
 
         <div className="space-y-2">
           <Label htmlFor="career-phone">Contact number</Label>
-          <Input id="career-phone" name="phone" required placeholder="+60 12 345 6789" disabled={isPending} />
+          <Input
+            id="career-phone"
+            name="phone"
+            required
+            placeholder="+60 12 345 6789"
+            disabled={isPending}
+          />
           {state.fieldErrors?.["phone"] && (
             <p className="text-xs text-destructive">{state.fieldErrors["phone"][0]}</p>
           )}
@@ -90,7 +103,12 @@ export function CareersForm() {
 
         <div className="space-y-2">
           <Label htmlFor="career-specialisation">Specialisation</Label>
-          <Input id="career-specialisation" name="specialisation" placeholder="e.g. UT Level III" disabled={isPending} />
+          <Input
+            id="career-specialisation"
+            name="specialisation"
+            placeholder="e.g. UT Level III"
+            disabled={isPending}
+          />
           {state.fieldErrors?.["specialisation"] && (
             <p className="text-xs text-destructive">{state.fieldErrors["specialisation"][0]}</p>
           )}
@@ -146,7 +164,8 @@ export function CareersForm() {
         type="submit"
         variant="cta"
         size="lg"
-        className="mt-6 w-full text-base font-semibold"
+        // className="mt-6 w-full text-black bg-secondary/40 font-semibold"
+        className="mt-6 w-full text-black bg-secondary/40 hover:bg-secondary/60 font-semibold"
         disabled={isPending}
       >
         {isPending ? (

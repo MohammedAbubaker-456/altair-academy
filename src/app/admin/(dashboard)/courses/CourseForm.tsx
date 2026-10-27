@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { courseSchema, type CourseInput } from "@/lib/validation/course";
 import { slugify } from "@/lib/slugify";
 import { createCourseAction, updateCourseAction } from "@/app/admin/courses/actions";
@@ -99,25 +100,20 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
     try {
       if (initialData) {
         const result = await updateCourseAction(initialData.id, data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           router.push("/admin/courses");
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       } else {
         const result = await createCourseAction(data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           router.push("/admin/courses");
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       }
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (err) {
+      console.error("[CourseForm] Submit error:", err);
+      toast.error("An unexpected error occurred. Please refresh the page.");
     } finally {
       setIsSubmitting(false);
     }

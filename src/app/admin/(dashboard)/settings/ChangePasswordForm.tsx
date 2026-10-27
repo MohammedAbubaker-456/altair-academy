@@ -50,9 +50,15 @@ export function ChangePasswordForm() {
           toast.success(result.message);
           reset();
         } else {
+          if (result.authError) {
+            toast.error(result.message || "Session expired, please sign in again");
+            window.location.href = "/admin/login";
+            return;
+          }
           setServerError(result.message);
         }
-      } catch {
+      } catch (err) {
+        console.error("[ChangePasswordForm] Error:", err);
         setServerError("Failed to update password. Please try again.");
       }
     });

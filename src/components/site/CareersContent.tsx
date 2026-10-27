@@ -90,10 +90,10 @@ export function CareersContent({ openings, contactInfo }: CareersContentProps) {
         </section>
 
         {/* Why teach with us */}
-        <section className="py-16 sm:py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-              <div>
+        {/* <section className="py-16 sm:py-20"> */}
+          {/* <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-12 lg:grid-cols-2 lg:items-center"> */}
+              {/* <div>
                 <span className="eyebrow text-brand-red">Why Altair Academy</span>
                 <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-primary sm:text-4xl">
                   Built by inspectors, for inspectors
@@ -119,8 +119,8 @@ export function CareersContent({ openings, contactInfo }: CareersContentProps) {
                     </div>
                   ))}
                 </div>
-              </div>
-              <div className="relative aspect-4/3 overflow-hidden rounded-2xl shadow-xl">
+              </div> */}
+              {/* <div className="relative aspect-4/3 overflow-hidden rounded-2xl shadow-xl">
                 <Image
                   src={teamImage}
                   alt="Altair Academy training team"
@@ -128,10 +128,10 @@ export function CareersContent({ openings, contactInfo }: CareersContentProps) {
                   sizes="(min-width: 1024px) 50vw, 100vw"
                   className="object-cover"
                 />
-              </div>
-            </div>
-          </div>
-        </section>
+              </div> */}
+            {/* </div>
+          </div> */}
+        {/* </section> */}
 
         {/* Open positions */}
         <section className="bg-secondary/40 py-16 sm:py-20">

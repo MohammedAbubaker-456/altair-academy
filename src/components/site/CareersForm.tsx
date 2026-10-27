@@ -96,13 +96,10 @@ export function CareersForm() {
         </p>
       ) : null} */}
       {submitted && (
-        <p className="mt-4 text-sm text-green-600">
-          Application submitted successfully!
-        </p>
+        <p className="mt-4 text-sm text-green-600">Application submitted successfully!</p>
       )}
     </form>
   );
-
 }
 // "use client";
 

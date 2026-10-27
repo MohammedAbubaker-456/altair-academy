@@ -15,6 +15,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { deleteLegalPageAction, setLegalPageStatusAction } from "@/app/admin/legal/actions";
 import { StatusSwitch } from "@/components/admin/StatusSwitch";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
@@ -62,12 +63,14 @@ export function LegalTable({ pages }: LegalTableProps) {
   const router = useRouter();
 
   const handleDelete = async (id: string) => {
-    const result = await deleteLegalPageAction(id);
-    if (result.ok) {
-      toast.success(result.message);
-      router.refresh();
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await deleteLegalPageAction(id);
+      handleAdminActionResult(result, () => {
+        router.refresh();
+      });
+    } catch (err) {
+      console.error("[LegalTable] Delete error:", err);
+      toast.error("An unexpected error occurred while deleting.");
     }
   };
 

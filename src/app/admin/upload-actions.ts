@@ -10,19 +10,21 @@
 
 "use server";
 
-import { requireAdmin } from "@/lib/auth/session";
+import { verifyAdminAction } from "@/lib/auth/session";
 import { storageService } from "@/lib/storage";
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
-export type UploadActionResult = { ok: true; url: string } | { ok: false; message: string };
+export type UploadActionResult =
+  { ok: true; url: string } | { ok: false; message: string; authError?: boolean };
 
 export async function uploadImageAction(
   formData: FormData,
   folder = "uploads",
 ): Promise<UploadActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   const file = formData.get("file");
   if (!file || !(file instanceof File)) {
@@ -49,6 +51,7 @@ export async function uploadImageAction(
     const url = await storageService.uploadImage(buffer, folder);
     return { ok: true, url };
   } catch (err) {
+    console.error("[uploadImageAction] Storage error:", err);
     return {
       ok: false,
       message: err instanceof Error ? err.message : "Image upload failed",

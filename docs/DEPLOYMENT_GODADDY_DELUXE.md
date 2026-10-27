@@ -52,6 +52,7 @@
 ## Pre-Requisites Checklist
 
 Before starting, ensure you have:
+
 1. GoDaddy cPanel login credentials and domain assigned.
 2. SSH access enabled in cPanel (**cPanel -> SSH Access -> Manage SSH Keys** or password-based SSH).
 3. A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account.
@@ -65,13 +66,17 @@ Before starting, ensure you have:
 Shared hosting cannot run a native MongoDB service. Production uses MongoDB Atlas.
 
 ### 1.1 Determine the Exact Hosting Data Center
+
 Log in to your GoDaddy server over SSH and run:
+
 ```bash
 curl -s https://ipinfo.io
 ```
+
 Note the `city`, `region`, and `country` (typically Frankfurt, Amsterdam, or London).
 
 ### 1.2 Create an Atlas Cluster in the Nearest European Region
+
 1. Log in to [MongoDB Atlas](https://cloud.mongodb.com).
 2. Click **Create Deployment** -> Select **M0 (Free)** (or dedicated M10+ if scaling).
 3. Select Cloud Provider **AWS** or **Google Cloud**.
@@ -82,6 +87,7 @@ Note the `city`, `region`, and `country` (typically Frankfurt, Amsterdam, or Lon
 5. Click **Create Deployment**.
 
 ### 1.3 Create a Dedicated Database User
+
 1. Navigate to **Security** -> **Database Access**.
 2. Click **Add New Database User**.
 3. Authentication Method: **Password**.
@@ -96,17 +102,23 @@ Note the `city`, `region`, and `country` (typically Frankfurt, Amsterdam, or Lon
 ## Step 2: SSH Setup & Server Discovery
 
 ### 2.1 Connect via SSH
+
 Connect from your local terminal:
+
 ```bash
 ssh <cpanel-username>@<your-server-ip-or-domain> -p 22
 ```
-*(Port 22 is default; `[VERIFY]` whether your cPanel account uses port 22 or a custom port like 2222).*
+
+_(Port 22 is default; `[VERIFY]` whether your cPanel account uses port 22 or a custom port like 2222)._
 
 ### 2.2 Determine Server Outbound Public IP & Allowlist in Atlas
+
 Run:
+
 ```bash
 curl -s https://ifconfig.me
 ```
+
 1. Copy the printed IP address.
 2. In MongoDB Atlas, go to **Security** -> **Network Access** -> **Add IP Address**.
 3. Enter your GoDaddy server's outbound IP address with `/32` (e.g., `198.51.100.24/32`), comment: `GoDaddy cPanel Outbound`.
@@ -115,12 +127,15 @@ curl -s https://ifconfig.me
    > **Fallback**: If GoDaddy uses rotating outbound NAT gateways, Atlas allows adding `0.0.0.0/0` (Allow access from anywhere). **Security implication**: Anyone who acquires your database credentials could connect. Therefore, only use this fallback if necessary, and ensure your database user has a 32+ character random password and access restricted to `altair-academy`.
 
 ### 2.3 Collect Server System Facts
+
 Collect and record the exact OS environment facts:
+
 ```bash
 uname -m
 cat /etc/os-release
 openssl version
 ```
+
 - **Architecture**: If `x86_64`, it corresponds to `linux-x64`.
 - **OpenSSL**: If OpenSSL 3.x is reported (e.g., OpenSSL 3.0.x on CloudLinux/RHEL 9), the Prisma binary target `rhel-openssl-3.0.x` is used (our preconfigured target). If OpenSSL 1.1.x is reported, note this so `binaryTargets` in `prisma/schema.prisma` can be adjusted.
 
@@ -133,6 +148,7 @@ openssl version
 > When you deploy updates or extract a new application package, the application folder (`/home/<user>/altair-app/`) is replaced. If your uploaded media were stored inside the application directory, **every update would completely delete all uploaded images!**
 
 Create the permanent uploads folder in your user's home directory:
+
 ```bash
 # In your SSH session:
 mkdir -p /home/<cpanel-user>/altair-assets/uploads/courses
@@ -142,10 +158,13 @@ mkdir -p /home/<cpanel-user>/altair-assets/uploads/news
 # Set permissions so the cPanel web application process can read and write:
 chmod -R 755 /home/<cpanel-user>/altair-assets
 ```
+
 Take note of the absolute path:
+
 ```
 /home/<cpanel-user>/altair-assets/uploads
 ```
+
 This is the value you will provide for `UPLOAD_DIR`.
 
 ---
@@ -182,10 +201,13 @@ The packaged production archive is minimal and contains only the runtime server 
 On your local workstation (or via GitHub Actions):
 
 ### Option A: Local Build & Package
+
 ```bash
 npm run package:cpanel
 ```
+
 This script:
+
 1. Runs `prisma generate` (pulling native and Linux query engines).
 2. Executes `next build` (generating `.next/standalone`).
 3. Assembles `deploy/cpanel-package/` with all static assets, seed images, tools, and startup files.
@@ -194,7 +216,9 @@ This script:
 6. Produces `deploy/altair-academy-cpanel.zip` (~50 MB).
 
 ### Option B: GitHub Actions Workflow
+
 If using GitHub:
+
 1. Push your changes to branch `main`.
 2. Go to **GitHub** -> **Actions** -> **Build cPanel Deployment Package**.
 3. Download the `altair-academy-cpanel` artifact zip built natively on Ubuntu Linux.
@@ -278,23 +302,25 @@ Before starting the server, run the diagnostic tools to ensure networking and da
 
 In **cPanel -> Setup Node.js App**, edit your application and navigate to the **Environment variables** table. Add:
 
-| Variable Name | Production Value | Notes |
-| :--- | :--- | :--- |
-| `NODE_ENV` | `production` | Required |
-| `DATABASE_URL` | `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority` | URL-encode password special characters |
-| `AUTH_SECRET` | *(64-char random string)* | Generate with `openssl rand -hex 32` |
-| `UPLOAD_DIR` | `/home/<cpanel-user>/altair-assets/uploads` | Must be absolute, outside app root |
-| `SITE_URL` | `https://<your-domain>` | Recommended for canonical URLs, metadataBase, & OpenGraph |
-| `PORT` | `3000` | Port Passenger assigns `[VERIFY]` |
+| Variable Name  | Production Value                                                                                   | Notes                                                     |
+| :------------- | :------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| `NODE_ENV`     | `production`                                                                                       | Required                                                  |
+| `DATABASE_URL` | `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority` | URL-encode password special characters                    |
+| `AUTH_SECRET`  | _(64-char random string)_                                                                          | Generate with `openssl rand -hex 32`                      |
+| `UPLOAD_DIR`   | `/home/<cpanel-user>/altair-assets/uploads`                                                        | Must be absolute, outside app root                        |
+| `SITE_URL`     | `https://<your-domain>`                                                                            | Recommended for canonical URLs, metadataBase, & OpenGraph |
+| `PORT`         | `3000`                                                                                             | Port Passenger assigns `[VERIFY]`                         |
 
 Click **Save** and click **Restart Application**.
 
 > [!IMPORTANT]
 > **Package Rebuild Required for Updates**:
 > When deploying features from branch `feature/careers-news-contact-legal` (Careers, News Inner Pages, Dynamic Contact Channels, Legal Pages), you must rebuild the standalone package:
+>
 > ```bash
 > npm run package:cpanel
 > ```
+>
 > Upload the newly generated `deploy/altair-academy-cpanel.zip` to `/home/<cpanel-user>/altair-app` and extract it, replacing the old application files.
 
 ---
@@ -335,7 +361,8 @@ Run tests in this exact order:
    - In cPanel, click **Restart** (or run `touch tmp/restart.txt` over SSH).
    - Refresh the page and confirm the uploaded image continues to display.
 10. **Simulate Update Deploy**:
-   - Deploying an updated package to `/home/<cpanel-user>/altair-app` must NOT delete files in `/home/<cpanel-user>/altair-assets/uploads`.
+
+- Deploying an updated package to `/home/<cpanel-user>/altair-app` must NOT delete files in `/home/<cpanel-user>/altair-assets/uploads`.
 
 ---
 
@@ -348,6 +375,7 @@ GoDaddy cPanel provides free cPanel AutoSSL (powered by Sectigo or Let's Encrypt
 3. > [!NOTE]
    > **Passenger .htaccess Integration `[VERIFY]`**:
    > When "Setup Node.js App" creates an app, it generates an `.htaccess` file in `public_html/` mapping incoming web traffic to the Passenger socket. If you add manual redirection rules to `.htaccess`, ensure the HTTPS redirect does not prevent Passenger rewrite rules:
+   >
    > ```apache
    > RewriteEngine On
    > RewriteCond %{HTTPS} !=on
@@ -359,6 +387,7 @@ GoDaddy cPanel provides free cPanel AutoSSL (powered by Sectigo or Let's Encrypt
 ## Step 12: Routine Updates & Rollback Procedure
 
 ### Deploying Updates
+
 1. Build the updated package locally or via GitHub: `npm run package:cpanel`.
 2. In cPanel File Manager (or via SFTP), upload `deploy/altair-academy-cpanel.zip` to `/home/<cpanel-user>/altair-app/`.
 3. Extract the archive, overwriting existing application files.
@@ -366,6 +395,7 @@ GoDaddy cPanel provides free cPanel AutoSSL (powered by Sectigo or Let's Encrypt
 5. In cPanel, click **Restart** (or over SSH: `touch /home/<cpanel-user>/altair-app/tmp/restart.txt`).
 
 ### Rollback
+
 1. Keep the previous `.zip` archive (e.g., `altair-academy-cpanel-v1.0.0.zip`) in a backup directory on your local machine.
 2. If an issue occurs, re-upload and extract the previous archive.
 3. Restart the application.
@@ -375,38 +405,46 @@ GoDaddy cPanel provides free cPanel AutoSSL (powered by Sectigo or Let's Encrypt
 ## Step 13: Backups & Disaster Recovery
 
 ### 13.1 Database Backups (Atlas M0)
+
 Atlas Free Tier (M0) does not include automated snapshot backups. Back up your data locally using `mongodump`:
 
 **Backup Command (Run locally)**:
+
 ```bash
 mongodump --uri="mongodb+srv://altair_app_user:<encoded-password>@<cluster>.mongodb.net/altair-academy" --out="./backups/$(date +%Y-%m-%d)"
 ```
 
 **Restore Command**:
+
 ```bash
 mongorestore --uri="mongodb+srv://altair_app_user:<encoded-password>@<cluster>.mongodb.net/altair-academy" --drop "./backups/YYYY-MM-DD/altair-academy"
 ```
 
 ### 13.2 Media Uploads Backup
+
 > [!IMPORTANT]
 > The `/home/<cpanel-user>/altair-assets/uploads` directory exists **only** on the GoDaddy server's disk. If the server experiences drive failure or account termination, all user-uploaded images are permanently lost without a backup.
 
 **Backup via SSH / rsync (from your computer)**:
+
 ```bash
 rsync -avz -e "ssh -p 22" <cpanel-user>@<server-ip>:/home/<cpanel-user>/altair-assets/uploads/ ./local-uploads-backup/
 ```
-*(Alternatively: In cPanel File Manager, right-click `/home/<cpanel-user>/altair-assets/uploads`, click **Compress**, and download the zip archive).*
+
+_(Alternatively: In cPanel File Manager, right-click `/home/<cpanel-user>/altair-assets/uploads`, click **Compress**, and download the zip archive)._
 
 ---
 
 ## Step 14: Optimizing Performance for Visitors in Asia
 
 ### 14.1 Latency Explanation
-Your GoDaddy server and MongoDB Atlas cluster are physically located in Europe (~6,000+ miles from Singapore and Malaysia). A round-trip packet (RTT) between Southeast Asia and Western Europe takes **160ms–220ms**. 
+
+Your GoDaddy server and MongoDB Atlas cluster are physically located in Europe (~6,000+ miles from Singapore and Malaysia). A round-trip packet (RTT) between Southeast Asia and Western Europe takes **160ms–220ms**.
 
 Because dynamic pages currently use `export const dynamic = "force-dynamic"`, each HTML request travels from Asia to Europe, runs queries, and returns HTML, producing a minimum 300ms–600ms Time-To-First-Byte (TTFB).
 
 ### 14.2 Free Cloudflare CDN Setup
+
 Placing Cloudflare's free global CDN in front of your GoDaddy domain caches static files and media close to visitors in Singapore, Kuala Lumpur, and Hong Kong:
 
 1. **Sign up at [Cloudflare](https://www.cloudflare.com)** and add your domain.
@@ -426,7 +464,9 @@ Placing Cloudflare's free global CDN in front of your GoDaddy domain caches stat
    > **Compatibility `[VERIFY]`**: Cloudflare proxying works with Phusion Passenger provided SSL mode is set to "Full (strict)".
 
 ### 14.3 Future Architectural Recommendation: ISR & On-Demand Revalidation
+
 To make Cloudflare or any CDN dramatically faster for visitors in Asia:
+
 - Switch public pages from `export const dynamic = "force-dynamic"` to Incremental Static Regeneration (ISR) with `export const revalidate = 3600`.
 - In admin mutation actions (`createCourse`, `updateCourse`, etc.), call `revalidatePath('/courses')`, `revalidatePath('/')`.
 - **Result**: Cloudflare PoPs in Singapore and Kuala Lumpur can cache the generated HTML pages directly at the edge, serving page requests in **<25ms** without crossing continents to Europe.
@@ -435,17 +475,17 @@ To make Cloudflare or any CDN dramatically faster for visitors in Asia:
 
 ## Step 15: Troubleshooting Reference
 
-| Symptom / Error | Probable Cause | Actionable Solution |
-| :--- | :--- | :--- |
-| **500 Internal Server Error (Passenger)** | Unhandled startup crash or missing engine | Check passenger logs: `cat /home/<user>/logs/passenger.log` or `cat /home/<user>/altair-app/stderr.log` `[VERIFY]`. |
-| **503 Service Unavailable on `/api/health`** | Atlas IP allowlist, bad credentials, or blocked port | Run `node tools/connectivity-check.mjs` over SSH to test port 27017. Verify outbound server IP (`curl -s https://ifconfig.me`). |
-| **"Prisma Client could not locate the Query Engine"** | Missing Linux query engine binary | Verify `node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node` exists. Re-run `npm run package:cpanel`. |
-| **Sharp platform error / `GLIBC` mismatch** | Windows sharp binary shipped to Linux | Ensure `@img/sharp-linux-x64` is in package. Build on Linux runner or via GitHub Actions workflow. |
-| **Uploads fail with 413 or Request Entity Too Large** | Body size limit exceeded | App limit is set to 6 MB (`bodySizeLimit: "6mb"`). Check if Apache/Passenger has a lower `LimitRequestBody` configured `[VERIFY]`. |
-| **Uploaded image returns 404** | Wrong `UPLOAD_DIR` or file permissions | Verify `UPLOAD_DIR` in cPanel matches actual path (`/home/<user>/altair-assets/uploads`). Run `chmod -R 755 /home/<user>/altair-assets`. |
-| **Images disappear after deployment** | Uploads folder was inside app root | Ensure `UPLOAD_DIR` is strictly outside `/home/<user>/altair-app/`. |
-| **Authentication Failed (Code 18) in MongoDB** | Special characters in password not encoded | URL-encode `@`, `:`, `#`, etc. in `DATABASE_URL` (e.g. `P%40ssword123`). |
-| **Process killed (Out of Memory / Error 137)** | Exceeded cPanel account RAM limit `[VERIFY]` | Never run `next build` or `npm install` on the server. Always deploy prebuilt standalone packages. |
+| Symptom / Error                                       | Probable Cause                                       | Actionable Solution                                                                                                                      |
+| :---------------------------------------------------- | :--------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| **500 Internal Server Error (Passenger)**             | Unhandled startup crash or missing engine            | Check passenger logs: `cat /home/<user>/logs/passenger.log` or `cat /home/<user>/altair-app/stderr.log` `[VERIFY]`.                      |
+| **503 Service Unavailable on `/api/health`**          | Atlas IP allowlist, bad credentials, or blocked port | Run `node tools/connectivity-check.mjs` over SSH to test port 27017. Verify outbound server IP (`curl -s https://ifconfig.me`).          |
+| **"Prisma Client could not locate the Query Engine"** | Missing Linux query engine binary                    | Verify `node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node` exists. Re-run `npm run package:cpanel`.                 |
+| **Sharp platform error / `GLIBC` mismatch**           | Windows sharp binary shipped to Linux                | Ensure `@img/sharp-linux-x64` is in package. Build on Linux runner or via GitHub Actions workflow.                                       |
+| **Uploads fail with 413 or Request Entity Too Large** | Body size limit exceeded                             | App limit is set to 6 MB (`bodySizeLimit: "6mb"`). Check if Apache/Passenger has a lower `LimitRequestBody` configured `[VERIFY]`.       |
+| **Uploaded image returns 404**                        | Wrong `UPLOAD_DIR` or file permissions               | Verify `UPLOAD_DIR` in cPanel matches actual path (`/home/<user>/altair-assets/uploads`). Run `chmod -R 755 /home/<user>/altair-assets`. |
+| **Images disappear after deployment**                 | Uploads folder was inside app root                   | Ensure `UPLOAD_DIR` is strictly outside `/home/<user>/altair-app/`.                                                                      |
+| **Authentication Failed (Code 18) in MongoDB**        | Special characters in password not encoded           | URL-encode `@`, `:`, `#`, etc. in `DATABASE_URL` (e.g. `P%40ssword123`).                                                                 |
+| **Process killed (Out of Memory / Error 137)**        | Exceeded cPanel account RAM limit `[VERIFY]`         | Never run `next build` or `npm install` on the server. Always deploy prebuilt standalone packages.                                       |
 
 ---
 

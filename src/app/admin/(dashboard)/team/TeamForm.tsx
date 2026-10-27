@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { teamMemberSchema, type TeamMemberInput } from "@/lib/validation/team";
 import { slugify } from "@/lib/slugify";
 import { createTeamMemberAction, updateTeamMemberAction } from "@/app/admin/team/actions";
@@ -132,25 +133,20 @@ export function TeamForm({ initialData }: TeamFormProps) {
     try {
       if (initialData) {
         const result = await updateTeamMemberAction(initialData.id, data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           router.push("/admin/team");
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       } else {
         const result = await createTeamMemberAction(data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           router.push("/admin/team");
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       }
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (err) {
+      console.error("[TeamForm] Submit error:", err);
+      toast.error("An unexpected error occurred. Please refresh the page.");
     } finally {
       setIsSubmitting(false);
     }

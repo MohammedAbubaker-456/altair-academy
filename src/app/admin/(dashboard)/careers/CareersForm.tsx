@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { jobOpeningSchema, type JobOpeningInput } from "@/lib/validation/careers";
 import { createJobOpeningAction, updateJobOpeningAction } from "@/app/admin/careers/actions";
 import { EMPLOYMENT_TYPE_LABELS } from "@/lib/careers";
@@ -79,24 +80,19 @@ export function CareersForm({ initialData }: CareersFormProps) {
     try {
       if (initialData) {
         const result = await updateJobOpeningAction(initialData.id, values);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           router.push("/admin/careers");
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       } else {
         const result = await createJobOpeningAction(values);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           router.push("/admin/careers");
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       }
-    } catch {
+    } catch (err) {
+      console.error("[CareersForm] Submit error:", err);
       toast.error("An unexpected error occurred while saving the job opening.");
     } finally {
       setIsSubmitting(false);

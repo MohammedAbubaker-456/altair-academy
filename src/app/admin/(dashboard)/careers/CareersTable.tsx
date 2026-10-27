@@ -14,6 +14,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { setJobOpeningStatusAction, deleteJobOpeningAction } from "@/app/admin/careers/actions";
 import { StatusSwitch } from "@/components/admin/StatusSwitch";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
@@ -95,12 +96,14 @@ export function CareersTable({ items, total, page, totalPages }: CareersTablePro
   };
 
   const handleDelete = async (id: string) => {
-    const result = await deleteJobOpeningAction(id);
-    if (result.ok) {
-      toast.success(result.message);
-      router.refresh();
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await deleteJobOpeningAction(id);
+      handleAdminActionResult(result, () => {
+        router.refresh();
+      });
+    } catch (err) {
+      console.error("[CareersTable] Delete error:", err);
+      toast.error("An unexpected error occurred while deleting.");
     }
   };
 

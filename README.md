@@ -31,10 +31,12 @@ Configured for native local development (single-node replica set) and production
 ## Local Development Setup
 
 ### 1. Prerequisites
+
 - **Node.js**: `>=20.9.0` (Node 22 recommended)
 - **MongoDB**: Community Server running natively as a replica set (`rs0`). Follow **[docs/LOCAL_MONGODB_SETUP.md](docs/LOCAL_MONGODB_SETUP.md)**.
 
 ### 2. Installation
+
 ```bash
 git clone <repository-url>
 cd altair-academy-website-main
@@ -42,11 +44,15 @@ npm install
 ```
 
 ### 3. Environment Setup
+
 Copy the example configuration:
+
 ```bash
 cp .env.example .env
 ```
+
 Ensure `DATABASE_URL` points to your local replica set:
+
 ```env
 DATABASE_URL="mongodb://127.0.0.1:27017/altair-academy?replicaSet=rs0"
 AUTH_SECRET="development-auth-secret-minimum-32-characters-for-jwt-signing"
@@ -55,6 +61,7 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 ```
 
 ### 4. Database Verification & Seeding
+
 ```bash
 # Verify connection and writable replica set status
 npm run db:check
@@ -67,9 +74,11 @@ npm run db:seed
 ```
 
 ### 5. Start Development Server
+
 ```bash
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000). The administrative portal is accessible at [http://localhost:3000/admin](http://localhost:3000/admin).
 
 ---
@@ -83,6 +92,7 @@ npm run package:cpanel
 ```
 
 This cross-platform script:
+
 1. Runs `prisma generate` and builds the standalone application with `next build`.
 2. Assembles `deploy/cpanel-package/` with native Linux Prisma engine (`rhel-openssl-3.0.x`) and Linux x64 `sharp` binaries.
 3. Excludes environment secrets and persistent uploads.
@@ -94,16 +104,16 @@ See **[docs/DEPLOYMENT_GODADDY_DELUXE.md](docs/DEPLOYMENT_GODADDY_DELUXE.md)** f
 
 ## Available NPM Scripts
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Starts local Next.js development server |
-| `npm run build` | Compiles production standalone build |
-| `npm run start` | Starts compiled standalone server |
-| `npm run db:check` | Tests MongoDB connection & replica set health |
-| `npm run db:generate` | Generates Prisma Client artifacts |
-| `npm run db:push` | Pushes Prisma schema to MongoDB |
-| `npm run db:seed` | Seeds database with initial data |
-| `npm run db:data-migrate` | Executes pending data migrations |
-| `npm run admin:create` | Interactively provisions new administrator accounts |
-| `npm run package:cpanel` | Assembles standalone Linux package for cPanel |
-| `npm run lint` | Runs ESLint and Prettier validation |
+| Script                    | Description                                         |
+| ------------------------- | --------------------------------------------------- |
+| `npm run dev`             | Starts local Next.js development server             |
+| `npm run build`           | Compiles production standalone build                |
+| `npm run start`           | Starts compiled standalone server                   |
+| `npm run db:check`        | Tests MongoDB connection & replica set health       |
+| `npm run db:generate`     | Generates Prisma Client artifacts                   |
+| `npm run db:push`         | Pushes Prisma schema to MongoDB                     |
+| `npm run db:seed`         | Seeds database with initial data                    |
+| `npm run db:data-migrate` | Executes pending data migrations                    |
+| `npm run admin:create`    | Interactively provisions new administrator accounts |
+| `npm run package:cpanel`  | Assembles standalone Linux package for cPanel       |
+| `npm run lint`            | Runs ESLint and Prettier validation                 |

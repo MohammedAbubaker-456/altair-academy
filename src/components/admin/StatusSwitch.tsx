@@ -48,11 +48,17 @@ export function StatusSwitch({ id, initialStatus, onToggle, disabled = false }: 
           toast.success(result.message);
         } else {
           setStatus(prevStatus); // Revert
-          toast.error(result.message);
+          if ((result as { authError?: boolean }).authError) {
+            toast.error(result.message || "Session expired, please sign in again");
+            window.location.href = "/admin/login";
+          } else {
+            toast.error(result.message || "Failed to update status");
+          }
         }
-      } catch {
+      } catch (err) {
         setStatus(prevStatus); // Revert
-        toast.error("Failed to update status. Reverting changes.");
+        console.error("[StatusSwitch] toggle error:", err);
+        toast.error("Failed to update status. Please refresh the page.");
       }
     });
   };

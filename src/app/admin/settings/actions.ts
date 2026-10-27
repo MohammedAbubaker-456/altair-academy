@@ -12,46 +12,59 @@
 
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/session";
+import { verifyAdminAction } from "@/lib/auth/session";
 import { changePasswordSchema } from "@/lib/validation/auth";
 
 export type ChangePasswordActionResult =
   | { ok: true; message: string }
-  | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; message: string; authError?: boolean; fieldErrors?: Record<string, string[]> };
 
 export async function changePasswordAction(formData: unknown): Promise<ChangePasswordActionResult> {
-  const currentAdmin = await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
+
+  const currentAdmin = auth.admin;
 
   const parseResult = changePasswordSchema.safeParse(formData);
   if (!parseResult.success) {
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Invalid input. Please check the fields below.";
     return {
       ok: false,
-      message: "Invalid input. Please check the fields below.",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
+      message,
+      fieldErrors,
     };
   }
 
   const { currentPassword, newPassword } = parseResult.data;
 
-  const adminRecord = await db.adminUser.findUnique({
-    where: { id: currentAdmin.id },
-  });
+  try {
+    const adminRecord = await db.adminUser.findUnique({
+      where: { id: currentAdmin.id },
+    });
 
-  if (!adminRecord) {
-    return { ok: false, message: "Admin account not found" };
+    if (!adminRecord) {
+      return { ok: false, message: "Admin account not found" };
+    }
+
+    const isCurrentValid = await bcrypt.compare(currentPassword, adminRecord.passwordHash);
+    if (!isCurrentValid) {
+      return { ok: false, message: "Current password is incorrect" };
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+
+    await db.adminUser.update({
+      where: { id: currentAdmin.id },
+      data: { passwordHash: newHash },
+    });
+
+    return { ok: true, message: "Password updated successfully" };
+  } catch (error) {
+    console.error("[changePasswordAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update password" };
   }
-
-  const isCurrentValid = await bcrypt.compare(currentPassword, adminRecord.passwordHash);
-  if (!isCurrentValid) {
-    return { ok: false, message: "Current password is incorrect" };
-  }
-
-  const newHash = await bcrypt.hash(newPassword, 12);
-
-  await db.adminUser.update({
-    where: { id: currentAdmin.id },
-    data: { passwordHash: newHash },
-  });
-
-  return { ok: true, message: "Password updated successfully" };
 }

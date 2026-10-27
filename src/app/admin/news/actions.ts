@@ -11,7 +11,7 @@
 
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/session";
+import { verifyAdminAction } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
 import { newsPostSchema } from "@/lib/validation/news";
 import { storageService } from "@/lib/storage";
@@ -19,18 +19,20 @@ import { revalidatePublicData } from "@/server/revalidate";
 
 export type NewsActionResult =
   | { ok: true; message: string; id?: string }
-  | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; message: string; authError?: boolean; fieldErrors?: Record<string, string[]> };
 
 export async function createNewsPostAction(input: unknown): Promise<NewsActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   const parseResult = newsPostSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const { title, slug, excerpt, body, kind, category, tags, image, publishedAt, status } =
@@ -54,19 +56,21 @@ export async function createNewsPostAction(input: unknown): Promise<NewsActionRe
     revalidatePublicData();
     return { ok: true, message: "News post created successfully", id: post.id };
   } catch (error) {
+    console.error("[createNewsPostAction] Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {
         ok: false,
-        message: "A news post with this slug already exists",
+        message: "Duplicate slug: a news post with this slug already exists",
         fieldErrors: { slug: ["This slug is already in use"] },
       };
     }
-    return { ok: false, message: "Failed to create news post" };
+    return { ok: false, message: "Database error: failed to create news post" };
   }
 }
 
 export async function updateNewsPostAction(id: string, input: unknown): Promise<NewsActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid news post ID" };
@@ -74,11 +78,12 @@ export async function updateNewsPostAction(id: string, input: unknown): Promise<
 
   const parseResult = newsPostSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const existingPost = await db.newsPost.findUnique({ where: { id } });
@@ -113,14 +118,15 @@ export async function updateNewsPostAction(id: string, input: unknown): Promise<
     revalidatePublicData();
     return { ok: true, message: "News post updated successfully", id };
   } catch (error) {
+    console.error("[updateNewsPostAction] Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {
         ok: false,
-        message: "A news post with this slug already exists",
+        message: "Duplicate slug: a news post with this slug already exists",
         fieldErrors: { slug: ["This slug is already in use"] },
       };
     }
-    return { ok: false, message: "Failed to update news post" };
+    return { ok: false, message: "Database error: failed to update news post" };
   }
 }
 
@@ -128,7 +134,8 @@ export async function setNewsPostStatusAction(
   id: string,
   status: "ACTIVE" | "INACTIVE",
 ): Promise<NewsActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid news post ID" };
@@ -141,13 +148,15 @@ export async function setNewsPostStatusAction(
     });
     revalidatePublicData();
     return { ok: true, message: `News post marked as ${status.toLowerCase()}` };
-  } catch {
-    return { ok: false, message: "Failed to update news post status" };
+  } catch (error) {
+    console.error("[setNewsPostStatusAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update news post status" };
   }
 }
 
 export async function deleteNewsPostAction(id: string): Promise<NewsActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid news post ID" };
@@ -164,7 +173,8 @@ export async function deleteNewsPostAction(id: string): Promise<NewsActionResult
 
     revalidatePublicData();
     return { ok: true, message: "News post deleted successfully" };
-  } catch {
-    return { ok: false, message: "Failed to delete news post" };
+  } catch (error) {
+    console.error("[deleteNewsPostAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to delete news post" };
   }
 }

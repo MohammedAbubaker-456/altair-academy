@@ -32,7 +32,7 @@ Configuring a single-node replica set locally enables full transaction support w
      ```
      C:\Program Files\MongoDB\Server\7.0\bin\mongod.cfg
      ```
-     *(Replace `7.0` with your installed version if different).*
+     _(Replace `7.0` with your installed version if different)._
 
 ---
 
@@ -109,19 +109,24 @@ Save and close the file.
 Apply the updated configuration by restarting the background service:
 
 ### Windows (Administrator Terminal)
+
 Open PowerShell or Command Prompt **as Administrator**:
+
 ```powershell
 net stop MongoDB
 net start MongoDB
 ```
-*(Alternatively: Open `services.msc`, locate "MongoDB Server", and click "Restart").*
+
+_(Alternatively: Open `services.msc`, locate "MongoDB Server", and click "Restart")._
 
 ### macOS
+
 ```bash
 brew services restart mongodb-community@7.0
 ```
 
 ### Linux (Ubuntu / Debian)
+
 ```bash
 sudo systemctl restart mongod
 sudo systemctl status mongod
@@ -142,13 +147,12 @@ In the `mongosh` prompt, run the initialization command:
 ```javascript
 rs.initiate({
   _id: "rs0",
-  members: [
-    { _id: 0, host: "127.0.0.1:27017" }
-  ]
-})
+  members: [{ _id: 0, host: "127.0.0.1:27017" }],
+});
 ```
 
 You should see:
+
 ```json
 { "ok": 1 }
 ```
@@ -156,11 +160,13 @@ You should see:
 Within a few seconds, your shell prompt will change from `test>` to `rs0 [direct: primary] test>`, indicating that the replica set is active and this node is the writable primary.
 
 ### Why `127.0.0.1` and not `localhost`?
+
 Modern operating systems and Node.js runtimes resolve `localhost` to either IPv6 (`::1`) or IPv4 (`127.0.0.1`). If the replica set member registers as `localhost:27017` and the Prisma connection pool attempts an IPv6 resolution, connection handshake mismatches or election timeouts occur. Binding explicitly to IPv4 loopback `127.0.0.1` eliminates all DNS ambiguity.
 
 Exit `mongosh`:
+
 ```javascript
-exit
+exit;
 ```
 
 ---
@@ -180,6 +186,7 @@ npm run db:check
 ```
 
 If the replica set is properly configured, you will receive:
+
 ```
 ✔ MongoDB connection successful!
   Node: 127.0.0.1:27017
@@ -199,10 +206,12 @@ npm run db:seed
 ## 6. Troubleshooting
 
 ### Issue: `MongoDB is running standalone; Prisma needs a replica set`
+
 - **Cause**: The `replication` section in `mongod.conf` was omitted, misspelled, or the service was not restarted after editing.
 - **Fix**: Open `mongod.conf`, verify `replication:\n  replSetName: rs0`, restart the MongoDB service, and run `rs.initiate(...)` in `mongosh`.
 
 ### Issue: MongoDB service fails to start after editing configuration
+
 - **Cause**: YAML indentation error (most commonly using a tab instead of spaces).
 - **Fix**: Review `mongod.conf` / `mongod.cfg`. Ensure all indentation is strictly 2 spaces. Check the service log:
   - Windows: `C:\Program Files\MongoDB\Server\7.0\log\mongod.log`
@@ -210,17 +219,21 @@ npm run db:seed
   - macOS: `/opt/homebrew/var/log/mongodb/mongo.log`
 
 ### Issue: `mongosh: command not found`
+
 - **Cause**: The MongoDB Shell is packaged separately from the server starting in MongoDB v6+.
 - **Fix**: Download and install `mongosh` from the official MongoDB Shell download page.
 
 ### Issue: `connect ECONNREFUSED 127.0.0.1:27017`
+
 - **Cause**: The `mongod` service is not running or is bound to a different port.
 - **Fix**: Check if the service is running (`sudo systemctl status mongod` on Linux, `brew services list` on macOS, or `Get-Service MongoDB` on Windows).
 
 ### Issue: Windows service restart fails with "Access is denied"
+
 - **Cause**: Non-elevated command prompt.
 - **Fix**: Right-click Terminal / PowerShell -> "Run as Administrator", then execute `net stop MongoDB && net start MongoDB`.
 
 ### Issue: Linux service crashes with Permission Denied on data directory
+
 - **Cause**: Ownership of `/var/lib/mongodb` was altered.
 - **Fix**: Run `sudo chown -R mongodb:mongodb /var/lib/mongodb /var/log/mongodb` and restart the service.

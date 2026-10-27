@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { newsPostSchema, type NewsPostInput } from "@/lib/validation/news";
 import { slugify } from "@/lib/slugify";
 import { createNewsPostAction, updateNewsPostAction } from "@/app/admin/news/actions";
@@ -123,25 +124,20 @@ export function NewsForm({ initialData }: NewsFormProps) {
     try {
       if (initialData) {
         const result = await updateNewsPostAction(initialData.id, data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           router.push("/admin/news");
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       } else {
         const result = await createNewsPostAction(data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           router.push("/admin/news");
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       }
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (err) {
+      console.error("[NewsForm] Submit error:", err);
+      toast.error("An unexpected error occurred. Please refresh the page.");
     } finally {
       setIsSubmitting(false);
     }

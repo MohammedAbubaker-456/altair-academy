@@ -50,9 +50,15 @@ export function ImageUpload({
         onChange(result.url);
         toast.success("Image uploaded successfully");
       } else {
-        toast.error(result.message);
+        if (result.authError) {
+          toast.error(result.message || "Session expired, please sign in again");
+          window.location.href = "/admin/login";
+        } else {
+          toast.error(result.message);
+        }
       }
-    } catch {
+    } catch (err) {
+      console.error("[ImageUpload] Error:", err);
       toast.error("Failed to upload image. Please try again.");
     } finally {
       setIsUploading(false);

@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { contactDetailSchema, type ContactDetailInput } from "@/lib/validation/contact";
 import {
   createContactDetailAction,
@@ -228,37 +229,34 @@ export function ContactManager({ initialDetails }: ContactManagerProps) {
     try {
       if (editingItem) {
         const result = await updateContactDetailAction(editingItem.id, data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           setDialogOpen(false);
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       } else {
         const result = await createContactDetailAction(data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           setDialogOpen(false);
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       }
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (err) {
+      console.error("[ContactManager] Submit error:", err);
+      toast.error("An unexpected error occurred. Please refresh the page.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (item: ContactDetailRow) => {
-    const result = await deleteContactDetailAction(item.id);
-    if (result.ok) {
-      toast.success(result.message);
-      router.refresh();
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await deleteContactDetailAction(item.id);
+      handleAdminActionResult(result, () => {
+        router.refresh();
+      });
+    } catch (err) {
+      console.error("[ContactManager] Delete error:", err);
+      toast.error("An unexpected error occurred while deleting.");
     }
   };
 

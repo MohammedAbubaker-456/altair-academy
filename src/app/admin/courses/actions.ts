@@ -11,7 +11,7 @@
 
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/session";
+import { verifyAdminAction } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
 import { courseSchema } from "@/lib/validation/course";
 import { storageService } from "@/lib/storage";
@@ -19,18 +19,20 @@ import { revalidatePublicData } from "@/server/revalidate";
 
 export type CourseActionResult =
   | { ok: true; message: string; id?: string }
-  | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; message: string; authError?: boolean; fieldErrors?: Record<string, string[]> };
 
 export async function createCourseAction(input: unknown): Promise<CourseActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   const parseResult = courseSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const {
@@ -78,19 +80,21 @@ export async function createCourseAction(input: unknown): Promise<CourseActionRe
     revalidatePublicData();
     return { ok: true, message: "Course created successfully", id: course.id };
   } catch (error) {
+    console.error("[createCourseAction] Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {
         ok: false,
-        message: "A course with this slug already exists",
+        message: "Duplicate slug: a course with this slug already exists",
         fieldErrors: { slug: ["This slug is already in use"] },
       };
     }
-    return { ok: false, message: "Failed to create course" };
+    return { ok: false, message: "Database error: failed to create course" };
   }
 }
 
 export async function updateCourseAction(id: string, input: unknown): Promise<CourseActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid course ID" };
@@ -98,11 +102,12 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
 
   const parseResult = courseSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const existingCourse = await db.course.findUnique({ where: { id } });
@@ -150,14 +155,15 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
     revalidatePublicData();
     return { ok: true, message: "Course updated successfully", id };
   } catch (error) {
+    console.error("[updateCourseAction] Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {
         ok: false,
-        message: "A course with this slug already exists",
+        message: "Duplicate slug: a course with this slug already exists",
         fieldErrors: { slug: ["This slug is already in use"] },
       };
     }
-    return { ok: false, message: "Failed to update course" };
+    return { ok: false, message: "Database error: failed to update course" };
   }
 }
 
@@ -165,7 +171,8 @@ export async function setCourseStatusAction(
   id: string,
   status: "ACTIVE" | "INACTIVE",
 ): Promise<CourseActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid course ID" };
@@ -178,13 +185,15 @@ export async function setCourseStatusAction(
     });
     revalidatePublicData();
     return { ok: true, message: `Course marked as ${status.toLowerCase()}` };
-  } catch {
-    return { ok: false, message: "Failed to update course status" };
+  } catch (error) {
+    console.error("[setCourseStatusAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update course status" };
   }
 }
 
 export async function deleteCourseAction(id: string): Promise<CourseActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid course ID" };
@@ -201,7 +210,8 @@ export async function deleteCourseAction(id: string): Promise<CourseActionResult
 
     revalidatePublicData();
     return { ok: true, message: "Course deleted successfully" };
-  } catch {
-    return { ok: false, message: "Failed to delete course" };
+  } catch (error) {
+    console.error("[deleteCourseAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to delete course" };
   }
 }

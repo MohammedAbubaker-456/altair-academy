@@ -14,39 +14,13 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  GraduationCap,
-  FolderTree,
-  Users,
-  Newspaper,
-  HelpCircle,
-  Briefcase,
-  PhoneCall,
-  FileText,
-  Settings,
-  ExternalLink,
-} from "lucide-react";
+import { ExternalLink, LayoutDashboard } from "lucide-react";
+import { overviewNavItem, contentNavItems, siteSettingsNavItems } from "./nav-items";
 
 interface AdminSidebarProps {
   onItemClick?: (() => void) | undefined;
   className?: string | undefined;
 }
-
-const contentNavItems = [
-  { href: "/admin/courses", label: "Courses", icon: GraduationCap },
-  { href: "/admin/categories", label: "Categories", icon: FolderTree },
-  { href: "/admin/team", label: "Team & Instructors", icon: Users },
-  { href: "/admin/news", label: "News & Insights", icon: Newspaper },
-  { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
-  { href: "/admin/careers", label: "Careers", icon: Briefcase },
-];
-
-const settingsNavItems = [
-  { href: "/admin/contact", label: "Contact Details", icon: PhoneCall },
-  { href: "/admin/legal", label: "Legal Pages", icon: FileText },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
-];
 
 export function AdminSidebar({ onItemClick, className }: AdminSidebarProps) {
   const pathname = usePathname();
@@ -131,7 +105,7 @@ export function AdminSidebar({ onItemClick, className }: AdminSidebarProps) {
               Site Settings
             </span>
             <div className="mt-1 space-y-1">
-              {settingsNavItems.map((item) => {
+              {siteSettingsNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname.startsWith(item.href);
 

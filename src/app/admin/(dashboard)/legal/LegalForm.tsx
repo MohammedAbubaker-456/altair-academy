@@ -111,6 +111,11 @@ export function LegalForm({ initialData }: LegalFormProps) {
           router.push("/admin/legal");
           router.refresh();
         } else {
+          if (result.authError) {
+            toast.error(result.message || "Session expired, please sign in again");
+            window.location.href = "/admin/login";
+            return;
+          }
           toast.error(result.message);
           if (result.fieldErrors) {
             Object.entries(result.fieldErrors).forEach(([field, messages]) => {
@@ -127,6 +132,11 @@ export function LegalForm({ initialData }: LegalFormProps) {
           router.push("/admin/legal");
           router.refresh();
         } else {
+          if (result.authError) {
+            toast.error(result.message || "Session expired, please sign in again");
+            window.location.href = "/admin/login";
+            return;
+          }
           toast.error(result.message);
           if (result.fieldErrors) {
             Object.entries(result.fieldErrors).forEach(([field, messages]) => {
@@ -137,8 +147,9 @@ export function LegalForm({ initialData }: LegalFormProps) {
           }
         }
       }
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (err) {
+      console.error("[LegalForm] Submit error:", err);
+      toast.error("An unexpected error occurred. Please refresh the page.");
     } finally {
       setIsSubmitting(false);
     }

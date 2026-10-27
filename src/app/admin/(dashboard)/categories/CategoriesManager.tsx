@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { categorySchema, type CategoryInput } from "@/lib/validation/category";
 import { slugify } from "@/lib/slugify";
 import {
@@ -127,37 +128,34 @@ export function CategoriesManager({ categories }: CategoriesManagerProps) {
     try {
       if (editingCategory) {
         const result = await updateCategoryAction(editingCategory.id, data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           setDialogOpen(false);
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       } else {
         const result = await createCategoryAction(data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           setDialogOpen(false);
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       }
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (err) {
+      console.error("[CategoriesManager] Submit error:", err);
+      toast.error("An unexpected error occurred. Please refresh the page.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    const result = await deleteCategoryAction(id);
-    if (result.ok) {
-      toast.success(result.message);
-      router.refresh();
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await deleteCategoryAction(id);
+      handleAdminActionResult(result, () => {
+        router.refresh();
+      });
+    } catch (err) {
+      console.error("[CategoriesManager] Delete error:", err);
+      toast.error("An unexpected error occurred while deleting.");
     }
   };
 

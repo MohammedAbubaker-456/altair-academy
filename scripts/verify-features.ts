@@ -80,15 +80,36 @@ async function main() {
   console.log("\n--- 3. Testing Legal Canonical Hrefs & Token Replacement ---");
   assert(legalHref("privacy") === "/privacy", "legalHref('privacy') returns /privacy");
   assert(legalHref("terms") === "/terms", "legalHref('terms') returns /terms");
-  assert(legalHref("cookie-policy") === "/legal/cookie-policy", "legalHref('cookie-policy') returns /legal/cookie-policy");
+  assert(
+    legalHref("cookie-policy") === "/legal/cookie-policy",
+    "legalHref('cookie-policy') returns /legal/cookie-policy",
+  );
 
-  const emailDetail = await db.contactDetail.findFirst({ where: { type: "EMAIL", status: "ACTIVE" } });
-  const phoneDetail = await db.contactDetail.findFirst({ where: { type: "PHONE", status: "ACTIVE" } });
-  const addressDetail = await db.contactDetail.findFirst({ where: { type: "ADDRESS", status: "ACTIVE" } });
-  
-  assert(emailDetail?.value === "anna@altair.academy", "Active email detail is anna@altair.academy", emailDetail?.value);
-  assert(phoneDetail?.value === "+607 386 1617", "Active phone detail is +607 386 1617", phoneDetail?.value);
-  assert(addressDetail?.value?.includes("Johor Malaysia") === true, "Active address detail is in Johor Malaysia", addressDetail?.value);
+  const emailDetail = await db.contactDetail.findFirst({
+    where: { type: "EMAIL", status: "ACTIVE" },
+  });
+  const phoneDetail = await db.contactDetail.findFirst({
+    where: { type: "PHONE", status: "ACTIVE" },
+  });
+  const addressDetail = await db.contactDetail.findFirst({
+    where: { type: "ADDRESS", status: "ACTIVE" },
+  });
+
+  assert(
+    emailDetail?.value === "anna@altair.academy",
+    "Active email detail is anna@altair.academy",
+    emailDetail?.value,
+  );
+  assert(
+    phoneDetail?.value === "+607 386 1617",
+    "Active phone detail is +607 386 1617",
+    phoneDetail?.value,
+  );
+  assert(
+    addressDetail?.value?.includes("Johor Malaysia") === true,
+    "Active address detail is in Johor Malaysia",
+    addressDetail?.value,
+  );
 
   // --- 4. Live HTTP Public Endpoints Test ---
   console.log("\n--- 4. Testing Live HTTP Endpoints (http://127.0.0.1:3000) ---");
@@ -109,7 +130,8 @@ async function main() {
     assert(resCareers.status === 200, "GET /careers returns HTTP 200");
     const htmlCareers = await resCareers.text();
     assert(
-      htmlCareers.includes("Senior NDT Level III Consultant") || htmlCareers.includes("Open Positions"),
+      htmlCareers.includes("Senior NDT Level III Consultant") ||
+        htmlCareers.includes("Open Positions"),
       "Careers page renders dynamic job openings",
     );
     assert(htmlCareers.includes("#submit-resume"), "Careers page includes #submit-resume link");
@@ -123,17 +145,27 @@ async function main() {
     // 4.4 News detail page
     const newsSlug = "altair-academy-renews-bindt-approved-training-organisation-status";
     const resNewsPost = await fetch(base + "/news/" + newsSlug);
-    assert(resNewsPost.status === 200, "GET /news/" + newsSlug + " returns HTTP 200", `status: ${resNewsPost.status}`);
+    assert(
+      resNewsPost.status === 200,
+      "GET /news/" + newsSlug + " returns HTTP 200",
+      `status: ${resNewsPost.status}`,
+    );
     const htmlNewsPost = await resNewsPost.text();
     assert(
       htmlNewsPost.includes("BINDT-approved") || htmlNewsPost.includes("Altair Academy"),
       "News detail renders article title & content",
     );
-    assert(htmlNewsPost.includes("Latest stories") || htmlNewsPost.includes("Latest Stories"), "News detail renders latest stories section");
+    assert(
+      htmlNewsPost.includes("Latest stories") || htmlNewsPost.includes("Latest Stories"),
+      "News detail renders latest stories section",
+    );
 
     // 4.5 Non-existent news post
     const resMissingNews = await fetch(base + "/news/unknown-random-post-12345");
-    assert(resMissingNews.status === 404, "GET /news/unknown-random-post-12345 returns HTTP 404 Not Found");
+    assert(
+      resMissingNews.status === 404,
+      "GET /news/unknown-random-post-12345 returns HTTP 404 Not Found",
+    );
 
     // 4.6 Contact page
     const resContact = await fetch(base + "/contact");

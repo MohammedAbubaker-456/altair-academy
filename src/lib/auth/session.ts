@@ -114,7 +114,7 @@ export const getAdmin = cache(async () => {
 });
 
 /**
- * Enforces admin authentication.
+ * Enforces admin authentication for Server Components (pages/layouts).
  * Returns the authenticated admin user or redirects to /admin/login immediately.
  */
 export async function requireAdmin() {
@@ -123,4 +123,24 @@ export async function requireAdmin() {
     redirect("/admin/login");
   }
   return admin;
+}
+
+/**
+ * Enforces admin authentication for Server Actions.
+ * Returns either { ok: true, admin } or safe error { ok: false, authError: true, message: string }.
+ * Avoids throwing NEXT_REDIRECT inside RPC transitions.
+ */
+export async function verifyAdminAction(): Promise<
+  | { ok: true; admin: NonNullable<Awaited<ReturnType<typeof getAdmin>>> }
+  | { ok: false; authError: true; message: string }
+> {
+  const admin = await getAdmin();
+  if (!admin) {
+    return {
+      ok: false,
+      authError: true,
+      message: "Session expired, please sign in again",
+    };
+  }
+  return { ok: true, admin };
 }

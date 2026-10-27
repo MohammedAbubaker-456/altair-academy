@@ -10,7 +10,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/session";
+import { verifyAdminAction } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
 import { jobOpeningSchema } from "@/lib/validation/careers";
 import { revalidatePublicData } from "@/server/revalidate";
@@ -18,18 +18,20 @@ import type { Status } from "@prisma/client";
 
 export type CareersActionResult =
   | { ok: true; message: string; id?: string }
-  | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; message: string; authError?: boolean; fieldErrors?: Record<string, string[]> };
 
 export async function createJobOpeningAction(input: unknown): Promise<CareersActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   const parseResult = jobOpeningSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const { title, employmentType, location, scope, summary, order, status } = parseResult.data;
@@ -49,8 +51,8 @@ export async function createJobOpeningAction(input: unknown): Promise<CareersAct
     revalidatePublicData();
     return { ok: true, message: "Job opening created successfully", id: job.id };
   } catch (error) {
-    console.error("Failed to create job opening:", error);
-    return { ok: false, message: "Failed to create job opening" };
+    console.error("[createJobOpeningAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to create job opening" };
   }
 }
 
@@ -58,7 +60,8 @@ export async function updateJobOpeningAction(
   id: string,
   input: unknown,
 ): Promise<CareersActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid job opening ID" };
@@ -66,11 +69,12 @@ export async function updateJobOpeningAction(
 
   const parseResult = jobOpeningSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const existing = await db.jobOpening.findUnique({ where: { id } });
@@ -96,13 +100,14 @@ export async function updateJobOpeningAction(
     revalidatePublicData();
     return { ok: true, message: "Job opening updated successfully" };
   } catch (error) {
-    console.error("Failed to update job opening:", error);
-    return { ok: false, message: "Failed to update job opening" };
+    console.error("[updateJobOpeningAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update job opening" };
   }
 }
 
 export async function deleteJobOpeningAction(id: string): Promise<CareersActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid job opening ID" };
@@ -118,8 +123,8 @@ export async function deleteJobOpeningAction(id: string): Promise<CareersActionR
     revalidatePublicData();
     return { ok: true, message: "Job opening deleted successfully" };
   } catch (error) {
-    console.error("Failed to delete job opening:", error);
-    return { ok: false, message: "Failed to delete job opening" };
+    console.error("[deleteJobOpeningAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to delete job opening" };
   }
 }
 
@@ -127,7 +132,8 @@ export async function setJobOpeningStatusAction(
   id: string,
   status: Status,
 ): Promise<CareersActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid job opening ID" };
@@ -144,7 +150,7 @@ export async function setJobOpeningStatusAction(
       message: `Status updated to ${status}`,
     };
   } catch (error) {
-    console.error("Failed to update status:", error);
-    return { ok: false, message: "Failed to update status" };
+    console.error("[setJobOpeningStatusAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update status" };
   }
 }

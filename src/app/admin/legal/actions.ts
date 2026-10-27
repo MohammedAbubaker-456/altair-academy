@@ -11,7 +11,7 @@
 
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/session";
+import { verifyAdminAction } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
 import { legalPageSchema } from "@/lib/validation/legal";
 import { revalidatePublicData } from "@/server/revalidate";
@@ -19,18 +19,20 @@ import type { Status } from "@prisma/client";
 
 export type LegalActionResult =
   | { ok: true; message: string; id?: string }
-  | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; message: string; authError?: boolean; fieldErrors?: Record<string, string[]> };
 
 export async function createLegalPageAction(input: unknown): Promise<LegalActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   const parseResult = legalPageSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const { title, slug, metaDescription, body, showInFooter, order, status } = parseResult.data;
@@ -60,15 +62,15 @@ export async function createLegalPageAction(input: unknown): Promise<LegalAction
     revalidatePublicData();
     return { ok: true, message: "Legal page created successfully", id: page.id };
   } catch (error) {
+    console.error("[createLegalPageAction] Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {
         ok: false,
-        message: "A legal page with this slug already exists",
+        message: "Duplicate slug: a legal page with this slug already exists",
         fieldErrors: { slug: ["This slug is already in use"] },
       };
     }
-    console.error("Failed to create legal page:", error);
-    return { ok: false, message: "Failed to create legal page" };
+    return { ok: false, message: "Database error: failed to create legal page" };
   }
 }
 
@@ -76,7 +78,8 @@ export async function updateLegalPageAction(
   id: string,
   input: unknown,
 ): Promise<LegalActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid legal page ID" };
@@ -84,11 +87,12 @@ export async function updateLegalPageAction(
 
   const parseResult = legalPageSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const existing = await db.legalPage.findUnique({ where: { id } });
@@ -125,20 +129,21 @@ export async function updateLegalPageAction(
     revalidatePublicData();
     return { ok: true, message: "Legal page updated successfully" };
   } catch (error) {
+    console.error("[updateLegalPageAction] Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {
         ok: false,
-        message: "A legal page with this slug already exists",
+        message: "Duplicate slug: a legal page with this slug already exists",
         fieldErrors: { slug: ["This slug is already in use"] },
       };
     }
-    console.error("Failed to update legal page:", error);
-    return { ok: false, message: "Failed to update legal page" };
+    return { ok: false, message: "Database error: failed to update legal page" };
   }
 }
 
 export async function deleteLegalPageAction(id: string): Promise<LegalActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid legal page ID" };
@@ -161,8 +166,8 @@ export async function deleteLegalPageAction(id: string): Promise<LegalActionResu
     revalidatePublicData();
     return { ok: true, message: "Legal page deleted successfully" };
   } catch (error) {
-    console.error("Failed to delete legal page:", error);
-    return { ok: false, message: "Failed to delete legal page" };
+    console.error("[deleteLegalPageAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to delete legal page" };
   }
 }
 
@@ -170,7 +175,8 @@ export async function setLegalPageStatusAction(
   id: string,
   status: Status,
 ): Promise<LegalActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid legal page ID" };
@@ -187,7 +193,7 @@ export async function setLegalPageStatusAction(
       message: `Status updated to ${status}`,
     };
   } catch (error) {
-    console.error("Failed to update status:", error);
-    return { ok: false, message: "Failed to update status" };
+    console.error("[setLegalPageStatusAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update status" };
   }
 }

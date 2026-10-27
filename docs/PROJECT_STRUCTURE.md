@@ -1,6 +1,7 @@
 # Altair Academy — Project Structure & Architecture
 
 ## Overview
+
 Altair Academy is an accredited technical training website and administrative management portal built on Next.js 15 (App Router, standalone output), TypeScript (strict mode), Tailwind CSS v4, shadcn/ui on Radix UI, MongoDB, and Prisma ORM 6.19.3. Configured for production deployment on GoDaddy "Web Hosting Deluxe" (cPanel with Phusion Passenger) and MongoDB Atlas.
 
 ---

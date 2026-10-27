@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { faqSchema, type FaqInput } from "@/lib/validation/faq";
 import {
   createFaqAction,
@@ -107,37 +108,34 @@ export function FaqsManager({ faqs }: FaqsManagerProps) {
     try {
       if (editingFaq) {
         const result = await updateFaqAction(editingFaq.id, data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           setDialogOpen(false);
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       } else {
         const result = await createFaqAction(data);
-        if (result.ok) {
-          toast.success(result.message);
+        handleAdminActionResult(result, () => {
           setDialogOpen(false);
           router.refresh();
-        } else {
-          toast.error(result.message);
-        }
+        });
       }
-    } catch {
-      toast.error("An unexpected error occurred.");
+    } catch (err) {
+      console.error("[FaqsManager] Submit error:", err);
+      toast.error("An unexpected error occurred. Please refresh the page.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    const result = await deleteFaqAction(id);
-    if (result.ok) {
-      toast.success(result.message);
-      router.refresh();
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await deleteFaqAction(id);
+      handleAdminActionResult(result, () => {
+        router.refresh();
+      });
+    } catch (err) {
+      console.error("[FaqsManager] Delete error:", err);
+      toast.error("An unexpected error occurred while deleting.");
     }
   };
 

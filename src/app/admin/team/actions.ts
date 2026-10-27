@@ -11,7 +11,7 @@
 
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/session";
+import { verifyAdminAction } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
 import { teamMemberSchema } from "@/lib/validation/team";
 import { storageService } from "@/lib/storage";
@@ -19,18 +19,20 @@ import { revalidatePublicData } from "@/server/revalidate";
 
 export type TeamActionResult =
   | { ok: true; message: string; id?: string }
-  | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; message: string; authError?: boolean; fieldErrors?: Record<string, string[]> };
 
 export async function createTeamMemberAction(input: unknown): Promise<TeamActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   const parseResult = teamMemberSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const {
@@ -70,14 +72,15 @@ export async function createTeamMemberAction(input: unknown): Promise<TeamAction
     revalidatePublicData();
     return { ok: true, message: "Team member created successfully", id: member.id };
   } catch (error) {
+    console.error("[createTeamMemberAction] Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {
         ok: false,
-        message: "A team member with this slug already exists",
+        message: "Duplicate slug: a team member with this slug already exists",
         fieldErrors: { slug: ["This slug is already in use"] },
       };
     }
-    return { ok: false, message: "Failed to create team member" };
+    return { ok: false, message: "Database error: failed to create team member" };
   }
 }
 
@@ -85,7 +88,8 @@ export async function updateTeamMemberAction(
   id: string,
   input: unknown,
 ): Promise<TeamActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid team member ID" };
@@ -93,11 +97,12 @@ export async function updateTeamMemberAction(
 
   const parseResult = teamMemberSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const existingMember = await db.teamMember.findUnique({ where: { id } });
@@ -148,14 +153,15 @@ export async function updateTeamMemberAction(
     revalidatePublicData();
     return { ok: true, message: "Team member updated successfully", id };
   } catch (error) {
+    console.error("[updateTeamMemberAction] Database error:", error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return {
         ok: false,
-        message: "A team member with this slug already exists",
+        message: "Duplicate slug: a team member with this slug already exists",
         fieldErrors: { slug: ["This slug is already in use"] },
       };
     }
-    return { ok: false, message: "Failed to update team member" };
+    return { ok: false, message: "Database error: failed to update team member" };
   }
 }
 
@@ -163,7 +169,8 @@ export async function setTeamMemberStatusAction(
   id: string,
   status: "ACTIVE" | "INACTIVE",
 ): Promise<TeamActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid team member ID" };
@@ -176,13 +183,15 @@ export async function setTeamMemberStatusAction(
     });
     revalidatePublicData();
     return { ok: true, message: `Team member marked as ${status.toLowerCase()}` };
-  } catch {
-    return { ok: false, message: "Failed to update team member status" };
+  } catch (error) {
+    console.error("[setTeamMemberStatusAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update team member status" };
   }
 }
 
 export async function deleteTeamMemberAction(id: string): Promise<TeamActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid team member ID" };
@@ -199,7 +208,8 @@ export async function deleteTeamMemberAction(id: string): Promise<TeamActionResu
 
     revalidatePublicData();
     return { ok: true, message: "Team member deleted successfully" };
-  } catch {
-    return { ok: false, message: "Failed to delete team member" };
+  } catch (error) {
+    console.error("[deleteTeamMemberAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to delete team member" };
   }
 }

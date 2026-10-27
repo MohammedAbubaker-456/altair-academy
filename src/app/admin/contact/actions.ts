@@ -11,7 +11,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth/session";
+import { verifyAdminAction } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
 import { contactDetailSchema } from "@/lib/validation/contact";
 import { revalidatePublicData } from "@/server/revalidate";
@@ -19,18 +19,20 @@ import type { Status } from "@prisma/client";
 
 export type ContactActionResult =
   | { ok: true; message: string; id?: string }
-  | { ok: false; message: string; fieldErrors?: Record<string, string[]> };
+  | { ok: false; message: string; authError?: boolean; fieldErrors?: Record<string, string[]> };
 
 export async function createContactDetailAction(input: unknown): Promise<ContactActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   const parseResult = contactDetailSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const { type, label, value, link, order, status } = parseResult.data;
@@ -49,8 +51,8 @@ export async function createContactDetailAction(input: unknown): Promise<Contact
     revalidatePublicData();
     return { ok: true, message: "Contact detail created successfully", id: contact.id };
   } catch (error) {
-    console.error("Failed to create contact detail:", error);
-    return { ok: false, message: "Failed to create contact detail" };
+    console.error("[createContactDetailAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to create contact detail" };
   }
 }
 
@@ -58,7 +60,8 @@ export async function updateContactDetailAction(
   id: string,
   input: unknown,
 ): Promise<ContactActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid contact detail ID" };
@@ -66,11 +69,12 @@ export async function updateContactDetailAction(
 
   const parseResult = contactDetailSchema.safeParse(input);
   if (!parseResult.success) {
-    return {
-      ok: false,
-      message: "Validation failed",
-      fieldErrors: parseResult.error.flatten().fieldErrors,
-    };
+    const fieldErrors = parseResult.error.flatten().fieldErrors;
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
+    const message = firstError
+      ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
+      : "Validation failed";
+    return { ok: false, message, fieldErrors };
   }
 
   const existing = await db.contactDetail.findUnique({ where: { id } });
@@ -95,13 +99,14 @@ export async function updateContactDetailAction(
     revalidatePublicData();
     return { ok: true, message: "Contact detail updated successfully" };
   } catch (error) {
-    console.error("Failed to update contact detail:", error);
-    return { ok: false, message: "Failed to update contact detail" };
+    console.error("[updateContactDetailAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update contact detail" };
   }
 }
 
 export async function deleteContactDetailAction(id: string): Promise<ContactActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid contact detail ID" };
@@ -117,8 +122,8 @@ export async function deleteContactDetailAction(id: string): Promise<ContactActi
     revalidatePublicData();
     return { ok: true, message: "Contact detail deleted successfully" };
   } catch (error) {
-    console.error("Failed to delete contact detail:", error);
-    return { ok: false, message: "Failed to delete contact detail" };
+    console.error("[deleteContactDetailAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to delete contact detail" };
   }
 }
 
@@ -126,7 +131,8 @@ export async function setContactDetailStatusAction(
   id: string,
   status: Status,
 ): Promise<ContactActionResult> {
-  await requireAdmin();
+  const auth = await verifyAdminAction();
+  if (!auth.ok) return auth;
 
   if (!isValidObjectId(id)) {
     return { ok: false, message: "Invalid contact detail ID" };
@@ -143,7 +149,7 @@ export async function setContactDetailStatusAction(
       message: `Status updated to ${status}`,
     };
   } catch (error) {
-    console.error("Failed to update status:", error);
-    return { ok: false, message: "Failed to update status" };
+    console.error("[setContactDetailStatusAction] Database error:", error);
+    return { ok: false, message: "Database error: failed to update status" };
   }
 }

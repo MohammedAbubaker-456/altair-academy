@@ -111,21 +111,24 @@ export default async function AboutPage() {
               />
               <div className="mt-5 space-y-4 text-base text-muted-foreground">
                 <p>
-                  Altair Academy began its foray into training provision in 2008 as a BINDT-approved
+                  {/* Altair Academy began its foray into training provision in 2008 as a BINDT-approved
                   training organisation (ATO) and qualifying body (AQB), and has since won
                   appreciation and approvals from students, clients, authorities and regulators
-                  alike.
+                  alike. */}
+                  ALTAIR ACADEMY, an associate company of ALTAIR ENGINEERING INSPECTIONS, is founded by people who are passionate about changing the world and creating better future with learning.
                 </p>
                 <p>
-                  Fuelled by our founders' passion for teaching, Altair Academy was established to
+                  {/* Fuelled by our founders' passion for teaching, Altair Academy was established to
                   offer a diverse array of professional courses including Non-Destructive Testing
                   (NDT), API-ICP Exam Preparatory, Information Technology, Building Information
-                  Modelling (BIM), Food &amp; Beverage (F&amp;B), Corrosion and many others.
+                  Modelling (BIM), Food &amp; Beverage (F&amp;B), Corrosion and many others. */}
+                  ALTAIR began its foray into training provision in 2008 as BINDT approved training organization (ATO) and qualifying body (AQB) and has since won appreciations and approvals from the students, clients, authorities, and regulators alike. Fueled by the founders’ passion for teaching, ALTAIR ACADEMY was established in 2022 to offer a diverse array of professional courses including, Nondestructive Testing (NDT), API-ICP Exam Preparatory, Management System, Information Technology (IT), Building Information Modelling (BIM), Food and Beverage (F&B), Corrosion, and many others.
                 </p>
                 <p>
-                  Equipped with over a decade of experience, carefully selected instructors and a
+                  {/* Equipped with over a decade of experience, carefully selected instructors and a
                   unique approach to teaching, Altair has become the top choice training provider
-                  against our competitors.
+                  against our competitors. */}
+                  Equipped with over a decade of experience, carefully selected instructors, and unique approaches to teaching, ALTAIR has become the top choice training provider against our competitors.
                 </p>
               </div>
             </div>

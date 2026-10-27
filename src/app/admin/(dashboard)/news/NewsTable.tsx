@@ -14,6 +14,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { handleAdminActionResult } from "@/lib/admin-client";
 import { setNewsPostStatusAction, deleteNewsPostAction } from "@/app/admin/news/actions";
 import { StatusSwitch } from "@/components/admin/StatusSwitch";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
@@ -73,12 +74,14 @@ export function NewsTable({ items }: NewsTableProps) {
   });
 
   const handleDelete = async (id: string) => {
-    const result = await deleteNewsPostAction(id);
-    if (result.ok) {
-      toast.success(result.message);
-      router.refresh();
-    } else {
-      toast.error(result.message);
+    try {
+      const result = await deleteNewsPostAction(id);
+      handleAdminActionResult(result, () => {
+        router.refresh();
+      });
+    } catch (err) {
+      console.error("[NewsTable] Delete error:", err);
+      toast.error("An unexpected error occurred while deleting.");
     }
   };
 

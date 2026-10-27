@@ -27,6 +27,14 @@ export interface DashboardStats {
   careers: EntityCount;
   contact: EntityCount;
   legal: EntityCount;
+  leads: {
+    total: number;
+    new: number;
+  };
+  applications: {
+    total: number;
+    new: number;
+  };
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -49,6 +57,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     contactActive,
     legalTotal,
     legalActive,
+    leadsTotal,
+    leadsNew,
+    applicationsTotal,
+    applicationsNew,
   ] = await Promise.all([
     db.course.count(),
     db.course.count({ where: { status: "ACTIVE" } }),
@@ -66,6 +78,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     db.contactDetail.count({ where: { status: "ACTIVE" } }),
     db.legalPage.count(),
     db.legalPage.count({ where: { status: "ACTIVE" } }),
+    db.lead.count(),
+    db.lead.count({ where: { status: "NEW" } }),
+    db.careerApplication.count(),
+    db.careerApplication.count({ where: { status: "NEW" } }),
   ]);
 
   return {
@@ -108,6 +124,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       total: legalTotal,
       active: legalActive,
       inactive: legalTotal - legalActive,
+    },
+    leads: {
+      total: leadsTotal,
+      new: leadsNew,
+    },
+    applications: {
+      total: applicationsTotal,
+      new: applicationsNew,
     },
   };
 }

@@ -19,6 +19,8 @@ import {
   PhoneCall,
   FileText,
   Settings,
+  MessageSquare,
+  FileUser,
   type LucideIcon,
 } from "lucide-react";
 
@@ -41,6 +43,14 @@ export const overviewNavItem: AdminNavItem = {
   label: "Overview",
   icon: LayoutDashboard,
 };
+
+/**
+ * Inbox (Leads & Applications) items
+ */
+export const inboxNavItems: AdminNavItem[] = [
+  { href: "/admin/leads", label: "Leads", icon: MessageSquare },
+  { href: "/admin/applications", label: "Applications", icon: FileUser },
+];
 
 /**
  * Main Content Management items
@@ -68,6 +78,7 @@ export const siteSettingsNavItems: AdminNavItem[] = [
  */
 export const allAdminNavItems: AdminNavItem[] = [
   overviewNavItem,
+  ...inboxNavItems,
   ...contentNavItems,
   ...siteSettingsNavItems,
 ];

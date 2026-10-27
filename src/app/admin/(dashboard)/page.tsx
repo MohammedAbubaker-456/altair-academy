@@ -26,6 +26,8 @@ import {
   Plus,
   ArrowRight,
   ShieldCheck,
+  MessageSquare,
+  FileUser,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -127,8 +129,121 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
+      {/* Inbox & Submissions Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold font-display tracking-tight text-foreground">
+              Inbox &amp; Submissions
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Live inquiries and recruitment applications requiring administrator attention.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-2">
+          {/* Leads Overview Card */}
+          <Card className="flex flex-col justify-between border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy/5 text-navy">
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <div className="flex items-center gap-2">
+                  {stats.leads.new > 0 ? (
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                      {stats.leads.new} NEW
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                      0 New
+                    </span>
+                  )}
+                  <div className="text-right ml-2">
+                    <span className="text-2xl font-bold font-display text-foreground">
+                      {stats.leads.total}
+                    </span>
+                    <span className="text-xs text-muted-foreground block">Total Leads</span>
+                  </div>
+                </div>
+              </div>
+              <CardTitle className="text-lg font-display mt-2">Contact Leads</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Inquiries and consultation requests submitted via the public contact form
+              </p>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex items-center justify-between border-t pt-3">
+                <span className="text-xs text-muted-foreground">
+                  <strong className="text-foreground font-semibold">{stats.leads.new}</strong> awaiting response
+                </span>
+                <Button variant="outline" size="sm" asChild className="text-xs">
+                  <Link href="/admin/leads">
+                    View Leads <ArrowRight className="ml-1.5 h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Applications Overview Card */}
+          <Card className="flex flex-col justify-between border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy/5 text-navy">
+                  <FileUser className="h-5 w-5" />
+                </div>
+                <div className="flex items-center gap-2">
+                  {stats.applications.new > 0 ? (
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                      {stats.applications.new} NEW
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                      0 New
+                    </span>
+                  )}
+                  <div className="text-right ml-2">
+                    <span className="text-2xl font-bold font-display text-foreground">
+                      {stats.applications.total}
+                    </span>
+                    <span className="text-xs text-muted-foreground block">Total Applications</span>
+                  </div>
+                </div>
+              </div>
+              <CardTitle className="text-lg font-display mt-2">Career Applications</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Instructor &amp; staff candidate submissions with uploaded CVs
+              </p>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex items-center justify-between border-t pt-3">
+                <span className="text-xs text-muted-foreground">
+                  <strong className="text-foreground font-semibold">{stats.applications.new}</strong> pending initial review
+                </span>
+                <Button variant="outline" size="sm" asChild className="text-xs">
+                  <Link href="/admin/applications">
+                    View Applications <ArrowRight className="ml-1.5 h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Overview Cards Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-bold font-display tracking-tight text-foreground">
+            Content Management
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Published catalog, instructors, updates, and configuration entities.
+          </p>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {entityCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -189,6 +304,7 @@ export default async function AdminDashboardPage() {
             </Card>
           );
         })}
+      </div>
       </div>
     </div>
   );

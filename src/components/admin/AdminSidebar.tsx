@@ -15,7 +15,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ExternalLink, LayoutDashboard } from "lucide-react";
-import { overviewNavItem, contentNavItems, siteSettingsNavItems } from "./nav-items";
+import { overviewNavItem, inboxNavItems, contentNavItems, siteSettingsNavItems } from "./nav-items";
 
 interface AdminSidebarProps {
   onItemClick?: (() => void) | undefined;
@@ -67,6 +67,36 @@ export function AdminSidebar({ onItemClick, className }: AdminSidebarProps) {
               <LayoutDashboard className="h-4 w-4 shrink-0" />
               <span>Overview</span>
             </Link>
+          </div>
+
+          {/* Inbox Group */}
+          <div>
+            <span className="px-3 text-[11px] font-semibold tracking-wider text-muted-foreground/80 uppercase">
+              Inbox
+            </span>
+            <div className="mt-1 space-y-1">
+              {inboxNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname.startsWith(item.href);
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    {...(onItemClick ? { onClick: onItemClick } : {})}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-navy text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
 
           {/* Content Group */}

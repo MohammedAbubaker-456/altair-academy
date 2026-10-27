@@ -32,6 +32,8 @@ next-env.d.ts
 !/uploads/.gitkeep
 /src/assets/uploads/*
 !/src/assets/uploads/.gitkeep
+/private-uploads/*
+!/private-uploads/.gitkeep
 
 # Deployment packages
 /deploy/

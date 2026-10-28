@@ -250,3 +250,23 @@ model LegalPage {
   @@index([status, order])
 }
 
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+
+model NewsletterSubscriber {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  email            String           @unique
+  status           SubscriberStatus @default(ACTIVE)
+  source           String           @default("footer")
+  unsubscribeToken String           @unique
+  subscribedAt     DateTime         @default(now())
+  unsubscribedAt   DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([status, subscribedAt])
+}
+

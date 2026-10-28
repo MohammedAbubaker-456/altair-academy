@@ -82,6 +82,11 @@ altair-academy/
 │   │   ├── terms/page.tsx           # DB-backed Terms of Service with Markdown & dynamic token replacement
 │   │   ├── legal/                   # Custom policy & compliance routes
 │   │   │   └── [slug]/page.tsx      # Dynamic legal page with 308 permanent redirects for /privacy & /terms
+│   │   ├── newsletter/              # Newsletter Subscription & Unsubscription
+│   │   │   ├── actions.ts           # Public Server Actions subscribeNewsletter and confirmUnsubscribe
+│   │   │   └── unsubscribe/         # Token-based unsubscription confirmation
+│   │   │       ├── page.tsx         # Public noindex unsubscription page
+│   │   │       └── UnsubscribeForm.tsx # Client Component confirmation form
 │   │   ├── robots.ts                # Dynamic robots.txt excluding /admin routes
 │   │   │
 │   │   ├── api/
@@ -106,12 +111,16 @@ altair-academy/
 │   │       ├── applications/        # Applications actions & secure resume streaming route
 │   │       │   ├── actions.ts       # Application server actions (setStatus, delete + resume file cleanup)
 │   │       │   └── [id]/resume/route.ts # Authenticated private resume streaming route (PDF/DOC/DOCX)
+│   │       ├── subscribers/         # Subscribers server actions & streaming CSV export route
+│   │       │   ├── actions.ts       # Subscriber server actions (setStatus, delete + admin revalidation)
+│   │       │   └── export/route.ts  # Authenticated streaming CSV export (BOM, RFC 4180, injection defense)
 │   │       │
 │   │       └── (dashboard)/         # Protected Dashboard Route Group (requireAdmin enforced)
 │   │           ├── layout.tsx       # Dashboard layout (Sidebar, top navigation, admin identity)
-│   │           ├── page.tsx         # /admin Overview metrics (NEW leads & applications, active vs inactive)
+│   │           ├── page.tsx         # /admin Overview metrics (NEW leads/apps & active subscribers count)
 │   │           ├── leads/           # /admin/leads management table & /[id] detail viewer
 │   │           ├── applications/    # /admin/applications candidate table & /[id] resume viewer
+│   │           ├── subscribers/     # /admin/subscribers management table, summary cards & CSV export menu
 │   │           ├── categories/      # /admin/categories management dialogs & table
 │   │           ├── courses/         # /admin/courses list, /new, and /[id] forms (detailed syllabus)
 │   │           ├── team/            # /admin/team list, /new, and /[id] forms

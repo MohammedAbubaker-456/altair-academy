@@ -58,8 +58,8 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 > npm run db:seed
 > ```
 >
-> - `db:push` syncs the new MongoDB collections (`Lead`, `CareerApplication`), adds indexes (`@@index([status, createdAt])`), and creates new `Course` syllabus fields (`objective`, `content`, `whoShouldAttend`, `certification`, `notesAndEquipment`, `classCapacity`, `feeDetails`, `courseSupport`).
-> - `db:seed` performs safe, insert-only population: provisions or supplements the "API 510 Pressure Vessel Inspector" course draft without overwriting any existing administrator customizations.
+> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`), adds indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, unique indexes on email and unsubscribeToken), and creates new `Course` syllabus fields (`objective`, `content`, `whoShouldAttend`, `certification`, `notesAndEquipment`, `classCapacity`, `feeDetails`, `courseSupport`).
+> - `db:seed` performs safe, insert-only population: provisions or supplements course drafts without overwriting any existing administrator customizations.
 
 ---
 
@@ -304,7 +304,75 @@ Candidate resumes uploaded through `/careers` are treated with strict confidenti
 
 ---
 
-## 11. Troubleshooting
+## 11. Newsletter Subscription & Admin Subscribers Module
+
+### Data Model (`NewsletterSubscriber`)
+
+The `NewsletterSubscriber` MongoDB collection stores public newsletter subscriptions:
+
+```prisma
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+model NewsletterSubscriber {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  email            String           @unique
+  status           SubscriberStatus @default(ACTIVE)
+  source           String           @default("footer")
+  unsubscribeToken String           @unique
+  subscribedAt     DateTime         @default(now())
+  unsubscribedAt   DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([status, subscribedAt])
+}
+```
+
+- **Email Sanitation**: Stored trimmed and lowercased to prevent duplicate records with different casing.
+- **Privacy Preservation**: No IP addresses, device identifiers, or user agent strings are stored.
+- **Unsubscribe Tokens**: Cryptographically secure, URL-safe tokens (32+ bytes base64url generated via Node `crypto.randomBytes(32)`).
+
+### Public Footer Form (`NewsletterForm.tsx`)
+
+- **Server Action**: Form submission is handled by `subscribeNewsletter` (`src/app/newsletter/actions.ts`, `"use server"`) using React `useActionState`.
+- **Anti-Enumeration Neutral Response**: Always returns `"Thanks for subscribing!"` for valid submissions whether the address is new, already active, or reactivated from an unsubscribed state, preventing email harvesting attacks.
+- **Honeypot Bot Trap**: Hidden `website` field silently accepted without storing.
+- **Rate Limiting**: Integrated with `checkRateLimit("newsletter")` (5 attempts per hour per client, keyed by HMAC-SHA256 of the client IP using `AUTH_SECRET`).
+- **Accessibility & Layout**: 44px minimum touch targets, ARIA live region (`role="status"`), explicit input autocomplete, and mobile bottom clearance preventing collisions with the floating WhatsApp button.
+
+### Unsubscribe Page (`/newsletter/unsubscribe?token=<token>`)
+
+- Public, unindexed page (`robots: { index: false, follow: false }`).
+- Looks up the subscriber by `unsubscribeToken`.
+- If the token is invalid or missing, renders a neutral `"This link is not valid."` message.
+- If valid, prompts confirmation to transition status to `UNSUBSCRIBED` and sets `unsubscribedAt`.
+
+### Admin Subscribers Page (`/admin/subscribers`)
+
+- Integrated into the **Inbox** sidebar navigation group and overview metrics.
+- Summary cards: Total Subscribers, Active Subscribers, Unsubscribed, and New in the Last 30 Days.
+- Paginated and searchable table with status filtering (All, Active, Unsubscribed) and deterministic `Asia/Kuala_Lumpur` timestamps.
+- Optimistic row status toggling (ACTIVE ⇄ UNSUBSCRIBED) with error rollback and deletion confirmation via `DeleteDialog`.
+- Protected by `requireAdmin()`.
+
+### Streaming CSV Export (`GET /admin/subscribers/export?scope=active|all`)
+
+- **Authentication**: Requires admin session verification first; unauthenticated requests receive HTTP 401 with no body details.
+- **Memory-Safe Streaming**: Uses Web `ReadableStream` with cursor-based batching by `id` (1,000 records per batch) ordered by `subscribedAt` ascending, avoiding high memory consumption on large subscriber lists.
+- **Excel Compatibility**: Emits UTF-8 Byte Order Mark (`\uFEFF`), CRLF (`\r\n`) line endings, and RFC 4180 standard double-quoting.
+- **Formula Injection Defense**: If a cell value begins with `=`, `+`, `-`, `@`, tab (`\t`), or carriage return (`\r`), it is prefixed with a single quote (`'`) to neutralize spreadsheet command execution vulnerabilities.
+- **Download Headers**:
+  - `Content-Type: text/csv; charset=utf-8`
+  - `Content-Disposition: attachment; filename="newsletter-subscribers-YYYY-MM-DD.csv"` (date formatted in `Asia/Kuala_Lumpur`)
+  - `Cache-Control: private, no-store`
+  - `X-Content-Type-Options: nosniff`
+
+---
+
+## 12. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 

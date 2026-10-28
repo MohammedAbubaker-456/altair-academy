@@ -27,6 +27,7 @@ import logo from "@/assets/altair-academy-logo.png";
 import { getContactDetails } from "@/server/queries/contact";
 import { getFooterLegalLinks } from "@/server/queries/legal";
 import { FloatingWhatsApp } from "@/components/site/FloatingWhatsApp";
+import { NewsletterForm } from "@/components/site/NewsletterForm";
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -77,9 +78,14 @@ export async function Footer() {
     contactDetails.EMAIL.length > 0 ||
     contactDetails.HOURS.length > 0;
 
+  const privacyLink = legalLinks.find(
+    (l) => l.slug === "privacy" || l.href === "/privacy" || l.title.toLowerCase().includes("privacy"),
+  );
+  const privacyHref = privacyLink ? privacyLink.href : "/privacy";
+
   return (
     <footer className="bg-navy-deep text-primary-foreground">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pt-14 pb-24 sm:pb-14 sm:px-6 lg:px-8">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="inline-flex rounded-md bg-background px-3 py-2">
@@ -208,6 +214,13 @@ export async function Footer() {
                 </Link>
               </li>
             </ul>
+          </div>
+        </div>
+
+        {/* Newsletter Subscription Row */}
+        <div className="mt-12 border-t border-primary-foreground/15 pt-8">
+          <div className="max-w-xl">
+            <NewsletterForm privacyHref={privacyHref} />
           </div>
         </div>
 

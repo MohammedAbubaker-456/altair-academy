@@ -16,7 +16,7 @@ import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 
-export type RateLimitScope = "lead" | "application";
+export type RateLimitScope = "lead" | "application" | "newsletter";
 
 export type RateLimitResult =
   { allowed: true } | { allowed: false; retryAfterMinutes: number; message: string };
@@ -31,6 +31,11 @@ const LIMITS: Record<RateLimitScope, { max: number; windowMs: number; label: str
     max: 3,
     windowMs: 60 * 60 * 1000, // 1 hour
     label: "applications",
+  },
+  newsletter: {
+    max: 5,
+    windowMs: 60 * 60 * 1000, // 1 hour
+    label: "subscription attempts",
   },
 };
 

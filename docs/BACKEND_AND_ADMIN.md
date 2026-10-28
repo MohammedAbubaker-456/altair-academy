@@ -58,8 +58,8 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 > npm run db:seed
 > ```
 >
-> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`), adds indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, unique indexes on email and unsubscribeToken), and creates new `Course` syllabus fields (`objective`, `content`, `whoShouldAttend`, `certification`, `notesAndEquipment`, `classCapacity`, `feeDetails`, `courseSupport`).
-> - `db:seed` performs safe, insert-only population: provisions or supplements course drafts without overwriting any existing administrator customizations.
+> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`, `CalendarCourse`, `CalendarSession`), establishes indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, `@@index([status, startDate])`, `@@index([courseId])`, unique index on course code, and composite unique index on `[courseId, kind, startDate, endDate]`).
+> - `db:seed` performs safe, insert-only population: provisions calendar courses (UT, MT, PT, PAUT, TOFD, RI) and all 37 legacy Level 2 2026 intake and exam sessions without overwriting any existing administrator customizations.
 
 ---
 
@@ -179,6 +179,8 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 | `/admin/leads/[id]`            | Lead Detail Viewer         | Inspect candidate enquiry, status transition select, direct mailto and tel actions, message rendering with whitespace preservation, delete confirmation.                      |
 | `/admin/applications`          | Careers Applications Inbox | Search candidate name/email/phone/specialisation, status filter (NEW / REVIEWING / SHORTLISTED / REJECTED), attachment badges, pagination.                                    |
 | `/admin/applications/[id]`     | Application Detail Viewer  | Full candidate profile, status management, cover note, and **Resume Panel** with secure "View" and "Download" actions.                                                        |
+| `/admin/calendar`               | Training Calendar          | Tabbed manager: Scheduled Sessions (multi-filter, pagination, duplication) and Calendar Course Codes (order, session count guard). |
+| `/admin/calendar/sessions/new` & `/[id]` | Session Form      | Schedule intake with course select, type, native date pickers, auto-end date, live overlap warning, and "Save & Add Another". |
 | `/admin/courses`               | Course Management          | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), pagination, optimistic status toggle, preview links.                                                                |
 | `/admin/courses/new` & `/[id]` | Course Form                | Auto-slug, category selector, detailed syllabus (Objective, Content, Who Should Attend, Certification, Notes, Capacity, Fee override, Support) with Write/Preview & counters. |
 | `/admin/categories`            | Categories                 | Discipline manager, course count tracking, modal create/edit dialog, **safeguard: deletion blocked if courses assigned**.                                                     |
@@ -372,7 +374,105 @@ model NewsletterSubscriber {
 
 ---
 
-## 12. Troubleshooting
+## 12. Training Calendar Module & Data Flow
+
+### The Data Models
+
+The training calendar is backed by two MongoDB models defined in `prisma/schema.prisma`:
+
+1. **`CalendarCourse`**:
+   - `id`: MongoDB ObjectId (`@id @default(auto()) @map("_id") @db.ObjectId`).
+   - `code`: Unique alphanumeric course abbreviation (2–12 uppercase characters, digits, or hyphens, e.g., `UT`, `MT`, `PT`, `PAUT`, `TOFD`, `RI`).
+   - `name`: Full title of the course (e.g., "Ultrasonic Testing").
+   - `order`: Display sequence integer (`Int @default(0)`).
+   - `status`: `Status` enum (`ACTIVE` or `INACTIVE`).
+   - `sessions`: Relation array to scheduled `CalendarSession` records (`onDelete: Restrict`).
+
+2. **`CalendarSession`**:
+   - `id`: MongoDB ObjectId.
+   - `courseId`: Foreign key to `CalendarCourse` (`@db.ObjectId`, indexed).
+   - `kind`: `SessionKind` enum (`TRAINING` or `EXAM`).
+   - `level`: Optional certification level string (e.g., `"Level 2"`).
+   - `startDate`: Inclusive start date string formatted strictly as `"YYYY-MM-DD"`.
+   - `endDate`: Inclusive end date string formatted strictly as `"YYYY-MM-DD"`.
+   - `timeLabel`: Optional time display override (defaults to `"09:00 – 17:00 SST"` for training and `"09:00 – 13:00 SST"` for exams).
+   - `location`: Optional venue string (e.g., `"Masai, Johor centre"`).
+   - `note`: Optional administrative or candidate note (max 300 characters).
+   - `status`: `Status` enum (`ACTIVE` or `INACTIVE`).
+   - Composite unique constraint: `@@unique([courseId, kind, startDate, endDate])` (prevents exact duplicates and guarantees safe idempotent seeding).
+   - Compound index: `@@index([status, startDate])`.
+
+### Why Dates are Stored as "YYYY-MM-DD" Strings
+
+Calendar schedules represent discrete calendar days on a wall calendar rather than point-in-time instantaneous moments. Storing calendar dates as UTC `DateTime` objects or UNIX timestamps causes several critical issues:
+1. **Timezone Shifts**: A Date object created on a machine in UTC-5 or UTC+12 would shift the displayed day to the previous or next day depending on the client or server's local offset.
+2. **Deterministic String Comparison**: `"YYYY-MM-DD"` strings naturally sort in chronological order lexicographically, allowing exact equality, sorting, and range queries directly in MongoDB without timezone distortions.
+3. **Zero Hydration Mismatch**: Date-only strings parsed into numerical components (`year, month, day`) render identical DOM on both SSR and client paint, preventing React hydration mismatches.
+4. **Client-Side Interpretation**: Client components construct local dates exclusively using `new Date(year, month - 1, day)` for calendar matrix generation, ensuring consistent day-of-week calculation in the user's browser without shifting the target date.
+
+### Public Page Data Flow (`/calendar`)
+
+1. **Server Component**: `src/app/calendar/page.tsx` is configured with `export const dynamic = "force-dynamic"`.
+2. **Server-Only Queries**: Queries `getActiveCalendarSessions()` and `getActiveCalendarCourses()` from `src/server/queries/calendar.ts`. Only records where `session.status === ACTIVE` and `course.status === ACTIVE` are returned.
+3. **DTO Serialization**: Returns plain serializable DTOs (strings only; no Prisma instances or Date objects).
+4. **Dynamic Metadata**: `generateMetadata()` inspects all active sessions to determine `displayYear` (current year if sessions exist, otherwise latest year with sessions). The meta description dynamically lists all active course codes (e.g. `"UT, MT, PT, PAUT, TOFD and RI"` for the seeded data) matching the baseline text.
+5. **Client Shell (`CalendarViewer.tsx`)**:
+   - Parses date strings into local `Date` objects (`new Date(y, m - 1, d)`).
+   - Computes distinct years for the year picker and distinct certification levels for the hero subtitle (`Level 2 · Year 2026`).
+   - Supports multi-day sessions spanning across months (e.g. `28 Jan – 2 Feb 2026`), showing the session on every covered day in both months.
+   - Clamps month navigation arrows to January–December of the selected year.
+   - Initial day/month are aligned with today's date in `useEffect` only if today falls in the display year, ensuring zero hydration warnings.
+   - Displays a friendly empty state if no sessions exist.
+
+### Admin Dashboard (`/admin/calendar`)
+
+The admin calendar module is organized into two tabs:
+
+#### 1. Scheduled Sessions Tab
+- **Table**: Displays Course (code badge + title + level), Session Type badge (`Training` in navy, `Exam` in brand-red), Formatted Dates (`formatDateOnlyRange`), Schedule Time, Location/Notes, Optimistic Status Switch, and Actions (Edit, Duplicate, Delete).
+- **Filters**:
+  - `Year`: Selects a specific intake year (defaults to the current year or latest year with sessions).
+  - `Month`: Filters by month (January through December).
+  - `Course`: Filters by specific course code.
+  - `Type`: Filters by `Training` or `Examination`.
+  - `Status`: Filters between `ACTIVE` and `INACTIVE`.
+  - `Upcoming only`: Filters sessions where `endDate >= today` in `Asia/Kuala_Lumpur` (MYT).
+  - `Search`: Substring search over location, notes, and level.
+  - `Pagination`: Configurable page size (15 per page) with total count indicators.
+- **Duplication Action**: Clicking "Duplicate" opens the new session form pre-populated with the source session's course, type, level, time label, location, note, and status, with the start and end dates cleared for rapid entry.
+
+#### 2. Course Codes Tab
+- **Table**: Displays code abbreviation, full name, display order sequence, attached session count badge, optimistic status switch, and actions (Edit, Delete).
+- **Create/Edit Dialog**: Accessible modal allowing modification of course code (uppercase), title, sequence order, and status.
+- **Safeguards**:
+  - **Deletion Blocker**: Deleting a course code that currently has scheduled sessions is strictly blocked with a message: `"Delete or move its N sessions first"`.
+  - **Public Visibility Notice**: A helper banner reminds administrators that setting a course code to `INACTIVE` automatically hides that course and all its sessions from the public calendar.
+
+### How to Add a Month of Sessions
+
+To add a new month of intakes (e.g., January 2027):
+1. Navigate to `/admin/calendar` in the admin dashboard.
+2. Click **Add Session** (or use **Duplicate** on an existing session).
+3. Select the **Course Method** (e.g., `UT`) and **Session Type** (e.g., `Training`).
+4. Enter the **Start Date** via the native date picker (e.g., `2027-01-11`). Notice that the **End Date** automatically fills with the same date for single-day sessions.
+5. If multi-day, select the **End Date** (e.g., `2027-01-22`). The day span counter verifies the duration (maximum 31 days).
+6. Verify the non-blocking **Overlap Helper**: if an existing session overlaps, an informational banner appears without blocking submission.
+7. Click **Save & Add Another**: the session is saved, and the form resets with the same course and type selected, allowing you to immediately add the examination session (e.g., `2027-01-23` to `2027-01-24`).
+8. Repeat for subsequent methods (`MT`, `PT`, etc.) and return to the calendar table.
+
+### How the Seed Maps the Old Data
+
+1. The raw legacy calendar schedule is stored in `prisma/seed-data/calendar.ts` as `seedCalendarCourses` and `seedCalendar2026Level2`.
+2. In `prisma/seed.ts`, the seed script runs in safe insert-only mode:
+   - Populates `CalendarCourse` records matching by `code` (`order = array order`, `status: ACTIVE`).
+   - Parses the legacy slot string ranges (`"a-b"` or `"a"`) for each month in 2026.
+   - Validates that each parsed date is a real calendar date (rejecting invalid combinations like Feb 30).
+   - Creates each `CalendarSession` with `kind: TRAINING` or `kind: EXAM`, `level: "Level 2"`, and `status: ACTIVE`.
+   - Idempotency is guaranteed by `@@unique([courseId, kind, startDate, endDate])`: existing records are skipped without modifying admin changes.
+
+---
+
+## 13. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 

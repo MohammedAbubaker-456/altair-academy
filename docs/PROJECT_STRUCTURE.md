@@ -99,6 +99,7 @@ altair-academy/
 │   │       ├── layout.tsx           # Base admin layout with Sonner toast provider & noindex metadata
 │   │       ├── upload-actions.ts    # Server action for local disk image uploads
 │   │       ├── login/               # Authentication portal (rate-limited, timing equalization)
+│   │       ├── calendar/actions.ts  # Calendar server actions (CRUD for sessions & courses + overlap & delete safeguards)
 │   │       ├── categories/actions.ts# Category server actions (CRUD + delete blocking)
 │   │       ├── courses/actions.ts   # Course server actions (CRUD + syllabus fields + image cleanup)
 │   │       ├── team/actions.ts      # Team & faculty server actions (CRUD + image cleanup)
@@ -117,7 +118,8 @@ altair-academy/
 │   │       │
 │   │       └── (dashboard)/         # Protected Dashboard Route Group (requireAdmin enforced)
 │   │           ├── layout.tsx       # Dashboard layout (Sidebar, top navigation, admin identity)
-│   │           ├── page.tsx         # /admin Overview metrics (NEW leads/apps & active subscribers count)
+│   │           ├── page.tsx         # /admin Overview metrics (NEW leads/apps, active subscribers, & upcoming calendar counts)
+│   │           ├── calendar/        # /admin/calendar tabbed manager (Sessions / Course codes), /sessions/new, and /[id]
 │   │           ├── leads/           # /admin/leads management table & /[id] detail viewer
 │   │           ├── applications/    # /admin/applications candidate table & /[id] resume viewer
 │   │           ├── subscribers/     # /admin/subscribers management table, summary cards & CSV export menu
@@ -166,6 +168,7 @@ altair-academy/
 │   │   │   ├── session.ts           # Jose HS256 JWT cookie session management & requireAdmin()
 │   │   │   └── password.ts          # Bcrypt password hashing (cost factor 12) & timing equalization
 │   │   └── validation/              # Shared Zod validation schemas
+│   │       ├── calendar.ts          # Calendar course & session schema with real date & span validation
 │   │       ├── course.ts            # Course schema with 8 new syllabus & fee override fields
 │   │       ├── lead.ts              # Contact lead validation schema (phone sanitization & honeypot)
 │   │       ├── application.ts       # Careers application schema (phone, specialisation, resume validation)
@@ -178,6 +181,7 @@ altair-academy/
 │   └── server/
 │       ├── admin/                   # Administrative data queries (requireAdmin enforced)
 │       │   ├── stats.ts             # Dashboard overview stats across all models + NEW lead/app counts
+│       │   ├── calendar.ts          # Calendar sessions (multi-filter, pagination) & course codes
 │       │   ├── leads.ts             # Leads admin search, status filter, pagination & ID query
 │       │   ├── applications.ts      # Applications admin search, status filter, pagination & ID query
 │       │   ├── courses.ts
@@ -189,6 +193,7 @@ altair-academy/
 │       │   └── legal.ts             # Legal pages query & ID lookup
 │       │
 │       ├── queries/                 # Public read-only queries strictly enforcing status: "ACTIVE"
+│       │   ├── calendar.ts          # getActiveCalendarSessions (DTOs) & getActiveCalendarCourses
 │       │   ├── courses.ts
 │       │   ├── categories.ts
 │       │   ├── team.ts

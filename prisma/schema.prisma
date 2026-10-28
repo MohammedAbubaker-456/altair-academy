@@ -255,7 +255,6 @@ enum SubscriberStatus {
   UNSUBSCRIBED
 }
 
-
 model NewsletterSubscriber {
   id               String           @id @default(auto()) @map("_id") @db.ObjectId
   email            String           @unique
@@ -270,3 +269,38 @@ model NewsletterSubscriber {
   @@index([status, subscribedAt])
 }
 
+enum SessionKind {
+  TRAINING
+  EXAM
+}
+
+model CalendarCourse {
+  id        String            @id @default(auto()) @map("_id") @db.ObjectId
+  code      String            @unique
+  name      String
+  order     Int               @default(0)
+  status    Status            @default(ACTIVE)
+  sessions  CalendarSession[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model CalendarSession {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  courseId  String         @db.ObjectId
+  course    CalendarCourse @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  kind      SessionKind
+  level     String?
+  startDate String
+  endDate   String
+  timeLabel String?
+  location  String?
+  note      String?
+  status    Status         @default(ACTIVE)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@unique([courseId, kind, startDate, endDate])
+  @@index([status, startDate])
+  @@index([courseId])
+}

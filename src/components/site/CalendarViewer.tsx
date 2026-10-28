@@ -3,6 +3,8 @@
  *
  * Client Component rendering day, month, and year calendar views
  * with intake date navigation, course filtering, and reserve seat CTAs.
+ * Database-backed with dynamic year selection, multi-month session spans,
+ * and deterministic SSR rendering.
  *
  * Location: src/components/site/CalendarViewer.tsx
  * Type: Client Component ("use client")
@@ -23,10 +25,25 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { calendarCourses, calendar2026Level2 } from "@/data/calendar";
 import type { LegacyContactInfo } from "@/server/queries/contact";
+import type { CalendarCourseDTO, CalendarSessionDTO } from "@/server/queries/calendar";
 
 type View = "day" | "month" | "year";
+
+export type ClientSession = {
+  id: string;
+  courseCode: string;
+  courseName: string;
+  kind: "training" | "exam";
+  level: string | null;
+  startDateStr: string;
+  endDateStr: string;
+  start: Date;
+  end: Date;
+  timeLabel: string | null;
+  location: string | null;
+  note: string | null;
+};
 
 const MONTH_NAMES = [
   "January",
@@ -42,66 +59,88 @@ const MONTH_NAMES = [
   "November",
   "December",
 ];
-const DATA_YEAR = 2026;
+
+const MONTH_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const TRAINING_TIME = "09:00 – 17:00 SST";
 const EXAM_TIME = "09:00 – 13:00 SST";
 
-type Session = {
-  courseCode: string;
-  courseName: string;
-  kind: "training" | "exam";
-  start: Date;
-  end: Date;
-};
-
-function parseRange(range: string, monthIdx: number): { start: Date; end: Date } {
-  const [a, b] = range.split("-").map((n) => parseInt(n, 10));
-  return {
-    start: new Date(DATA_YEAR, monthIdx, a),
-    end: new Date(DATA_YEAR, monthIdx, b ?? a),
-  };
+function parseLocalDate(str: string): Date {
+  const parts = str.split("-").map((v) => parseInt(v, 10));
+  return new Date(parts[0] ?? 2026, (parts[1] ?? 1) - 1, parts[2] ?? 1);
 }
 
-/** Flatten the 2026 calendar into dated sessions. */
-function buildSessions(): Session[] {
-  const sessions: Session[] = [];
-  calendar2026Level2.forEach((entry) => {
-    const monthIdx = MONTH_NAMES.indexOf(entry.month);
-    Object.entries(entry.slots).forEach(([code, slot]) => {
-      const course = calendarCourses.find((c) => c.code === code);
-      if (!course) return;
-      if (slot.training) {
-        const { start, end } = parseRange(slot.training, monthIdx);
-        sessions.push({ courseCode: code, courseName: course.name, kind: "training", start, end });
-      }
-      if (slot.exam) {
-        const { start, end } = parseRange(slot.exam, monthIdx);
-        sessions.push({ courseCode: code, courseName: course.name, kind: "exam", start, end });
-      }
-    });
-  });
-  return sessions.sort((a, b) => a.start.getTime() - b.start.getTime());
+function formatBadgeDate(start: Date, end: Date): string {
+  const sYear = start.getFullYear();
+  const eYear = end.getFullYear();
+  const sMonth = start.getMonth();
+  const eMonth = end.getMonth();
+  const sDate = start.getDate();
+  const eDate = end.getDate();
+
+  // Single day
+  if (sYear === eYear && sMonth === eMonth && sDate === eDate) {
+    return `${sDate} ${MONTH_NAMES[sMonth]} ${sYear}`;
+  }
+
+  // Same month, same year
+  if (sYear === eYear && sMonth === eMonth) {
+    return `${sDate}–${eDate} ${MONTH_NAMES[sMonth]} ${sYear}`;
+  }
+
+  // Different months, same year (e.g. 28 Jan – 2 Feb 2026)
+  if (sYear === eYear) {
+    return `${sDate} ${MONTH_SHORT[sMonth]} – ${eDate} ${MONTH_SHORT[eMonth]} ${sYear}`;
+  }
+
+  // Different years (e.g. 28 Dec 2026 – 2 Jan 2027)
+  return `${sDate} ${MONTH_SHORT[sMonth]} ${sYear} – ${eDate} ${MONTH_SHORT[eMonth]} ${eYear}`;
 }
 
-const ALL_SESSIONS = buildSessions();
-
-function sessionsOn(date: Date): Session[] {
+function sessionsOn(date: Date, allSessions: ClientSession[]): ClientSession[] {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-  return ALL_SESSIONS.filter((s) => {
+  return allSessions.filter((s) => {
     const start = new Date(s.start.getFullYear(), s.start.getMonth(), s.start.getDate()).getTime();
     const end = new Date(s.end.getFullYear(), s.end.getMonth(), s.end.getDate()).getTime();
     return d >= start && d <= end;
   });
 }
 
-function sessionsInMonth(year: number, monthIdx: number): Session[] {
-  return ALL_SESSIONS.filter(
-    (s) =>
-      (s.start.getFullYear() === year && s.start.getMonth() === monthIdx) ||
-      (s.end.getFullYear() === year && s.end.getMonth() === monthIdx),
-  );
+function sessionsInMonth(
+  year: number,
+  monthIdx: number,
+  allSessions: ClientSession[],
+): ClientSession[] {
+  const monthStart = new Date(year, monthIdx, 1).getTime();
+  const monthEnd = new Date(year, monthIdx + 1, 0, 23, 59, 59, 999).getTime();
+  return allSessions.filter((s) => {
+    const start = new Date(s.start.getFullYear(), s.start.getMonth(), s.start.getDate()).getTime();
+    const end = new Date(
+      s.end.getFullYear(),
+      s.end.getMonth(),
+      s.end.getDate(),
+      23,
+      59,
+      59,
+      999,
+    ).getTime();
+    return start <= monthEnd && end >= monthStart;
+  });
 }
 
 function toISODate(d: Date): string {
@@ -111,8 +150,16 @@ function toISODate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function SessionBadge({ session }: { session: Session }) {
+function SessionBadge({ session }: { session: ClientSession }) {
   const training = session.kind === "training";
+  const dateText = formatBadgeDate(session.start, session.end);
+  const timeText = session.timeLabel?.trim()
+    ? session.timeLabel.trim()
+    : training
+      ? TRAINING_TIME
+      : EXAM_TIME;
+  const details = [session.location?.trim(), session.note?.trim()].filter(Boolean).join(" · ");
+
   return (
     <div
       className={cn(
@@ -121,24 +168,25 @@ function SessionBadge({ session }: { session: Session }) {
       )}
     >
       <div className="flex items-center gap-3">
-        {training ? <GraduationCap className="size-5" /> : <ClipboardCheck className="size-5" />}
+        {training ? (
+          <GraduationCap className="size-5 shrink-0" />
+        ) : (
+          <ClipboardCheck className="size-5 shrink-0" />
+        )}
         <div>
           <p className="font-display text-sm font-bold">
             {session.courseCode}
             <span className="ml-2 text-xs font-normal opacity-80">{session.courseName}</span>
           </p>
           <p className="text-xs opacity-80">
-            {training ? "Training" : "Examination"} · {session.start.getDate()}
-            {session.start.getDate() !== session.end.getDate()
-              ? `–${session.end.getDate()} ${MONTH_NAMES[session.start.getMonth()]}`
-              : ` ${MONTH_NAMES[session.start.getMonth()]}`}{" "}
-            {session.start.getFullYear()}
+            {training ? "Training" : "Examination"} · {dateText}
           </p>
+          {details && <p className="mt-0.5 text-xs opacity-75">{details}</p>}
         </div>
       </div>
-      <p className="flex items-center gap-1.5 text-xs font-medium">
+      <p className="flex items-center gap-1.5 text-xs font-medium shrink-0">
         <Clock className="size-3.5" />
-        {training ? TRAINING_TIME : EXAM_TIME}
+        {timeText}
       </p>
     </div>
   );
@@ -147,21 +195,80 @@ function SessionBadge({ session }: { session: Session }) {
 const selectClass =
   "cursor-pointer rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-primary focus:outline-none focus:ring-2 focus:ring-ring";
 
-export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo }) {
+export function CalendarViewer({
+  contactInfo,
+  courses,
+  sessions,
+  displayYear,
+}: {
+  contactInfo: LegacyContactInfo;
+  courses: CalendarCourseDTO[];
+  sessions: CalendarSessionDTO[];
+  displayYear: number;
+}) {
   const [view, setView] = useState<View>("month");
-  const [day, setDay] = useState<Date>(() => new Date(DATA_YEAR, 0, 1));
+  const [day, setDay] = useState<Date>(() => new Date(displayYear, 0, 1));
   const [month, setMonth] = useState<number>(0);
-  const [year, setYear] = useState<number>(DATA_YEAR);
+  const [year, setYear] = useState<number>(displayYear);
 
+  // Convert raw DTOs to client sessions with local Dates
+  const clientSessions = useMemo<ClientSession[]>(() => {
+    return sessions
+      .map((s) => ({
+        ...s,
+        startDateStr: s.startDate,
+        endDateStr: s.endDate,
+        start: parseLocalDate(s.startDate),
+        end: parseLocalDate(s.endDate),
+      }))
+      .sort((a, b) => a.start.getTime() - b.start.getTime());
+  }, [sessions]);
+
+  // Distinct years that have sessions
+  const availableYears = useMemo(() => {
+    const set = new Set<number>([displayYear]);
+    for (const s of clientSessions) {
+      set.add(s.start.getFullYear());
+      set.add(s.end.getFullYear());
+    }
+    return Array.from(set).sort((a, b) => a - b);
+  }, [clientSessions, displayYear]);
+
+  // Client-side effect: align month/day with today if today falls in the selected year
   useEffect(() => {
     const today = new Date();
-    setMonth(today.getMonth());
-    setYear(DATA_YEAR);
-    setDay(new Date(DATA_YEAR, today.getMonth(), today.getDate()));
-  }, []);
+    if (today.getFullYear() === displayYear) {
+      setMonth(today.getMonth());
+      setYear(displayYear);
+      setDay(new Date(displayYear, today.getMonth(), today.getDate()));
+    }
+  }, [displayYear]);
 
-  const monthSessions = useMemo(() => sessionsInMonth(year, month), [year, month]);
-  const daySessions = useMemo(() => sessionsOn(day), [day]);
+  // Distinct levels in the currently selected year
+  const distinctLevelsInYear = useMemo(() => {
+    const levels = new Set<string>();
+    for (const s of clientSessions) {
+      if (s.start.getFullYear() === year || s.end.getFullYear() === year) {
+        if (s.level && s.level.trim()) {
+          levels.add(s.level.trim());
+        }
+      }
+    }
+    return Array.from(levels);
+  }, [clientSessions, year]);
+
+  const levelLabel = useMemo(() => {
+    if (distinctLevelsInYear.length > 0) {
+      return `${distinctLevelsInYear.join(" / ")} · Year ${year}`;
+    }
+    return `Year ${year}`;
+  }, [distinctLevelsInYear, year]);
+
+  const monthSessions = useMemo(
+    () => sessionsInMonth(year, month, clientSessions),
+    [year, month, clientSessions],
+  );
+  const daySessions = useMemo(() => sessionsOn(day, clientSessions), [day, clientSessions]);
 
   const monthMatrix = useMemo(() => {
     const firstDay = new Date(year, month, 1).getDay();
@@ -174,21 +281,11 @@ export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo
   }, [year, month]);
 
   const prevMonth = () => {
-    if (month === 0) {
-      setMonth(11);
-      setYear((y) => y - 1);
-    } else {
-      setMonth((m) => (m > 0 ? m - 1 : 0));
-    }
+    setMonth((m) => Math.max(0, m - 1));
   };
 
   const nextMonth = () => {
-    if (month === 11) {
-      setMonth(0);
-      setYear((y) => y + 1);
-    } else {
-      setMonth((m) => (m < 11 ? m + 1 : 11));
-    }
+    setMonth((m) => Math.min(11, m + 1));
   };
 
   const shiftDay = (delta: number) => {
@@ -206,8 +303,11 @@ export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <span className="eyebrow text-brand-red-foreground/80">Schedule &amp; Intakes</span>
           <h1 className="mt-3 font-display text-4xl font-bold tracking-tight sm:text-5xl">
-            2026 TRAINING CALENDAR
+            {displayYear} TRAINING CALENDAR
           </h1>
+          <p className="mt-2 text-sm font-semibold tracking-wide text-brand-red-foreground/90 uppercase">
+            {levelLabel}
+          </p>
           <p className="mt-4 max-w-2xl text-base text-primary-foreground/75 sm:text-lg">
             Plan your certification path. View scheduled training and examination dates across all
             NDT Level 2 methods at our Masai, Johor centre.
@@ -256,8 +356,8 @@ export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo
                       id="cal-day-select"
                       type="date"
                       value={toISODate(day)}
-                      min="2026-01-01"
-                      max="2026-12-31"
+                      min={`${year}-01-01`}
+                      max={`${year}-12-31`}
                       onChange={(e) => {
                         if (e.target.value) {
                           const parts = e.target.value.split("-").map(Number);
@@ -265,6 +365,8 @@ export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo
                           const m = parts[1];
                           const d = parts[2];
                           if (y !== undefined && m !== undefined && d !== undefined) {
+                            setYear(y);
+                            setMonth(m - 1);
                             setDay(new Date(y, m - 1, d));
                           }
                         }
@@ -275,25 +377,52 @@ export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo
                 )}
 
                 {view === "month" && (
-                  <div>
-                    <label
-                      htmlFor="cal-month-select"
-                      className="block text-xs font-semibold text-muted-foreground"
-                    >
-                      Month
-                    </label>
-                    <select
-                      id="cal-month-select"
-                      value={month}
-                      onChange={(e) => setMonth(parseInt(e.target.value, 10))}
-                      className={cn(selectClass, "mt-1.5 w-full")}
-                    >
-                      {MONTH_NAMES.map((name, i) => (
-                        <option key={name} value={i}>
-                          {name}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="space-y-3">
+                    <div>
+                      <label
+                        htmlFor="cal-month-select"
+                        className="block text-xs font-semibold text-muted-foreground"
+                      >
+                        Month
+                      </label>
+                      <select
+                        id="cal-month-select"
+                        value={month}
+                        onChange={(e) => setMonth(parseInt(e.target.value, 10))}
+                        className={cn(selectClass, "mt-1.5 w-full")}
+                      >
+                        {MONTH_NAMES.map((name, i) => (
+                          <option key={name} value={i}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="cal-month-year-select"
+                        className="block text-xs font-semibold text-muted-foreground"
+                      >
+                        Year
+                      </label>
+                      <select
+                        id="cal-month-year-select"
+                        value={year}
+                        onChange={(e) => {
+                          const newYear = parseInt(e.target.value, 10);
+                          setYear(newYear);
+                          setDay(new Date(newYear, month, 1));
+                        }}
+                        className={cn(selectClass, "mt-1.5 w-full")}
+                      >
+                        {availableYears.map((y) => (
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 )}
 
@@ -308,10 +437,18 @@ export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo
                     <select
                       id="cal-year-select"
                       value={year}
-                      onChange={(e) => setYear(parseInt(e.target.value, 10))}
+                      onChange={(e) => {
+                        const newYear = parseInt(e.target.value, 10);
+                        setYear(newYear);
+                        setDay(new Date(newYear, month, 1));
+                      }}
                       className={cn(selectClass, "mt-1.5 w-full")}
                     >
-                      <option value={2026}>2026</option>
+                      {availableYears.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}
@@ -323,7 +460,7 @@ export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo
                   Offered Methods
                 </h3>
                 <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
-                  {calendarCourses.map((c) => (
+                  {courses.map((c) => (
                     <li key={c.code} className="flex items-center justify-between">
                       <span className="font-bold text-primary">{c.code}</span>
                       <span className="truncate pl-2 text-right">{c.name}</span>
@@ -358,206 +495,225 @@ export function CalendarViewer({ contactInfo }: { contactInfo: LegacyContactInfo
 
             {/* Calendar panel */}
             <div>
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <p className="flex items-center gap-2 font-display text-xl font-bold text-primary">
-                  <CalendarDays className="size-5 text-brand-red" />
-                  {view === "day" && "Day View"}
-                  {view === "month" && "Month View"}
-                  {view === "year" && "Year View"}
-                </p>
-
-                {view === "day" && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => shiftDay(-1)}
-                      className="cursor-pointer rounded-lg border border-border p-2 text-muted-foreground hover:bg-muted hover:text-primary"
-                      aria-label="Previous day"
-                    >
-                      <ChevronLeft className="size-4" />
-                    </button>
-                    <span className="text-sm font-semibold text-primary">
-                      {day.getDate()} {MONTH_NAMES[day.getMonth()]} {day.getFullYear()}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => shiftDay(1)}
-                      className="cursor-pointer rounded-lg border border-border p-2 text-muted-foreground hover:bg-muted hover:text-primary"
-                      aria-label="Next day"
-                    >
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                )}
-
-                {view === "month" && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={prevMonth}
-                      className="cursor-pointer rounded-lg border border-border p-2 text-muted-foreground hover:bg-muted hover:text-primary"
-                      aria-label="Previous month"
-                    >
-                      <ChevronLeft className="size-4" />
-                    </button>
-                    <span className="text-sm font-semibold text-primary">
-                      {MONTH_NAMES[month]} {year}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={nextMonth}
-                      className="cursor-pointer rounded-lg border border-border p-2 text-muted-foreground hover:bg-muted hover:text-primary"
-                      aria-label="Next month"
-                    >
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Day view */}
-              {view === "day" && (
-                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                  <div className="border-b border-border pb-4">
-                    <p className="font-display text-2xl font-bold text-primary">
-                      {WEEKDAYS[day.getDay()]}, {day.getDate()} {MONTH_NAMES[day.getMonth()]}{" "}
-                      {day.getFullYear()}
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {daySessions.length === 0
-                        ? "No sessions scheduled on this date."
-                        : `${daySessions.length} session${daySessions.length > 1 ? "s" : ""} scheduled.`}
-                    </p>
-                  </div>
-
-                  {daySessions.length === 0 ? (
-                    <div className="py-12 text-center text-sm text-muted-foreground">
-                      <CalendarDays className="mx-auto mb-3 size-8 opacity-40" />
-                      No training or examinations on this day.
-                    </div>
-                  ) : (
-                    <div className="mt-5 space-y-3">
-                      {daySessions.map((s, idx) => (
-                        <SessionBadge key={`${s.courseCode}-${s.kind}-${idx}`} session={s} />
-                      ))}
-                    </div>
-                  )}
+              {clientSessions.length === 0 ? (
+                <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-sm">
+                  <CalendarDays className="mx-auto mb-4 size-10 text-muted-foreground/50" />
+                  <h3 className="font-display text-lg font-bold text-primary">
+                    No Scheduled Sessions
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    No sessions are scheduled yet. Contact us to plan your course.
+                  </p>
+                  <Button variant="cta" className="mt-6" asChild>
+                    <Link href="/contact">Contact Us</Link>
+                  </Button>
                 </div>
-              )}
+              ) : (
+                <>
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <p className="flex items-center gap-2 font-display text-xl font-bold text-primary">
+                      <CalendarDays className="size-5 text-brand-red" />
+                      {view === "day" && "Day View"}
+                      {view === "month" && "Month View"}
+                      {view === "year" && "Year View"}
+                    </p>
 
-              {/* Month view */}
-              {view === "month" && (
-                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                  {/* Weekday headers */}
-                  <div className="grid grid-cols-7 gap-2 pb-3 text-center text-xs font-bold text-muted-foreground uppercase">
-                    {WEEKDAYS.map((w) => (
-                      <div key={w}>{w}</div>
-                    ))}
-                  </div>
-
-                  {/* Day cells */}
-                  <div className="grid grid-cols-7 gap-2">
-                    {monthMatrix.map((d, i) => {
-                      if (d === null) {
-                        return (
-                          <div key={`empty-${i}`} className="min-h-20 rounded-xl bg-muted/30" />
-                        );
-                      }
-                      const cellDate = new Date(year, month, d);
-                      const s = sessionsOn(cellDate);
-                      const hasTraining = s.some((x) => x.kind === "training");
-                      const hasExam = s.some((x) => x.kind === "exam");
-
-                      return (
+                    {view === "day" && (
+                      <div className="flex items-center gap-2">
                         <button
-                          key={d}
                           type="button"
-                          onClick={() => {
-                            setDay(cellDate);
-                            setView("day");
-                          }}
-                          className={cn(
-                            "group flex min-h-20 cursor-pointer flex-col justify-between rounded-xl border border-border/60 p-2 text-left transition-colors hover:border-brand-red hover:bg-muted/40",
-                            s.length > 0 && "bg-secondary/30",
-                          )}
+                          onClick={() => shiftDay(-1)}
+                          className="cursor-pointer rounded-lg border border-border p-2 text-muted-foreground hover:bg-muted hover:text-primary"
+                          aria-label="Previous day"
                         >
-                          <span className="text-xs font-bold text-primary group-hover:text-brand-red">
-                            {d}
-                          </span>
-                          <div className="space-y-1">
-                            {hasTraining && (
-                              <span className="block h-1.5 w-full rounded-full bg-navy" />
-                            )}
-                            {hasExam && (
-                              <span className="block h-1.5 w-full rounded-full bg-brand-red" />
-                            )}
-                          </div>
+                          <ChevronLeft className="size-4" />
                         </button>
-                      );
-                    })}
-                  </div>
+                        <span className="text-sm font-semibold text-primary">
+                          {day.getDate()} {MONTH_NAMES[day.getMonth()]} {day.getFullYear()}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => shiftDay(1)}
+                          className="cursor-pointer rounded-lg border border-border p-2 text-muted-foreground hover:bg-muted hover:text-primary"
+                          aria-label="Next day"
+                        >
+                          <ChevronRight className="size-4" />
+                        </button>
+                      </div>
+                    )}
 
-                  {/* Upcoming list in this month */}
-                  <div className="mt-8 border-t border-border pt-6">
-                    <h3 className="font-display text-sm font-bold text-primary">
-                      All Sessions in {MONTH_NAMES[month]} {year} ({monthSessions.length})
-                    </h3>
-                    {monthSessions.length === 0 ? (
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        No sessions scheduled for this month.
-                      </p>
-                    ) : (
-                      <div className="mt-4 space-y-2">
-                        {monthSessions.map((s, idx) => (
-                          <SessionBadge key={`${s.courseCode}-${s.kind}-${idx}`} session={s} />
-                        ))}
+                    {view === "month" && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={prevMonth}
+                          disabled={month === 0}
+                          className="cursor-pointer rounded-lg border border-border p-2 text-muted-foreground hover:bg-muted hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                          aria-label="Previous month"
+                        >
+                          <ChevronLeft className="size-4" />
+                        </button>
+                        <span className="text-sm font-semibold text-primary">
+                          {MONTH_NAMES[month]} {year}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={nextMonth}
+                          disabled={month === 11}
+                          className="cursor-pointer rounded-lg border border-border p-2 text-muted-foreground hover:bg-muted hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                          aria-label="Next month"
+                        >
+                          <ChevronRight className="size-4" />
+                        </button>
                       </div>
                     )}
                   </div>
-                </div>
-              )}
 
-              {/* Year view */}
-              {view === "year" && (
-                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                  <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                    {MONTH_NAMES.map((name, mIdx) => {
-                      const count = sessionsInMonth(year, mIdx).length;
-                      return (
-                        <button
-                          key={name}
-                          type="button"
-                          onClick={() => {
-                            setMonth(mIdx);
-                            setView("month");
-                          }}
-                          className="cursor-pointer rounded-xl border border-border p-4 text-left transition-colors hover:border-brand-red hover:bg-muted/40"
-                        >
-                          <p className="font-display text-base font-bold text-primary">{name}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{year}</p>
-                          <div className="mt-3">
-                            {count > 0 ? (
-                              <span className="inline-block rounded-md bg-navy px-2 py-0.5 text-xs font-semibold text-primary-foreground">
-                                {count} session{count > 1 ? "s" : ""}
+                  {/* Day view */}
+                  {view === "day" && (
+                    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                      <div className="border-b border-border pb-4">
+                        <p className="font-display text-2xl font-bold text-primary">
+                          {WEEKDAYS[day.getDay()]}, {day.getDate()} {MONTH_NAMES[day.getMonth()]}{" "}
+                          {day.getFullYear()}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {daySessions.length === 0
+                            ? "No sessions scheduled on this date."
+                            : `${daySessions.length} session${daySessions.length > 1 ? "s" : ""} scheduled.`}
+                        </p>
+                      </div>
+
+                      {daySessions.length === 0 ? (
+                        <div className="py-12 text-center text-sm text-muted-foreground">
+                          <CalendarDays className="mx-auto mb-3 size-8 opacity-40" />
+                          No training or examinations on this day.
+                        </div>
+                      ) : (
+                        <div className="mt-5 space-y-3">
+                          {daySessions.map((s, idx) => (
+                            <SessionBadge key={`${s.courseCode}-${s.kind}-${idx}`} session={s} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Month view */}
+                  {view === "month" && (
+                    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                      {/* Weekday headers */}
+                      <div className="grid grid-cols-7 gap-2 pb-3 text-center text-xs font-bold text-muted-foreground uppercase">
+                        {WEEKDAYS.map((w) => (
+                          <div key={w}>{w}</div>
+                        ))}
+                      </div>
+
+                      {/* Day cells */}
+                      <div className="grid grid-cols-7 gap-2">
+                        {monthMatrix.map((d, i) => {
+                          if (d === null) {
+                            return (
+                              <div key={`empty-${i}`} className="min-h-20 rounded-xl bg-muted/30" />
+                            );
+                          }
+                          const cellDate = new Date(year, month, d);
+                          const s = sessionsOn(cellDate, clientSessions);
+                          const hasTraining = s.some((x) => x.kind === "training");
+                          const hasExam = s.some((x) => x.kind === "exam");
+
+                          return (
+                            <button
+                              key={d}
+                              type="button"
+                              onClick={() => {
+                                setDay(cellDate);
+                                setView("day");
+                              }}
+                              className={cn(
+                                "group flex min-h-20 cursor-pointer flex-col justify-between rounded-xl border border-border/60 p-2 text-left transition-colors hover:border-brand-red hover:bg-muted/40",
+                                s.length > 0 && "bg-secondary/30",
+                              )}
+                            >
+                              <span className="text-xs font-bold text-primary group-hover:text-brand-red">
+                                {d}
                               </span>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="mt-4 text-xs text-muted-foreground">
-                    Click a month to see its full date grid.
-                  </p>
-                </div>
-              )}
+                              <div className="space-y-1">
+                                {hasTraining && (
+                                  <span className="block h-1.5 w-full rounded-full bg-navy" />
+                                )}
+                                {hasExam && (
+                                  <span className="block h-1.5 w-full rounded-full bg-brand-red" />
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
 
-              <p className="mt-6 text-sm text-muted-foreground">
-                Dates are indicative and may shift with examination body scheduling. In-house
-                cohorts can be arranged outside this calendar.
-              </p>
+                      {/* Upcoming list in this month */}
+                      <div className="mt-8 border-t border-border pt-6">
+                        <h3 className="font-display text-sm font-bold text-primary">
+                          All Sessions in {MONTH_NAMES[month]} {year} ({monthSessions.length})
+                        </h3>
+                        {monthSessions.length === 0 ? (
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            No sessions scheduled for this month.
+                          </p>
+                        ) : (
+                          <div className="mt-4 space-y-2">
+                            {monthSessions.map((s, idx) => (
+                              <SessionBadge key={`${s.courseCode}-${s.kind}-${idx}`} session={s} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Year view */}
+                  {view === "year" && (
+                    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                        {MONTH_NAMES.map((name, mIdx) => {
+                          const count = sessionsInMonth(year, mIdx, clientSessions).length;
+                          return (
+                            <button
+                              key={name}
+                              type="button"
+                              onClick={() => {
+                                setMonth(mIdx);
+                                setView("month");
+                              }}
+                              className="cursor-pointer rounded-xl border border-border p-4 text-left transition-colors hover:border-brand-red hover:bg-muted/40"
+                            >
+                              <p className="font-display text-base font-bold text-primary">{name}</p>
+                              <p className="mt-1 text-xs text-muted-foreground">{year}</p>
+                              <div className="mt-3">
+                                {count > 0 ? (
+                                  <span className="inline-block rounded-md bg-navy px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                                    {count} session{count > 1 ? "s" : ""}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">—</span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="mt-4 text-xs text-muted-foreground">
+                        Click a month to see its full date grid.
+                      </p>
+                    </div>
+                  )}
+
+                  <p className="mt-6 text-sm text-muted-foreground">
+                    Dates are indicative and may shift with examination body scheduling. In-house
+                    cohorts can be arranged outside this calendar.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>

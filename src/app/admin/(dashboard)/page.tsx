@@ -29,6 +29,7 @@ import {
   MessageSquare,
   FileUser,
   MailCheck,
+  CalendarDays,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,21 @@ export default async function AdminDashboardPage() {
       href: "/admin/categories",
       newHref: null,
       description: "Organize courses into technical disciplines",
+    },
+    {
+      title: "Training Calendar",
+      stats: {
+        total: stats.calendar.sessionsTotal,
+        active: stats.calendar.upcomingActiveSessions,
+        inactive: stats.calendar.coursesActive,
+      },
+      totalLabel: "Sessions",
+      activeLabel: "Upcoming Active",
+      inactiveLabel: "Courses Active",
+      icon: CalendarDays,
+      href: "/admin/calendar",
+      newHref: "/admin/calendar/sessions/new",
+      description: "Intake schedules, session dates, and calendar course codes",
     },
     {
       title: "Team & Instructors",
@@ -306,7 +322,9 @@ export default async function AdminDashboardPage() {
                       <span className="text-2xl font-bold font-display text-foreground">
                         {card.stats.total}
                       </span>
-                      <span className="text-xs text-muted-foreground block">Total</span>
+                      <span className="text-xs text-muted-foreground block">
+                        {card.totalLabel ?? "Total"}
+                      </span>
                     </div>
                   </div>
                   <CardTitle className="text-lg font-display mt-2">{card.title}</CardTitle>
@@ -318,12 +336,12 @@ export default async function AdminDashboardPage() {
                     <div className="flex items-center gap-1.5">
                       <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
                       <span className="font-medium text-foreground">{card.stats.active}</span>
-                      <span className="text-muted-foreground">Active</span>
+                      <span className="text-muted-foreground">{card.activeLabel ?? "Active"}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
                       <span className="font-medium text-foreground">{card.stats.inactive}</span>
-                      <span className="text-muted-foreground">Inactive</span>
+                      <span className="text-muted-foreground">{card.inactiveLabel ?? "Inactive"}</span>
                     </div>
                   </div>
 

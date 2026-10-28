@@ -11,6 +11,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
+import { getTodayDateString } from "@/lib/date";
 
 export interface EntityCount {
   total: number;
@@ -38,6 +39,13 @@ export interface DashboardStats {
   subscribers: {
     total: number;
     active: number;
+  };
+  calendar: {
+    coursesTotal: number;
+    coursesActive: number;
+    sessionsTotal: number;
+    sessionsActive: number;
+    upcomingActiveSessions: number;
   };
 }
 
@@ -67,6 +75,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     applicationsNew,
     subscribersTotal,
     subscribersActive,
+    calendarCoursesTotal,
+    calendarCoursesActive,
+    calendarSessionsTotal,
+    calendarSessionsActive,
+    upcomingActiveSessions,
   ] = await Promise.all([
     db.course.count(),
     db.course.count({ where: { status: "ACTIVE" } }),
@@ -90,6 +103,16 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     db.careerApplication.count({ where: { status: "NEW" } }),
     db.newsletterSubscriber.count(),
     db.newsletterSubscriber.count({ where: { status: "ACTIVE" } }),
+    db.calendarCourse.count(),
+    db.calendarCourse.count({ where: { status: "ACTIVE" } }),
+    db.calendarSession.count(),
+    db.calendarSession.count({ where: { status: "ACTIVE" } }),
+    db.calendarSession.count({
+      where: {
+        status: "ACTIVE",
+        endDate: { gte: getTodayDateString() },
+      },
+    }),
   ]);
 
   return {
@@ -144,6 +167,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     subscribers: {
       total: subscribersTotal,
       active: subscribersActive,
+    },
+    calendar: {
+      coursesTotal: calendarCoursesTotal,
+      coursesActive: calendarCoursesActive,
+      sessionsTotal: calendarSessionsTotal,
+      sessionsActive: calendarSessionsActive,
+      upcomingActiveSessions,
     },
   };
 }

@@ -22,6 +22,7 @@ import {
   MessageSquare,
   FileUser,
   MailCheck,
+  CalendarDays,
   type LucideIcon,
 } from "lucide-react";
 
@@ -60,6 +61,7 @@ export const inboxNavItems: AdminNavItem[] = [
 export const contentNavItems: AdminNavItem[] = [
   { href: "/admin/courses", label: "Courses", icon: GraduationCap },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
+  { href: "/admin/calendar", label: "Training calendar", icon: CalendarDays },
   { href: "/admin/team", label: "Team & Instructors", icon: Users },
   { href: "/admin/news", label: "News & Insights", icon: Newspaper },
   { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },

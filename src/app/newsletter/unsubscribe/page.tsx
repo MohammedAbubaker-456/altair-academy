@@ -51,7 +51,8 @@ export default async function UnsubscribePage({ searchParams }: UnsubscribePageP
                 This link is not valid.
               </h2>
               <p className="text-sm text-muted-foreground">
-                The unsubscription link you used may have expired or is incomplete. If you continue to receive unwanted emails, please contact our support team.
+                The unsubscription link you used may have expired or is incomplete. If you continue
+                to receive unwanted emails, please contact our support team.
               </p>
             </div>
             <div className="pt-2">
@@ -84,7 +85,8 @@ export default async function UnsubscribePage({ searchParams }: UnsubscribePageP
                 This link is not valid.
               </h2>
               <p className="text-sm text-muted-foreground">
-                The unsubscription link you used may have expired or is incomplete. If you continue to receive unwanted emails, please contact our support team.
+                The unsubscription link you used may have expired or is incomplete. If you continue
+                to receive unwanted emails, please contact our support team.
               </p>
             </div>
             <div className="pt-2">
@@ -105,10 +107,7 @@ export default async function UnsubscribePage({ searchParams }: UnsubscribePageP
       intro="Manage your communication preferences for Altair Academy announcements."
     >
       <div className="max-w-xl mx-auto">
-        <UnsubscribeForm
-          token={token}
-          alreadyUnsubscribed={subscriber.status === "UNSUBSCRIBED"}
-        />
+        <UnsubscribeForm token={token} alreadyUnsubscribed={subscriber.status === "UNSUBSCRIBED"} />
       </div>
     </PageShell>
   );

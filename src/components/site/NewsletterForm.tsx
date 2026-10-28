@@ -101,7 +101,10 @@ export function NewsletterForm({ privacyHref = "/privacy", className }: Newslett
 
           {!state.ok && state.message && (
             <div className="rounded-md border border-destructive/40 bg-destructive/20 p-2.5 text-xs text-destructive-foreground flex items-center gap-2">
-              <AlertCircle className="size-4 shrink-0 text-destructive-foreground" aria-hidden="true" />
+              <AlertCircle
+                className="size-4 shrink-0 text-destructive-foreground"
+                aria-hidden="true"
+              />
               <span>{state.message}</span>
             </div>
           )}

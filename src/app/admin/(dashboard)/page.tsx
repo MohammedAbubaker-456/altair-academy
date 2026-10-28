@@ -28,6 +28,7 @@ import {
   ShieldCheck,
   MessageSquare,
   FileUser,
+  MailCheck,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -142,7 +143,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {/* Leads Overview Card */}
           <Card className="flex flex-col justify-between border-border/80 shadow-xs hover:border-primary/40 transition-colors">
             <CardHeader className="pb-3">
@@ -229,6 +230,47 @@ export default async function AdminDashboardPage() {
                 <Button variant="outline" size="sm" asChild className="text-xs">
                   <Link href="/admin/applications">
                     View Applications <ArrowRight className="ml-1.5 h-3 w-3" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Newsletter Subscribers Overview Card */}
+          <Card className="flex flex-col justify-between border-border/80 shadow-xs hover:border-primary/40 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy/5 text-navy">
+                  <MailCheck className="h-5 w-5" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                    {stats.subscribers.active} ACTIVE
+                  </span>
+                  <div className="text-right ml-2">
+                    <span className="text-2xl font-bold font-display text-foreground">
+                      {stats.subscribers.total}
+                    </span>
+                    <span className="text-xs text-muted-foreground block">Total Subscribers</span>
+                  </div>
+                </div>
+              </div>
+              <CardTitle className="text-lg font-display mt-2">Newsletter Subscribers</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Email subscribers registered via the public footer newsletter form
+              </p>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex items-center justify-between border-t pt-3">
+                <span className="text-xs text-muted-foreground">
+                  <strong className="text-foreground font-semibold">
+                    {stats.subscribers.active}
+                  </strong>{" "}
+                  active subscribers
+                </span>
+                <Button variant="outline" size="sm" asChild className="text-xs">
+                  <Link href="/admin/subscribers">
+                    View Subscribers <ArrowRight className="ml-1.5 h-3 w-3" />
                   </Link>
                 </Button>
               </div>

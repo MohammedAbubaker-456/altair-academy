@@ -21,6 +21,7 @@ import {
   Settings,
   MessageSquare,
   FileUser,
+  MailCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,11 +46,12 @@ export const overviewNavItem: AdminNavItem = {
 };
 
 /**
- * Inbox (Leads & Applications) items
+ * Inbox (Leads, Applications & Subscribers) items
  */
 export const inboxNavItems: AdminNavItem[] = [
   { href: "/admin/leads", label: "Leads", icon: MessageSquare },
   { href: "/admin/applications", label: "Applications", icon: FileUser },
+  { href: "/admin/subscribers", label: "Subscribers", icon: MailCheck },
 ];
 
 /**

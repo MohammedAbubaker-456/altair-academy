@@ -49,7 +49,8 @@ export function UnsubscribeForm({ token, alreadyUnsubscribed = false }: Unsubscr
             You have been unsubscribed.
           </h2>
           <p className="text-sm text-muted-foreground">
-            You will no longer receive newsletter announcements, course intake updates, or accreditation news from Altair Academy.
+            You will no longer receive newsletter announcements, course intake updates, or
+            accreditation news from Altair Academy.
           </p>
         </div>
         <p className="text-xs text-muted-foreground pt-2">
@@ -71,7 +72,8 @@ export function UnsubscribeForm({ token, alreadyUnsubscribed = false }: Unsubscr
           Confirm Unsubscription
         </h2>
         <p className="text-sm text-muted-foreground">
-          Are you sure you want to unsubscribe from Altair Academy newsletter communications? You will miss out on upcoming training intakes and certification schedules.
+          Are you sure you want to unsubscribe from Altair Academy newsletter communications? You
+          will miss out on upcoming training intakes and certification schedules.
         </p>
       </div>
 

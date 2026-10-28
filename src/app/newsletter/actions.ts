@@ -119,7 +119,10 @@ export async function subscribeNewsletter(
     };
   } catch (error) {
     // Do not log subscriber emails in error outputs to preserve privacy
-    console.error("[subscribeNewsletter] Unexpected subscription error:", error instanceof Error ? error.message : "Database error");
+    console.error(
+      "[subscribeNewsletter] Unexpected subscription error:",
+      error instanceof Error ? error.message : "Database error",
+    );
     return {
       ok: false,
       message: "An unexpected error occurred while processing your subscription. Please try again.",
@@ -168,7 +171,10 @@ export async function confirmUnsubscribe(token: string): Promise<UnsubscribeResu
       message: "You have been unsubscribed.",
     };
   } catch (error) {
-    console.error("[confirmUnsubscribe] Unsubscribe error:", error instanceof Error ? error.message : "Database error");
+    console.error(
+      "[confirmUnsubscribe] Unsubscribe error:",
+      error instanceof Error ? error.message : "Database error",
+    );
     return {
       ok: false,
       message: "An unexpected error occurred. Please try again.",

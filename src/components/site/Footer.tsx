@@ -79,7 +79,8 @@ export async function Footer() {
     contactDetails.HOURS.length > 0;
 
   const privacyLink = legalLinks.find(
-    (l) => l.slug === "privacy" || l.href === "/privacy" || l.title.toLowerCase().includes("privacy"),
+    (l) =>
+      l.slug === "privacy" || l.href === "/privacy" || l.title.toLowerCase().includes("privacy"),
   );
   const privacyHref = privacyLink ? privacyLink.href : "/privacy";
 

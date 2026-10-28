@@ -35,6 +35,10 @@ export interface DashboardStats {
     total: number;
     new: number;
   };
+  subscribers: {
+    total: number;
+    active: number;
+  };
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -61,6 +65,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     leadsNew,
     applicationsTotal,
     applicationsNew,
+    subscribersTotal,
+    subscribersActive,
   ] = await Promise.all([
     db.course.count(),
     db.course.count({ where: { status: "ACTIVE" } }),
@@ -82,6 +88,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     db.lead.count({ where: { status: "NEW" } }),
     db.careerApplication.count(),
     db.careerApplication.count({ where: { status: "NEW" } }),
+    db.newsletterSubscriber.count(),
+    db.newsletterSubscriber.count({ where: { status: "ACTIVE" } }),
   ]);
 
   return {
@@ -132,6 +140,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     applications: {
       total: applicationsTotal,
       new: applicationsNew,
+    },
+    subscribers: {
+      total: subscribersTotal,
+      active: subscribersActive,
     },
   };
 }

@@ -21,6 +21,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow subscribers export route to enforce authentication directly (401 without session)
+  if (pathname.startsWith("/admin/subscribers/export")) {
+    return NextResponse.next();
+  }
+
   // Check for admin session cookie
   const sessionCookie = request.cookies.get("admin_session")?.value;
   if (!sessionCookie) {

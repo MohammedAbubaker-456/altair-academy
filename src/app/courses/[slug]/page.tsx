@@ -334,15 +334,7 @@ function DetailSection({
 }
 
 /** Small tile for the at-a-glance facts strip. */
-function Fact({
-  icon,
-  label,
-  value,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-}) {
+function Fact({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-4">
       <span className="mt-0.5 text-brand-red">{icon}</span>
@@ -550,9 +542,7 @@ export default async function CourseDetailPage({ params }: Props) {
             <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="h-1.5 bg-brand-red" />
               <div className="p-6">
-                <p className="font-display text-lg font-bold text-primary">
-                  Reserve your seat
-                </p>
+                <p className="font-display text-lg font-bold text-primary">Reserve your seat</p>
                 {showPrice && (
                   <p className="mt-1 text-2xl font-bold text-brand-red">{course.price}</p>
                 )}

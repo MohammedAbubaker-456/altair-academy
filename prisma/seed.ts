@@ -413,7 +413,10 @@ async function main() {
     year: number,
     monthIdx: number,
   ): { startDate: string; endDate: string } {
-    const parts = rawRange.trim().split("-").map((p) => p.trim());
+    const parts = rawRange
+      .trim()
+      .split("-")
+      .map((p) => p.trim());
     if (parts.length > 2 || parts.length === 0 || !parts[0]) {
       throw new Error(`Unparsable range: "${rawRange}"`);
     }

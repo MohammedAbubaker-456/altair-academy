@@ -687,7 +687,9 @@ export function CalendarViewer({
                               }}
                               className="cursor-pointer rounded-xl border border-border p-4 text-left transition-colors hover:border-brand-red hover:bg-muted/40"
                             >
-                              <p className="font-display text-base font-bold text-primary">{name}</p>
+                              <p className="font-display text-base font-bold text-primary">
+                                {name}
+                              </p>
                               <p className="mt-1 text-xs text-muted-foreground">{year}</p>
                               <div className="mt-3">
                                 {count > 0 ? (

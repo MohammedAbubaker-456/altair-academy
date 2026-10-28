@@ -17,10 +17,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { handleAdminActionResult } from "@/lib/admin-client";
 import { formatDateOnlyRange } from "@/lib/date";
-import {
-  setSessionStatusAction,
-  deleteSessionAction,
-} from "@/app/admin/calendar/actions";
+import { setSessionStatusAction, deleteSessionAction } from "@/app/admin/calendar/actions";
 import { StatusSwitch } from "@/components/admin/StatusSwitch";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
 import { Button } from "@/components/ui/button";
@@ -121,7 +118,8 @@ export function CalendarSessionsTab({
   const searchParams = useSearchParams();
 
   // URL search params state
-  const selectedYear = searchParams.get("year") ?? (defaultYear !== "ALL" ? String(defaultYear) : "ALL");
+  const selectedYear =
+    searchParams.get("year") ?? (defaultYear !== "ALL" ? String(defaultYear) : "ALL");
   const selectedMonth = searchParams.get("month") ?? "ALL";
   const selectedCourse = searchParams.get("course") ?? "ALL";
   const selectedType = searchParams.get("type") ?? "ALL";
@@ -222,10 +220,7 @@ export function CalendarSessionsTab({
           </form>
 
           {/* Year Filter */}
-          <Select
-            value={selectedYear}
-            onValueChange={(val) => applyFilters({ year: val })}
-          >
+          <Select value={selectedYear} onValueChange={(val) => applyFilters({ year: val })}>
             <SelectTrigger className="text-xs">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
@@ -240,10 +235,7 @@ export function CalendarSessionsTab({
           </Select>
 
           {/* Month Filter */}
-          <Select
-            value={selectedMonth}
-            onValueChange={(val) => applyFilters({ month: val })}
-          >
+          <Select value={selectedMonth} onValueChange={(val) => applyFilters({ month: val })}>
             <SelectTrigger className="text-xs">
               <SelectValue placeholder="Month" />
             </SelectTrigger>
@@ -258,10 +250,7 @@ export function CalendarSessionsTab({
           </Select>
 
           {/* Course Filter */}
-          <Select
-            value={selectedCourse}
-            onValueChange={(val) => applyFilters({ course: val })}
-          >
+          <Select value={selectedCourse} onValueChange={(val) => applyFilters({ course: val })}>
             <SelectTrigger className="text-xs">
               <SelectValue placeholder="Course Code" />
             </SelectTrigger>
@@ -276,10 +265,7 @@ export function CalendarSessionsTab({
           </Select>
 
           {/* Session Type Filter */}
-          <Select
-            value={selectedType}
-            onValueChange={(val) => applyFilters({ type: val })}
-          >
+          <Select value={selectedType} onValueChange={(val) => applyFilters({ type: val })}>
             <SelectTrigger className="text-xs">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
@@ -297,10 +283,7 @@ export function CalendarSessionsTab({
             {/* Status Select */}
             <div className="flex items-center gap-1.5">
               <span className="text-muted-foreground font-medium">Status:</span>
-              <Select
-                value={selectedStatus}
-                onValueChange={(val) => applyFilters({ status: val })}
-              >
+              <Select value={selectedStatus} onValueChange={(val) => applyFilters({ status: val })}>
                 <SelectTrigger className="h-8 w-28 text-xs">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -316,9 +299,7 @@ export function CalendarSessionsTab({
             <label className="flex items-center gap-2 cursor-pointer font-medium select-none text-foreground">
               <Checkbox
                 checked={isUpcomingOnly}
-                onCheckedChange={(checked) =>
-                  applyFilters({ upcoming: checked ? "true" : null })
-                }
+                onCheckedChange={(checked) => applyFilters({ upcoming: checked ? "true" : null })}
               />
               <span>Upcoming sessions only (MYT)</span>
             </label>

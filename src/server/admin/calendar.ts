@@ -60,17 +60,7 @@ export async function getAvailableCalendarYears(): Promise<number[]> {
 export async function getAdminCalendarSessions(params: GetAdminSessionsParams = {}) {
   await requireAdmin();
 
-  const {
-    year,
-    month,
-    courseId,
-    type,
-    status,
-    upcomingOnly,
-    q,
-    page = 1,
-    pageSize = 15,
-  } = params;
+  const { year, month, courseId, type, status, upcomingOnly, q, page = 1, pageSize = 15 } = params;
 
   const where: Prisma.CalendarSessionWhereInput = {};
 
@@ -98,10 +88,7 @@ export async function getAdminCalendarSessions(params: GetAdminSessionsParams = 
   } else if (month && month !== "ALL") {
     // If only month is chosen without year, match month substring in either start or end date
     const mStr = `-${String(month).padStart(2, "0")}-`;
-    where.OR = [
-      { startDate: { contains: mStr } },
-      { endDate: { contains: mStr } },
-    ];
+    where.OR = [{ startDate: { contains: mStr } }, { endDate: { contains: mStr } }];
   }
 
   // Course filter
@@ -151,10 +138,7 @@ export async function getAdminCalendarSessions(params: GetAdminSessionsParams = 
           },
         },
       },
-      orderBy: [
-        { startDate: "asc" },
-        { course: { order: "asc" } },
-      ],
+      orderBy: [{ startDate: "asc" }, { course: { order: "asc" } }],
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),

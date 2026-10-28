@@ -13,10 +13,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
 import { db } from "@/lib/db";
-import {
-  getAdminCalendarCourses,
-  getAdminCalendarSessionById,
-} from "@/server/admin/calendar";
+import { getAdminCalendarCourses, getAdminCalendarSessionById } from "@/server/admin/calendar";
 import { SessionForm } from "../SessionForm";
 
 export const dynamic = "force-dynamic";

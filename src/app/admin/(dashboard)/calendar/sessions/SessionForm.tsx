@@ -24,10 +24,7 @@ import {
   type CalendarSessionInput,
 } from "@/lib/validation/calendar";
 import { formatDateOnlyRange } from "@/lib/date";
-import {
-  createSessionAction,
-  updateSessionAction,
-} from "@/app/admin/calendar/actions";
+import { createSessionAction, updateSessionAction } from "@/app/admin/calendar/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,7 +80,7 @@ export function SessionForm({
 
   // Derive initial values
   const defaultValues: CalendarSessionInput = {
-    courseId: initialData?.courseId ?? prefilledData?.courseId ?? (courses[0]?.id ?? ""),
+    courseId: initialData?.courseId ?? prefilledData?.courseId ?? courses[0]?.id ?? "",
     kind: initialData?.kind ?? prefilledData?.kind ?? "TRAINING",
     level: initialData?.level ?? prefilledData?.level ?? "Level 2",
     startDate: initialData?.startDate ?? "",
@@ -116,8 +113,7 @@ export function SessionForm({
   const watchedNote = watch("note") || "";
 
   // Time label placeholder dependent on kind
-  const defaultTimeLabel =
-    watchedKind === "TRAINING" ? "09:00 – 17:00 SST" : "09:00 – 13:00 SST";
+  const defaultTimeLabel = watchedKind === "TRAINING" ? "09:00 – 17:00 SST" : "09:00 – 13:00 SST";
 
   // Auto-fill end date when start date is chosen and end date is empty
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,7 +136,14 @@ export function SessionForm({
       if (s.courseId !== watchedCourseId || s.kind !== watchedKind) return false;
       return s.startDate <= watchedEndDate && s.endDate >= watchedStartDate;
     });
-  }, [watchedCourseId, watchedKind, watchedStartDate, watchedEndDate, existingSessions, initialData]);
+  }, [
+    watchedCourseId,
+    watchedKind,
+    watchedStartDate,
+    watchedEndDate,
+    existingSessions,
+    initialData,
+  ]);
 
   // Compute day span
   const currentSpan = React.useMemo(() => {
@@ -267,10 +270,7 @@ export function SessionForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={handleSubmit((data) => submitForm(data, false))}
-            className="space-y-6"
-          >
+          <form onSubmit={handleSubmit((data) => submitForm(data, false))} className="space-y-6">
             {/* Row 1: Course & Type */}
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Course */}
@@ -282,11 +282,7 @@ export function SessionForm({
                   name="courseId"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={isPending}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isPending}>
                       <SelectTrigger id="courseId" className="text-xs">
                         <SelectValue placeholder="Select course code" />
                       </SelectTrigger>
@@ -320,11 +316,7 @@ export function SessionForm({
                   name="kind"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      disabled={isPending}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isPending}>
                       <SelectTrigger id="kind" className="text-xs">
                         <SelectValue placeholder="Select session type" />
                       </SelectTrigger>
@@ -335,9 +327,7 @@ export function SessionForm({
                     </Select>
                   )}
                 />
-                {errors.kind && (
-                  <p className="text-xs text-destructive">{errors.kind.message}</p>
-                )}
+                {errors.kind && <p className="text-xs text-destructive">{errors.kind.message}</p>}
               </div>
             </div>
 
@@ -365,9 +355,7 @@ export function SessionForm({
               <p className="text-[11px] text-muted-foreground">
                 Display badge tag on public calendar (max 40 chars). Leave blank if not applicable.
               </p>
-              {errors.level && (
-                <p className="text-xs text-destructive">{errors.level.message}</p>
-              )}
+              {errors.level && <p className="text-xs text-destructive">{errors.level.message}</p>}
             </div>
 
             {/* Row 3: Start Date & End Date (Native date inputs, YYYY-MM-DD strings) */}
@@ -424,7 +412,11 @@ export function SessionForm({
                 />
                 {currentSpan !== null && (
                   <p className="text-[11px] text-muted-foreground">
-                    Span: <span className="font-semibold text-foreground">{currentSpan} day{currentSpan === 1 ? "" : "s"}</span> (max 31 days).
+                    Span:{" "}
+                    <span className="font-semibold text-foreground">
+                      {currentSpan} day{currentSpan === 1 ? "" : "s"}
+                    </span>{" "}
+                    (max 31 days).
                   </p>
                 )}
                 {errors.endDate && (
@@ -494,9 +486,7 @@ export function SessionForm({
                 disabled={isPending}
                 className="text-xs"
               />
-              {errors.note && (
-                <p className="text-xs text-destructive">{errors.note.message}</p>
-              )}
+              {errors.note && <p className="text-xs text-destructive">{errors.note.message}</p>}
             </div>
 
             {/* Row 6: Status */}
@@ -508,11 +498,7 @@ export function SessionForm({
                 name="status"
                 control={control}
                 render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={isPending}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange} disabled={isPending}>
                     <SelectTrigger id="status" className="w-48 text-xs">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>

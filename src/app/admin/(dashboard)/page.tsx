@@ -341,7 +341,9 @@ export default async function AdminDashboardPage() {
                     <div className="flex items-center gap-1.5">
                       <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
                       <span className="font-medium text-foreground">{card.stats.inactive}</span>
-                      <span className="text-muted-foreground">{card.inactiveLabel ?? "Inactive"}</span>
+                      <span className="text-muted-foreground">
+                        {card.inactiveLabel ?? "Inactive"}
+                      </span>
                     </div>
                   </div>
 

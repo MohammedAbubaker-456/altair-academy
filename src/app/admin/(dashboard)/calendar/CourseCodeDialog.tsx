@@ -16,14 +16,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { handleAdminActionResult } from "@/lib/admin-client";
-import {
-  calendarCourseSchema,
-  type CalendarCourseInput,
-} from "@/lib/validation/calendar";
-import {
-  createCourseAction,
-  updateCourseAction,
-} from "@/app/admin/calendar/actions";
+import { calendarCourseSchema, type CalendarCourseInput } from "@/lib/validation/calendar";
+import { createCourseAction, updateCourseAction } from "@/app/admin/calendar/actions";
 import {
   Dialog,
   DialogContent,
@@ -181,9 +175,7 @@ export function CourseCodeDialog({
             <p className="text-[11px] text-muted-foreground">
               2–12 uppercase letters, numbers, or dashes (e.g. UT, TOFD, PAUT).
             </p>
-            {errors.code && (
-              <p className="text-xs text-destructive">{errors.code.message}</p>
-            )}
+            {errors.code && <p className="text-xs text-destructive">{errors.code.message}</p>}
           </div>
 
           {/* Name */}
@@ -197,9 +189,7 @@ export function CourseCodeDialog({
               {...register("name")}
               disabled={isSubmitting}
             />
-            {errors.name && (
-              <p className="text-xs text-destructive">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
           </div>
 
           {/* Order & Status */}
@@ -216,9 +206,7 @@ export function CourseCodeDialog({
                 {...register("order", { valueAsNumber: true })}
                 disabled={isSubmitting}
               />
-              {errors.order && (
-                <p className="text-xs text-destructive">{errors.order.message}</p>
-              )}
+              {errors.order && <p className="text-xs text-destructive">{errors.order.message}</p>}
             </div>
 
             <div className="space-y-1.5">

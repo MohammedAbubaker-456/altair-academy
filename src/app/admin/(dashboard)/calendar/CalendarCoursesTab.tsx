@@ -14,10 +14,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { handleAdminActionResult } from "@/lib/admin-client";
-import {
-  setCourseStatusAction,
-  deleteCourseAction,
-} from "@/app/admin/calendar/actions";
+import { setCourseStatusAction, deleteCourseAction } from "@/app/admin/calendar/actions";
 import { StatusSwitch } from "@/components/admin/StatusSwitch";
 import { DeleteDialog } from "@/components/admin/DeleteDialog";
 import { CourseCodeDialog, type CourseCodeData } from "./CourseCodeDialog";

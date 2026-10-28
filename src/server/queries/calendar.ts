@@ -66,10 +66,7 @@ export async function getActiveCalendarSessions(): Promise<CalendarSessionDTO[]>
         },
       },
     },
-    orderBy: [
-      { startDate: "asc" },
-      { course: { order: "asc" } },
-    ],
+    orderBy: [{ startDate: "asc" }, { course: { order: "asc" } }],
   });
 
   return sessions.map((s) => ({

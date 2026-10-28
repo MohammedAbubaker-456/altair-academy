@@ -90,7 +90,5 @@ export default async function CalendarPage() {
     displayYear = Math.max(...sessionYears);
   }
 
-  return (
-    <CalendarContent courses={courses} sessions={sessions} displayYear={displayYear} />
-  );
+  return <CalendarContent courses={courses} sessions={sessions} displayYear={displayYear} />;
 }

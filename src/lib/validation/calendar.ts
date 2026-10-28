@@ -20,11 +20,7 @@ export function isValidCalendarDate(str: string): boolean {
   if (y < 2000 || y > 2100) return false;
   if (m < 1 || m > 12) return false;
   const date = new Date(Date.UTC(y, m - 1, d));
-  return (
-    date.getUTCFullYear() === y &&
-    date.getUTCMonth() === m - 1 &&
-    date.getUTCDate() === d
-  );
+  return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
 }
 
 export function getDaysSpan(startStr: string, endStr: string): number {
@@ -69,12 +65,7 @@ export const calendarSessionSchema = z
     kind: z.enum(["TRAINING", "EXAM"], {
       errorMap: () => ({ message: "Please select either Training or Examination" }),
     }),
-    level: z
-      .string()
-      .trim()
-      .max(40, "Level must be at most 40 characters")
-      .optional()
-      .nullable(),
+    level: z.string().trim().max(40, "Level must be at most 40 characters").optional().nullable(),
     startDate: z
       .string()
       .trim()
@@ -103,12 +94,7 @@ export const calendarSessionSchema = z
       .max(120, "Location must be at most 120 characters")
       .optional()
       .nullable(),
-    note: z
-      .string()
-      .trim()
-      .max(300, "Note must be at most 300 characters")
-      .optional()
-      .nullable(),
+    note: z.string().trim().max(300, "Note must be at most 300 characters").optional().nullable(),
     status: z.enum(["ACTIVE", "INACTIVE"]),
   })
   .superRefine((data, ctx) => {

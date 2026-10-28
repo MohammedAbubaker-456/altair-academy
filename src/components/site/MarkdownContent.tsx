@@ -14,6 +14,7 @@ import * as React from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { isSafeUrl } from "@/lib/safe-url";
 import { cn } from "@/lib/utils";
+import remarkGfm from "remark-gfm";
 
 interface MarkdownContentProps {
   content: string;
@@ -182,7 +183,10 @@ export function MarkdownPreview({
         className,
       )}
     >
-      <MarkdownContent content={content} />
+      {/* <MarkdownContent content={content} /> */}
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }

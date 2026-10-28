@@ -570,7 +570,7 @@ export default async function CourseDetailPage({ params }: Props) {
                   <Link href="/contact">Enroll Now</Link>
                 </Button>
 
-                {hasInquiryContact && (
+                {/* {hasInquiryContact && (
                   <div className="mt-5 space-y-2 border-t border-border pt-5">
                     <p className="text-xs font-medium text-muted-foreground">
                       Questions about fees or dates?
@@ -596,7 +596,7 @@ export default async function CourseDetailPage({ params }: Props) {
                       </a>
                     )}
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           </div>

@@ -37,9 +37,9 @@ export function FeaturedCourseCard({ course }: { course: Course }) {
             </div>
           )}
         </div>
-        <span className="absolute bottom-3 left-3 rounded-md bg-brand-red px-3 py-1 font-display text-sm font-bold text-brand-red-foreground shadow-sm">
+        {/* <span className="absolute bottom-3 left-3 rounded-md bg-brand-red px-3 py-1 font-display text-sm font-bold text-brand-red-foreground shadow-sm">
           {course.price}
-        </span>
+        </span> */}
       </div>
 
       <div className="flex flex-1 flex-col p-5">

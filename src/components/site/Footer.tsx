@@ -86,6 +86,12 @@ export async function Footer() {
 
   return (
     <footer className="bg-navy-deep text-primary-foreground">
+      {/* Newsletter Subscription Row */}
+      {/* <div className="mt-12 border-t border-primary-foreground/15 pt-8">
+        <div className="max-w-xl mx-auto">
+          <NewsletterForm privacyHref={privacyHref} />
+        </div>
+      </div> */}
       <div className="mx-auto max-w-7xl px-4 pt-14 pb-24 sm:pb-14 sm:px-6 lg:px-8">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>

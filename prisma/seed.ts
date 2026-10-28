@@ -25,6 +25,7 @@ import { seedFaqs } from "./seed-data/faqs";
 import { seedJobOpenings } from "./seed-data/careers";
 import { seedContactDetails } from "./seed-data/contact";
 import { seedLegalPages } from "./seed-data/legal";
+import { seedCalendarCourses, seedCalendar2026Level2 } from "./seed-data/calendar";
 
 const prisma = new PrismaClient();
 
@@ -361,6 +362,185 @@ async function main() {
     }
   }
   console.log(`✅ Checked ${seedLegalPages.length} legal pages (${newLegal} created)`);
+
+  // 10. Calendar Courses (Insert-Only by Code)
+  const courseCodeMap = new Map<string, string>();
+  let newCalendarCourses = 0;
+  for (let idx = 0; idx < seedCalendarCourses.length; idx++) {
+    const c = seedCalendarCourses[idx]!;
+    const cleanCode = c.code.trim().toUpperCase();
+    const existing = await prisma.calendarCourse.findUnique({
+      where: { code: cleanCode },
+    });
+    if (existing) {
+      courseCodeMap.set(cleanCode, existing.id);
+    } else {
+      const created = await prisma.calendarCourse.create({
+        data: {
+          code: cleanCode,
+          name: c.name.trim(),
+          order: idx,
+          status: "ACTIVE",
+        },
+      });
+      courseCodeMap.set(cleanCode, created.id);
+      newCalendarCourses++;
+    }
+  }
+  console.log(
+    `✅ Checked ${seedCalendarCourses.length} calendar courses (${newCalendarCourses} created, ${seedCalendarCourses.length - newCalendarCourses} skipped)`,
+  );
+
+  // 11. Calendar Sessions (Insert-Only by [courseId, kind, startDate, endDate])
+  const MONTH_NAMES = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const DATA_YEAR = 2026;
+
+  function parseSeedRange(
+    rawRange: string,
+    year: number,
+    monthIdx: number,
+  ): { startDate: string; endDate: string } {
+    const parts = rawRange.trim().split("-").map((p) => p.trim());
+    if (parts.length > 2 || parts.length === 0 || !parts[0]) {
+      throw new Error(`Unparsable range: "${rawRange}"`);
+    }
+    const startDay = parseInt(parts[0], 10);
+    const endDay = parts.length === 2 && parts[1] ? parseInt(parts[1], 10) : startDay;
+    if (isNaN(startDay) || isNaN(endDay)) {
+      throw new Error(`Invalid numbers in range: "${rawRange}"`);
+    }
+    const m = monthIdx + 1;
+    const startD = new Date(Date.UTC(year, monthIdx, startDay));
+    if (
+      startD.getUTCFullYear() !== year ||
+      startD.getUTCMonth() !== monthIdx ||
+      startD.getUTCDate() !== startDay
+    ) {
+      throw new Error(`Invalid calendar date: year ${year}, month ${m}, day ${startDay}`);
+    }
+    const endD = new Date(Date.UTC(year, monthIdx, endDay));
+    if (
+      endD.getUTCFullYear() !== year ||
+      endD.getUTCMonth() !== monthIdx ||
+      endD.getUTCDate() !== endDay
+    ) {
+      throw new Error(`Invalid calendar date: year ${year}, month ${m}, day ${endDay}`);
+    }
+    if (endDay < startDay) {
+      throw new Error(`Range end before start: "${rawRange}" in month ${m}`);
+    }
+
+    const mm = String(m).padStart(2, "0");
+    const sDay = String(startDay).padStart(2, "0");
+    const eDay = String(endDay).padStart(2, "0");
+
+    return {
+      startDate: `${year}-${mm}-${sDay}`,
+      endDate: `${year}-${mm}-${eDay}`,
+    };
+  }
+
+  let totalSlotsChecked = 0;
+  let newSessions = 0;
+  let skippedSessions = 0;
+  let seededTrainingCount = 0;
+  let seededExamCount = 0;
+
+  for (const monthEntry of seedCalendar2026Level2) {
+    const monthIdx = MONTH_NAMES.indexOf(monthEntry.month);
+    if (monthIdx === -1) {
+      throw new Error(`Unknown month name in seed data: "${monthEntry.month}"`);
+    }
+
+    for (const [rawCode, slot] of Object.entries(monthEntry.slots)) {
+      const code = rawCode.trim().toUpperCase();
+      const courseId = courseCodeMap.get(code);
+      if (!courseId) {
+        throw new Error(`Unknown calendar course code in seed data: "${rawCode}"`);
+      }
+
+      if (slot.training) {
+        totalSlotsChecked++;
+        const { startDate, endDate } = parseSeedRange(slot.training, DATA_YEAR, monthIdx);
+        const existing = await prisma.calendarSession.findUnique({
+          where: {
+            courseId_kind_startDate_endDate: {
+              courseId,
+              kind: "TRAINING",
+              startDate,
+              endDate,
+            },
+          },
+        });
+
+        if (!existing) {
+          await prisma.calendarSession.create({
+            data: {
+              courseId,
+              kind: "TRAINING",
+              level: "Level 2",
+              startDate,
+              endDate,
+              status: "ACTIVE",
+            },
+          });
+          newSessions++;
+          seededTrainingCount++;
+        } else {
+          skippedSessions++;
+        }
+      }
+
+      if (slot.exam) {
+        totalSlotsChecked++;
+        const { startDate, endDate } = parseSeedRange(slot.exam, DATA_YEAR, monthIdx);
+        const existing = await prisma.calendarSession.findUnique({
+          where: {
+            courseId_kind_startDate_endDate: {
+              courseId,
+              kind: "EXAM",
+              startDate,
+              endDate,
+            },
+          },
+        });
+
+        if (!existing) {
+          await prisma.calendarSession.create({
+            data: {
+              courseId,
+              kind: "EXAM",
+              level: "Level 2",
+              startDate,
+              endDate,
+              status: "ACTIVE",
+            },
+          });
+          newSessions++;
+          seededExamCount++;
+        } else {
+          skippedSessions++;
+        }
+      }
+    }
+  }
+
+  console.log(
+    `✅ Checked ${totalSlotsChecked} calendar sessions (${newSessions} created [${seededTrainingCount} training, ${seededExamCount} exam], ${skippedSessions} skipped)`,
+  );
 
   console.log("🎉 Database seed completed successfully!");
 }

@@ -68,44 +68,68 @@ model MigrationLog {
 }
 
 model Category {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  slug      String   @unique
-  name      String
-  short     String
-  order     Int      @default(0)
-  status    Status   @default(ACTIVE)
-  courses   Course[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  slug          String        @unique
+  name          String
+  short         String
+  order         Int           @default(0)
+  status        Status        @default(ACTIVE)
+  courses       Course[]
+  subcategories Subcategory[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Subcategory {
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  categoryId String        @db.ObjectId
+  category   Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  parentId   String?       @db.ObjectId
+  parent     Subcategory?  @relation("SubcategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  slug       String
+  name       String
+  order      Int           @default(0)
+  status     Status        @default(ACTIVE)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  courses    Course[]
+  children   Subcategory[] @relation("SubcategoryHierarchy")
+
+  @@unique([categoryId, slug])
+  @@index([categoryId, parentId, order])
+  @@index([parentId])
 }
 
 model Course {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  slug         String    @unique
-  title        String
-  image        String?
-  categoryId   String    @db.ObjectId
-  category     Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  level        String?
-  duration     String
-  price        String
-  summary      String
-  objective    String?
-  content      String?
-  whoShouldAttend String?
-  certification String?
+  id                String       @id @default(auto()) @map("_id") @db.ObjectId
+  slug              String       @unique
+  title             String
+  image             String?
+  categoryId        String       @db.ObjectId
+  category          Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  subcategoryId     String?      @db.ObjectId
+  subcategory       Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: Restrict)
+  level             String?
+  duration          String
+  price             String
+  summary           String
+  objective         String?
+  content           String?
+  whoShouldAttend   String?
+  certification     String?
   notesAndEquipment String?
-  classCapacity String?
-  feeDetails   String?
-  courseSupport String?
-  isFeatured   Boolean   @default(false)
-  order        Int       @default(0)
-  status       Status    @default(ACTIVE)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  classCapacity     String?
+  feeDetails        String?
+  courseSupport     String?
+  isFeatured        Boolean      @default(false)
+  order             Int          @default(0)
+  status            Status       @default(ACTIVE)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   @@index([status, order])
   @@index([categoryId])
+  @@index([subcategoryId])
 }
 
 enum LeadStatus {

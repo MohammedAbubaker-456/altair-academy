@@ -399,6 +399,11 @@ export default async function CourseDetailPage({ params }: Props) {
                   {category.short}
                 </span>
               ) : null}
+              {course.subcategory ? (
+                <span className="rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-primary shadow-sm">
+                  {course.subcategory.name}
+                </span>
+              ) : null}
               {course.level ? (
                 <span className="rounded-full bg-brand-red px-3 py-1 text-xs font-semibold text-white shadow-sm">
                   {course.level}
@@ -542,6 +547,23 @@ export default async function CourseDetailPage({ params }: Props) {
             <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
               <div className="h-1.5 bg-brand-red" />
               <div className="p-6">
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  {category ? (
+                    <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary">
+                      {category.short}
+                    </span>
+                  ) : null}
+                  {course.subcategory ? (
+                    <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary">
+                      {course.subcategory.name}
+                    </span>
+                  ) : null}
+                  {course.level ? (
+                    <span className="rounded-full bg-brand-red/10 px-2.5 py-1 text-xs font-semibold text-brand-red">
+                      {course.level}
+                    </span>
+                  ) : null}
+                </div>
                 <p className="font-display text-lg font-bold text-primary">Reserve your seat</p>
                 {showPrice && (
                   <p className="mt-1 text-2xl font-bold text-brand-red">{course.price}</p>

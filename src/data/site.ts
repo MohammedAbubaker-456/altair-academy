@@ -19,6 +19,14 @@ export type Category = {
   order?: number;
 };
 
+export type Subcategory = {
+  id?: string;
+  slug: string;
+  name: string;
+  order?: number;
+  parentId?: string | null;
+};
+
 export type Course = {
   id?: string;
   slug: string;
@@ -27,6 +35,11 @@ export type Course = {
   categoryId?: string;
   categorySlug?: string;
   category?: Category;
+  subcategoryId?: string | null;
+  subcategory?: {
+    name: string;
+    slug: string;
+  } | null;
   level?: string | null;
   duration: string;
   price: string;

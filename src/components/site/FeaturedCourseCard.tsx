@@ -49,6 +49,11 @@ export function FeaturedCourseCard({ course }: { course: Course }) {
               {categoryShort}
             </span>
           ) : null}
+          {course.subcategory ? (
+            <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary">
+              {course.subcategory.name}
+            </span>
+          ) : null}
           {course.level ? (
             <span className="rounded-full bg-brand-red/10 px-2.5 py-1 text-xs font-semibold text-brand-red">
               {course.level}

@@ -58,8 +58,8 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 > npm run db:seed
 > ```
 >
-> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`, `CalendarCourse`, `CalendarSession`), establishes indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, `@@index([status, startDate])`, `@@index([courseId])`, unique index on course code, and composite unique index on `[courseId, kind, startDate, endDate]`).
-> - `db:seed` performs safe, insert-only population: provisions calendar courses (UT, MT, PT, PAUT, TOFD, RI) and all 37 legacy Level 2 2026 intake and exam sessions without overwriting any existing administrator customizations.
+> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`, `CalendarCourse`, `CalendarSession`, and `Subcategory`), establishes indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, `@@index([status, startDate])`, `@@index([courseId])`, `@@index([subcategoryId])`, unique index on course code, composite unique index on `[courseId, kind, startDate, endDate]`, composite unique index on `[categoryId, slug]`, and `@@index([categoryId, parentId, order])`).
+> - `db:seed` performs safe, insert-only population: provisions subcategories under matching categories (e.g., NDT -> ASNT Courses, PCN Courses, Special NDT; Office Productivity -> Beginner, Intermediate), calendar courses, and sessions without overwriting any existing administrator customizations.
 
 ---
 
@@ -181,9 +181,10 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 | `/admin/applications/[id]`     | Application Detail Viewer  | Full candidate profile, status management, cover note, and **Resume Panel** with secure "View" and "Download" actions.                                                        |
 | `/admin/calendar`               | Training Calendar          | Tabbed manager: Scheduled Sessions (multi-filter, pagination, duplication) and Calendar Course Codes (order, session count guard). |
 | `/admin/calendar/sessions/new` & `/[id]` | Session Form      | Schedule intake with course select, type, native date pickers, auto-end date, live overlap warning, and "Save & Add Another". |
-| `/admin/courses`               | Course Management          | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), pagination, optimistic status toggle, preview links.                                                                |
-| `/admin/courses/new` & `/[id]` | Course Form                | Auto-slug, category selector, detailed syllabus (Objective, Content, Who Should Attend, Certification, Notes, Capacity, Fee override, Support) with Write/Preview & counters. |
-| `/admin/categories`            | Categories                 | Discipline manager, course count tracking, modal create/edit dialog, **safeguard: deletion blocked if courses assigned**.                                                     |
+| `/admin/courses`               | Course Management          | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), category and subcategory filters, pagination, optimistic status toggle, preview links.                                                                |
+| `/admin/courses/new` & `/[id]` | Course Form                | Auto-slug, category selector, dependent grouped subcategory selector, detailed syllabus (Objective, Content, Who Should Attend, Certification, Notes, Capacity, Fee override, Support) with Write/Preview & counters. |
+| `/admin/categories`            | Categories                 | Discipline manager, course and subcategory count tracking, "Subcategories" management action, modal create/edit dialog, **safeguards: deletion blocked if courses or subcategories exist**. |
+| `/admin/categories/[categoryId]/subcategories` | Subcategories | Hierarchical subcategory table (children indented under parent), course counts, order, optimistic status switch, modal create/edit dialog with parent select, **safeguards: deletion blocked if courses or children exist**. |
 | `/admin/team`                  | Team & Faculty             | Search, placement filters (`Management` / `Instructor`), optimistic status toggles.                                                                                           |
 | `/admin/team/new` & `/[id]`    | Team Member Form           | Leadership and instructor profiles, placement checkboxes, expertise tag chips, portrait photo upload.                                                                         |
 | `/admin/news`                  | News Articles              | Filter by section (`FEATURED`, `STORY`, `PICK`), status switch, public article links.                                                                                         |
@@ -472,7 +473,96 @@ To add a new month of intakes (e.g., January 2027):
 
 ---
 
-## 13. Troubleshooting
+## 13. Course Subcategories & Dynamic Hierarchy
+
+The course catalog supports a flexible 2-level subcategory hierarchy under each category, enabling multi-level navigation and filtering both in the admin dashboard and on the public site.
+
+### Subcategory Data Model & Depth Rule
+
+```prisma
+model Subcategory {
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  categoryId String        @db.ObjectId
+  category   Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  parentId   String?       @db.ObjectId
+  parent     Subcategory?  @relation("SubcategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children   Subcategory[] @relation("SubcategoryHierarchy")
+  slug       String
+  name       String
+  order      Int           @default(0)
+  status     Status        @default(ACTIVE)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  courses    Course[]
+
+  @@unique([categoryId, slug])
+  @@index([categoryId, parentId, order])
+  @@index([parentId])
+}
+```
+
+- **Maximum Depth Rule (2 Levels Below Category)**:
+  - A subcategory is either **top-level** (`parentId: null`), or a **child** of a top-level subcategory (`parentId != null`).
+  - A child subcategory **cannot have children** (enforced strictly on the server in create and update actions).
+  - The parent subcategory must belong to the **same category** as the child (`parentId.categoryId === categoryId`).
+  - Slugs are unique per category (`@@unique([categoryId, slug])`).
+  - Moving a subcategory to another category is disallowed; administrators should create a new one instead.
+
+### Admin Subcategory Management (`/admin/categories/[categoryId]/subcategories`)
+
+- Accessible via the **Subcategories (count)** button on each category row in `/admin/categories`.
+- Displays a hierarchical table where child subcategories are visually indented under their parent with a `CornerDownRight` icon.
+- **Add / Edit Modal Dialog**:
+  - `Name`: 2 to 100 characters.
+  - `Slug`: Auto-generated from name with hyphenation, editable, unique per category. Duplicate slugs return immediate inline field errors.
+  - `Parent`: Select either "None (Top-level subcategory)" or any existing top-level subcategory of this category. Hidden when editing a subcategory that already has children to maintain the depth rule.
+  - `Order`: Integer from 0 to 9999 for deterministic display ordering.
+  - `Status`: `ACTIVE` or `INACTIVE`. Inactivating a subcategory hides it and its children from public menus and filter pills without hiding assigned courses.
+- **Strict Delete Safeguards**:
+  - Deleting a subcategory with assigned courses is blocked: `"Cannot delete subcategory: N course(s) are assigned to it. Reassign or delete those courses first."`
+  - Deleting a parent subcategory with children is blocked: `"Cannot delete subcategory: has child subcategories. Delete or reassign child subcategories first."`
+  - Deleting a category with subcategories is blocked: `"Cannot delete category: has N subcategory/subcategories. Delete them first."`
+
+### Course Form Subcategory Dropdown (`/admin/courses/new` & `/[id]`)
+
+- Placed directly beneath the **Category** dropdown in the "Core information" section, sharing the same Radix/shadcn `Select` component and design tokens.
+- **Dynamic Grouping & Filtering**:
+  - Subcategories are loaded once and filtered client-side by the selected category.
+  - Top-level subcategories with children are presented as option groups (`SelectGroup` + `SelectLabel` with the parent name). The parent is selectable as `<Parent> (general)` followed by its indented children.
+  - Subcategories without children are rendered as plain options.
+  - The first option is `None`, which clears the subcategory selection (`subcategoryId: null`).
+  - If a category has no subcategories, the dropdown is disabled with the placeholder `"No subcategories for this category"`.
+  - Changing the Category automatically resets the selected Subcategory to `None`.
+  - Inactive subcategories are excluded from the dropdown, except when editing a course already assigned to an inactive subcategory (labeled with `(inactive)`).
+- **Server-Side Validation**:
+  - `createCourseAction` and `updateCourseAction` verify that the provided `subcategoryId` exists and belongs to the selected `categoryId`. Forged or mismatched requests are rejected with a field error.
+
+### Public Course Filtering & Multi-Row Pills (`/courses`)
+
+- The course catalog supports URL query parameters: `/courses?category=<categorySlug>&subcategory=<subcategorySlug>`.
+- **Hierarchical Pill Navigation**:
+  - **Row 1 (Categories)**: All active categories (with "All Courses" reset pill).
+  - **Row 2 (Top-level Subcategories)**: Displayed when the selected category has active subcategories. Features an `All <Category Name>` pill followed by top-level subcategory pills.
+  - **Row 3 (Child Subcategories)**: Displayed when the selected top-level subcategory has children. Features an `All <Parent Name>` pill followed by child subcategory pills.
+- **Filter Resolution**:
+  - Filtering by a **top-level subcategory** returns courses assigned directly to that subcategory **and** courses assigned to any of its children.
+  - Filtering by a **child subcategory** returns only courses assigned to that specific child.
+  - Invalid, unknown, or mismatched subcategories gracefully fall back to displaying the category's courses without an error page.
+- **Course Cards & Details**:
+  - `CourseCard` and `FeaturedCourseCard` display the subcategory name as a chip alongside the category badge.
+  - The course detail page (`/courses/[slug]`) displays the subcategory chip in the hero badges and the sidebar summary.
+  - Course search (`/search?q=...`) matches both course titles/descriptions and subcategory names.
+
+### Database-Driven Header Navigation Menu
+
+- The static `src/data/menu.ts` has been removed. The "Our Courses" navigation flyout is now populated dynamically from MongoDB via `getHeaderMenu()` in `src/server/queries/menu.ts`.
+- `Header.tsx` is an async Server Component that queries active categories and active 2-level subcategories, passing the navigation tree to `HeaderClient.tsx`.
+- The client implementation preserves exact hover flyouts, mobile hamburger navigation, keyboard accessibility, search dialog, and design tokens.
+- The footer (`Footer.tsx`) queries active categories dynamically from `getActiveCategories()`.
+
+---
+
+## 14. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 

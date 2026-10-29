@@ -100,8 +100,10 @@ altair-academy/
 │   │       ├── upload-actions.ts    # Server action for local disk image uploads
 │   │       ├── login/               # Authentication portal (rate-limited, timing equalization)
 │   │       ├── calendar/actions.ts  # Calendar server actions (CRUD for sessions & courses + overlap & delete safeguards)
-│   │       ├── categories/actions.ts# Category server actions (CRUD + delete blocking)
-│   │       ├── courses/actions.ts   # Course server actions (CRUD + syllabus fields + image cleanup)
+│   │       ├── categories/
+│   │       │   ├── actions.ts       # Category server actions (CRUD + delete blocking on courses & subcategories)
+│   │       │   └── subcategory-actions.ts # Subcategory server actions (CRUD + 2-level depth guard + course delete guard)
+│   │       ├── courses/actions.ts   # Course server actions (CRUD + syllabus fields + subcategory validation + image cleanup)
 │   │       ├── team/actions.ts      # Team & faculty server actions (CRUD + image cleanup)
 │   │       ├── news/actions.ts      # News post server actions (CRUD + body persistence + image cleanup)
 │   │       ├── faqs/actions.ts      # FAQ server actions (CRUD)
@@ -124,7 +126,8 @@ altair-academy/
 │   │           ├── applications/    # /admin/applications candidate table & /[id] resume viewer
 │   │           ├── subscribers/     # /admin/subscribers management table, summary cards & CSV export menu
 │   │           ├── categories/      # /admin/categories management dialogs & table
-│   │           ├── courses/         # /admin/courses list, /new, and /[id] forms (detailed syllabus)
+│   │           │   └── [categoryId]/subcategories/ # Hierarchical subcategory table & dialog manager
+│   │           ├── courses/         # /admin/courses list (with category & subcategory filters), /new, and /[id] forms
 │   │           ├── team/            # /admin/team list, /new, and /[id] forms
 │   │           ├── news/            # /admin/news list, /new, and /[id] forms (Markdown body & live preview)
 │   │           ├── faqs/            # /admin/faqs list & modal dialogs
@@ -142,8 +145,9 @@ altair-academy/
 │   │   │   ├── ImageUpload.tsx      # File uploader, preview, replace, and remove (no URL pasting)
 │   │   │   └── StatusSwitch.tsx     # Optimistic toggle switch for ACTIVE/INACTIVE statuses
 │   │   ├── site/                    # Public website components
-│   │   │   ├── Header.tsx           # Main navigation header
-│   │   │   ├── Footer.tsx           # Async Server Component querying dynamic contact & legal links + FloatingWhatsApp
+│   │   │   ├── Header.tsx           # Async Server Component querying dynamic 2-level course menu from MongoDB
+│   │   │   ├── HeaderClient.tsx     # Client Component with dropdown flyouts, search modal, and mobile menu
+│   │   │   ├── Footer.tsx           # Async Server Component querying dynamic categories, contact & legal links + FloatingWhatsApp
 │   │   │   ├── FloatingWhatsApp.tsx # Fixed bottom-right WhatsApp quick-access button
 │   │   │   ├── ContactForm.tsx      # Client Component contact form with popup-safe WhatsApp redirect
 │   │   │   ├── MarkdownContent.tsx  # Safe Markdown renderer & admin MarkdownPreview (react-markdown)
@@ -169,7 +173,9 @@ altair-academy/
 │   │   │   └── password.ts          # Bcrypt password hashing (cost factor 12) & timing equalization
 │   │   └── validation/              # Shared Zod validation schemas
 │   │       ├── calendar.ts          # Calendar course & session schema with real date & span validation
-│   │       ├── course.ts            # Course schema with 8 new syllabus & fee override fields
+│   │       ├── category.ts          # Category validation schema
+│   │       ├── subcategory.ts       # Subcategory validation schema (name, slug, parent, order, status)
+│   │       ├── course.ts            # Course schema with subcategoryId, syllabus & fee override fields
 │   │       ├── lead.ts              # Contact lead validation schema (phone sanitization & honeypot)
 │   │       ├── application.ts       # Careers application schema (phone, specialisation, resume validation)
 │   │       ├── team.ts
@@ -194,8 +200,9 @@ altair-academy/
 │       │
 │       ├── queries/                 # Public read-only queries strictly enforcing status: "ACTIVE"
 │       │   ├── calendar.ts          # getActiveCalendarSessions (DTOs) & getActiveCalendarCourses
-│       │   ├── courses.ts
-│       │   ├── categories.ts
+│       │   ├── courses.ts           # Course queries with subcategory filtering (parent + children) & search
+│       │   ├── categories.ts        # getActiveCategories & getCategoryTree (active 2-level hierarchy)
+│       │   ├── menu.ts              # getHeaderMenu (database-driven 2-level navigation tree DTO)
 │       │   ├── team.ts
 │       │   ├── news.ts              # News queries + getNewsPostBySlug & getLatestNewsExcluding
 │       │   ├── faqs.ts

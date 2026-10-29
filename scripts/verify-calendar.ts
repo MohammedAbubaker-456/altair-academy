@@ -151,9 +151,9 @@ async function main() {
   });
   assert(!shortCourse.success, "calendarCourseSchema rejects course code shorter than 2 chars");
 
-  // Session Schema
+  const firstCourseId = activeCourses[0]!.id;
   const validSession = calendarSessionSchema.safeParse({
-    courseId: activeCourses[0].id,
+    courseId: firstCourseId,
     kind: "TRAINING",
     level: "Level 2",
     startDate: "2026-06-15",
@@ -163,7 +163,7 @@ async function main() {
   assert(validSession.success, "calendarSessionSchema accepts valid session span (5 days)");
 
   const invalidDate = calendarSessionSchema.safeParse({
-    courseId: activeCourses[0].id,
+    courseId: firstCourseId,
     kind: "TRAINING",
     startDate: "2026-02-30",
     endDate: "2026-03-02",
@@ -172,7 +172,7 @@ async function main() {
   assert(!invalidDate.success, "calendarSessionSchema rejects nonexistent date 2026-02-30");
 
   const endBeforeStart = calendarSessionSchema.safeParse({
-    courseId: activeCourses[0].id,
+    courseId: firstCourseId,
     kind: "TRAINING",
     startDate: "2026-06-20",
     endDate: "2026-06-15",
@@ -181,7 +181,7 @@ async function main() {
   assert(!endBeforeStart.success, "calendarSessionSchema rejects endDate before startDate");
 
   const spanTooLong = calendarSessionSchema.safeParse({
-    courseId: activeCourses[0].id,
+    courseId: firstCourseId,
     kind: "TRAINING",
     startDate: "2026-06-01",
     endDate: "2026-07-15",
@@ -190,7 +190,7 @@ async function main() {
   assert(!spanTooLong.success, "calendarSessionSchema rejects session span > 31 days");
 
   const crossMonthValid = calendarSessionSchema.safeParse({
-    courseId: activeCourses[0].id,
+    courseId: firstCourseId,
     kind: "TRAINING",
     startDate: "2026-01-28",
     endDate: "2026-02-02",
@@ -338,7 +338,7 @@ async function main() {
     // Authenticated admin access
     const admin = await db.adminUser.findFirst();
     if (!admin) throw new Error("No admin user found");
-    const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
+    const secret = new TextEncoder().encode(process.env["AUTH_SECRET"]!);
     const token = await new SignJWT({ adminId: admin.id, email: admin.email, name: admin.name })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()

@@ -124,7 +124,7 @@ export default async function CoursesPage({ searchParams }: Props) {
                   : "border-border text-primary hover:border-brand-red hover:text-brand-red",
               )}
             >
-              All {selectedCategory.name}
+              {`All ${selectedCategory.name}`}
             </Link>
             {topLevelSubcategories.map((sub) => {
               const isActive = activeTopSub?.slug === sub.slug;
@@ -161,7 +161,7 @@ export default async function CoursesPage({ searchParams }: Props) {
                     : "border-border text-primary hover:border-brand-red hover:text-brand-red",
                 )}
               >
-                All {activeTopSub.name}
+                {`All ${activeTopSub.name}`}
               </Link>
               {activeTopSub.children.map((child) => {
                 const isChildActive = activeChildSub?.slug === child.slug;

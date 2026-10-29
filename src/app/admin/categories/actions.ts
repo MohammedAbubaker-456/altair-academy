@@ -143,6 +143,18 @@ export async function deleteCategoryAction(id: string): Promise<CategoryActionRe
     };
   }
 
+  // Check if any subcategories belong to this category
+  const subcategoryCount = await db.subcategory.count({
+    where: { categoryId: id },
+  });
+
+  if (subcategoryCount > 0) {
+    return {
+      ok: false,
+      message: `Cannot delete category because ${subcategoryCount} subcategor(ies) are currently assigned to it. Please delete those subcategories first.`,
+    };
+  }
+
   try {
     await db.category.delete({
       where: { id },

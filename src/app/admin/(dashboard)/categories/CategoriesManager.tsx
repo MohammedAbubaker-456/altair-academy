@@ -56,7 +56,7 @@ interface CategoryWithCount {
   short: string;
   order: number;
   status: "ACTIVE" | "INACTIVE";
-  _count: { courses: number };
+  _count: { courses: number; subcategories?: number };
 }
 
 interface CategoriesManagerProps {
@@ -186,6 +186,7 @@ export function CategoriesManager({ categories }: CategoriesManagerProps) {
               <TableHead>Name</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead className="text-center">Subcategories</TableHead>
               <TableHead className="text-center">Courses</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -194,7 +195,7 @@ export function CategoriesManager({ categories }: CategoriesManagerProps) {
           <TableBody>
             {categories.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <FolderTree className="h-8 w-8 text-muted-foreground/60" />
                     <p>No categories found. Create your first category above.</p>
@@ -211,6 +212,22 @@ export function CategoriesManager({ categories }: CategoriesManagerProps) {
                   </TableCell>
                   <TableCell className="max-w-xs truncate text-xs text-muted-foreground">
                     {category.short}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      className="h-7 gap-1.5 px-2.5 text-xs font-normal"
+                    >
+                      <Link href={`/admin/categories/${category.id}/subcategories`}>
+                        <FolderTree className="h-3.5 w-3.5 text-navy" />
+                        <span>Subcategories</span>
+                        <span className="ml-0.5 rounded-full bg-navy/10 px-1.5 py-0.2 text-[10px] font-semibold text-navy">
+                          {category._count.subcategories ?? 0}
+                        </span>
+                      </Link>
+                    </Button>
                   </TableCell>
                   <TableCell className="text-center">
                     <span className="inline-flex items-center justify-center rounded-full bg-navy/10 px-2 py-0.5 text-xs font-semibold text-navy">
@@ -254,8 +271,8 @@ export function CategoriesManager({ categories }: CategoriesManagerProps) {
                     <DeleteDialog
                       title={`Delete "${category.name}"?`}
                       description={
-                        category._count.courses > 0
-                          ? `This category cannot be deleted because it still contains ${category._count.courses} course(s).`
+                        category._count.courses > 0 || (category._count.subcategories ?? 0) > 0
+                          ? `This category cannot be deleted because it still contains ${category._count.courses} course(s) and ${category._count.subcategories ?? 0} subcategory/subcategories.`
                           : "Are you sure you want to delete this category? This action cannot be undone."
                       }
                       trigger={

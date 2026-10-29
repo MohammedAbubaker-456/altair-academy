@@ -19,7 +19,7 @@ export async function getAllCategoriesAdmin() {
     orderBy: { order: "asc" },
     include: {
       _count: {
-        select: { courses: true },
+        select: { courses: true, subcategories: true },
       },
     },
   });
@@ -34,8 +34,39 @@ export async function getCategoryByIdAdmin(id: string) {
     where: { id },
     include: {
       _count: {
-        select: { courses: true },
+        select: { courses: true, subcategories: true },
       },
     },
   });
+}
+
+export async function getSubcategoriesByCategoryAdmin(categoryId: string) {
+  await requireAdmin();
+
+  if (!isValidObjectId(categoryId)) return null;
+
+  const category = await db.category.findUnique({
+    where: { id: categoryId },
+    select: { id: true, name: true, slug: true, status: true },
+  });
+
+  if (!category) return null;
+
+  const subcategories = await db.subcategory.findMany({
+    where: { categoryId },
+    orderBy: { order: "asc" },
+    include: {
+      parent: {
+        select: { id: true, name: true },
+      },
+      _count: {
+        select: { courses: true, children: true },
+      },
+    },
+  });
+
+  return {
+    category,
+    subcategories,
+  };
 }

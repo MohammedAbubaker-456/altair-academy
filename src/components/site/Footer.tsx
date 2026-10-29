@@ -22,10 +22,10 @@ import {
   Twitter,
   Youtube,
 } from "lucide-react";
-import { courseMenu } from "@/data/menu";
-import logo from "@/assets/altair-academy-logo.png";
 import { getContactDetails } from "@/server/queries/contact";
 import { getFooterLegalLinks } from "@/server/queries/legal";
+import { getActiveCategories } from "@/server/queries/categories";
+import logo from "@/assets/altair-academy-logo.png";
 import { FloatingWhatsApp } from "@/components/site/FloatingWhatsApp";
 import { NewsletterForm } from "@/components/site/NewsletterForm";
 
@@ -47,9 +47,10 @@ function getSocialIcon(label: string | null) {
 }
 
 export async function Footer() {
-  const [contactDetails, legalLinks] = await Promise.all([
+  const [contactDetails, legalLinks, categories] = await Promise.all([
     getContactDetails(),
     getFooterLegalLinks(),
+    getActiveCategories(),
   ]);
 
   // Build social icons list: active SOCIAL entries + WHATSAPP entry if available
@@ -179,13 +180,13 @@ export async function Footer() {
               Course areas
             </h3>
             <ul className="mt-4 space-y-2 text-sm text-primary-foreground/75">
-              {courseMenu.slice(0, 6).map((item) => (
-                <li key={item.category}>
+              {categories.slice(0, 6).map((cat) => (
+                <li key={cat.id}>
                   <Link
-                    href={`/courses?category=${encodeURIComponent(item.category)}`}
+                    href={`/courses?category=${encodeURIComponent(cat.slug)}`}
                     className="hover:text-primary-foreground"
                   >
-                    {item.name}
+                    {cat.name}
                   </Link>
                 </li>
               ))}

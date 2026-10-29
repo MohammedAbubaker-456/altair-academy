@@ -9,8 +9,6 @@
  * Type: Static Data Module
  */
 
-export { courseMenu, type CourseMenuItem } from "./menu";
-
 export type Category = {
   id?: string;
   slug: string;

@@ -24,7 +24,7 @@ export interface SubcategoryDTO {
   name: string;
   order: number;
   parentId: string | null;
-  children?: SubcategoryDTO[];
+  children?: SubcategoryDTO[] | undefined;
 }
 
 export interface CategoryTreeDTO {
@@ -84,7 +84,7 @@ export async function getCategoryTree(): Promise<CategoryTreeDTO[]> {
         name: top.name,
         order: top.order,
         parentId: null,
-        children: children.length > 0 ? children : undefined,
+        ...(children.length > 0 ? { children } : {}),
       };
     });
 

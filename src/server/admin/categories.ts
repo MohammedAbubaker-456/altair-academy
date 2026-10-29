@@ -70,3 +70,20 @@ export async function getSubcategoriesByCategoryAdmin(categoryId: string) {
     subcategories,
   };
 }
+
+export async function getAllSubcategoriesAdmin() {
+  await requireAdmin();
+
+  return db.subcategory.findMany({
+    orderBy: { order: "asc" },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      categoryId: true,
+      parentId: true,
+      status: true,
+      order: true,
+    },
+  });
+}

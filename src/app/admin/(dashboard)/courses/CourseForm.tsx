@@ -29,7 +29,9 @@ import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -44,11 +46,22 @@ interface CategoryOption {
   name: string;
 }
 
+export interface SubcategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+  categoryId: string;
+  parentId: string | null;
+  status: "ACTIVE" | "INACTIVE";
+  order: number;
+}
+
 interface CourseInitialData {
   id: string;
   title: string;
   slug: string;
   categoryId: string;
+  subcategoryId?: string | null;
   level: string | null;
   duration: string;
   price: string;
@@ -70,6 +83,7 @@ interface CourseInitialData {
 interface CourseFormProps {
   initialData?: CourseInitialData | null;
   categories: CategoryOption[];
+  subcategories?: SubcategoryOption[];
 }
 
 function MarkdownFormField({
@@ -202,7 +216,11 @@ function PlainTextFormField({
   );
 }
 
-export function CourseForm({ initialData, categories }: CourseFormProps) {
+export function CourseForm({
+  initialData,
+  categories,
+  subcategories = [],
+}: CourseFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -211,6 +229,7 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CourseInput>({
     resolver: zodResolver(courseSchema),
@@ -218,6 +237,7 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
       title: initialData?.title ?? "",
       slug: initialData?.slug ?? "",
       categoryId: initialData?.categoryId ?? (categories[0]?.id || ""),
+      subcategoryId: initialData?.subcategoryId ?? null,
       level: initialData?.level ?? null,
       duration: initialData?.duration ?? "",
       price: initialData?.price ?? "",
@@ -236,6 +256,56 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
       status: initialData?.status ?? "ACTIVE",
     },
   });
+
+  const selectedCategoryId = watch("categoryId");
+  const prevCategoryRef = React.useRef(selectedCategoryId);
+
+  // When category changes, reset subcategory
+  React.useEffect(() => {
+    if (prevCategoryRef.current !== selectedCategoryId) {
+      prevCategoryRef.current = selectedCategoryId;
+      setValue("subcategoryId", null, { shouldValidate: true });
+    }
+  }, [selectedCategoryId, setValue]);
+
+  // Subcategories available for selected category
+  const availableSubcategories = React.useMemo(() => {
+    if (!selectedCategoryId) return [];
+    return subcategories.filter(
+      (s) =>
+        s.categoryId === selectedCategoryId &&
+        (s.status === "ACTIVE" || s.id === initialData?.subcategoryId),
+    );
+  }, [subcategories, selectedCategoryId, initialData?.subcategoryId]);
+
+  const hasNoSubcategories = availableSubcategories.length === 0;
+
+  // Separate top-level subcategories with children from standalone subcategories
+  const { groupedSubcategories, standaloneSubcategories } = React.useMemo(() => {
+    const topLevels = availableSubcategories.filter((s) => !s.parentId);
+    const children = availableSubcategories.filter((s) => s.parentId !== null);
+
+    const grouped: Array<{
+      parent: SubcategoryOption;
+      children: SubcategoryOption[];
+    }> = [];
+
+    const standalone: SubcategoryOption[] = [];
+
+    topLevels.forEach((top) => {
+      const topChildren = children.filter((c) => c.parentId === top.id);
+      if (topChildren.length > 0) {
+        grouped.push({
+          parent: top,
+          children: topChildren,
+        });
+      } else {
+        standalone.push(top);
+      }
+    });
+
+    return { groupedSubcategories: grouped, standaloneSubcategories: standalone };
+  }, [availableSubcategories]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue("title", e.target.value, { shouldValidate: true });
@@ -307,39 +377,100 @@ export function CourseForm({ initialData, categories }: CourseFormProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="course-slug">URL Slug</Label>
-                <Input
-                  id="course-slug"
-                  placeholder="e.g. visual-testing-vt-level-1-2"
-                  {...register("slug")}
-                />
-                {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="course-slug">URL Slug</Label>
+                  <Input
+                    id="course-slug"
+                    placeholder="e.g. visual-testing-vt-level-1-2"
+                    {...register("slug")}
+                  />
+                  {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="course-category">Category</Label>
-                <Controller
-                  name="categoryId"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="course-category">
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="course-category">Category</Label>
+                  <Controller
+                    name="categoryId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger id="course-category">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.categoryId && (
+                    <p className="text-xs text-destructive">{errors.categoryId.message}</p>
                   )}
-                />
-                {errors.categoryId && (
-                  <p className="text-xs text-destructive">{errors.categoryId.message}</p>
-                )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="course-subcategory">Subcategory</Label>
+                  <Controller
+                    name="subcategoryId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value ?? "none"}
+                        onValueChange={(val) => field.onChange(val === "none" ? null : val)}
+                        disabled={hasNoSubcategories}
+                      >
+                        <SelectTrigger id="course-subcategory">
+                          <SelectValue
+                            placeholder={
+                              hasNoSubcategories
+                                ? "No subcategories for this category"
+                                : "Select a subcategory (optional)"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {standaloneSubcategories.map((sub) => (
+                            <SelectItem key={sub.id} value={sub.id}>
+                              {sub.name}
+                              {sub.status === "INACTIVE" ? " (inactive)" : ""}
+                            </SelectItem>
+                          ))}
+                          {groupedSubcategories.map((group) => (
+                            <SelectGroup key={group.parent.id}>
+                              <SelectLabel>{group.parent.name}</SelectLabel>
+                              <SelectItem value={group.parent.id}>
+                                {group.parent.name} (general)
+                                {group.parent.status === "INACTIVE" ? " (inactive)" : ""}
+                              </SelectItem>
+                              {group.children.map((child) => (
+                                <SelectItem key={child.id} value={child.id}>
+                                  {child.name}
+                                  {child.status === "INACTIVE" ? " (inactive)" : ""}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {hasNoSubcategories && (
+                    <p className="text-xs text-muted-foreground">
+                      No subcategories for this category
+                    </p>
+                  )}
+                  {errors.subcategoryId && (
+                    <p className="text-xs text-destructive">{errors.subcategoryId.message}</p>
+                  )}
+                </div>
               </div>
             </div>
 

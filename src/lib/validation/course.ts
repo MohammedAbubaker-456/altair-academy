@@ -30,6 +30,12 @@ export const courseSchema = z.object({
     .string()
     .trim()
     .refine((val) => isValidObjectId(val), "Please select a valid category"),
+  subcategoryId: z
+    .string()
+    .trim()
+    .nullable()
+    .optional()
+    .refine((val) => !val || isValidObjectId(val), "Please select a valid subcategory"),
   level: z.string().trim().max(50).nullable(),
   duration: z
     .string()

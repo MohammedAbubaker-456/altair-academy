@@ -45,6 +45,7 @@ export async function createCourseAction(input: unknown): Promise<CourseActionRe
     title,
     slug,
     categoryId,
+    subcategoryId,
     level,
     duration,
     price,
@@ -75,12 +76,48 @@ export async function createCourseAction(input: unknown): Promise<CourseActionRe
     };
   }
 
+  // Verify subcategory relation if provided
+  const cleanSubcategoryId =
+    subcategoryId && subcategoryId.trim() ? subcategoryId.trim() : null;
+  if (cleanSubcategoryId) {
+    if (!isValidObjectId(cleanSubcategoryId)) {
+      return {
+        ok: false,
+        message: "Invalid subcategory selected",
+        fieldErrors: { subcategoryId: ["Invalid subcategory ID"] },
+      };
+    }
+
+    const subcategory = await db.subcategory.findUnique({
+      where: { id: cleanSubcategoryId },
+    });
+
+    if (!subcategory) {
+      return {
+        ok: false,
+        message: "Selected subcategory does not exist",
+        fieldErrors: { subcategoryId: ["Selected subcategory does not exist"] },
+      };
+    }
+
+    if (subcategory.categoryId !== categoryId) {
+      return {
+        ok: false,
+        message: "Selected subcategory does not belong to the selected category",
+        fieldErrors: {
+          subcategoryId: ["Subcategory does not belong to the selected category"],
+        },
+      };
+    }
+  }
+
   try {
     const course = await db.course.create({
       data: {
         title,
         slug,
         categoryId,
+        subcategoryId: cleanSubcategoryId,
         level: toNullableString(level),
         duration,
         price,
@@ -141,6 +178,7 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
     title,
     slug,
     categoryId,
+    subcategoryId,
     level,
     duration,
     price,
@@ -159,6 +197,56 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
     status,
   } = parseResult.data;
 
+  // Verify category exists
+  const categoryExists = await db.category.findUnique({
+    where: { id: categoryId },
+  });
+  if (!categoryExists) {
+    return {
+      ok: false,
+      message: "Selected category does not exist",
+      fieldErrors: { categoryId: ["Invalid category selected"] },
+    };
+  }
+
+  // Verify subcategory relation if provided. If category changed and no subcategory provided, nullify.
+  let cleanSubcategoryId =
+    subcategoryId && subcategoryId.trim() ? subcategoryId.trim() : null;
+
+  if (cleanSubcategoryId) {
+    if (!isValidObjectId(cleanSubcategoryId)) {
+      return {
+        ok: false,
+        message: "Invalid subcategory selected",
+        fieldErrors: { subcategoryId: ["Invalid subcategory ID"] },
+      };
+    }
+
+    const subcategory = await db.subcategory.findUnique({
+      where: { id: cleanSubcategoryId },
+    });
+
+    if (!subcategory) {
+      return {
+        ok: false,
+        message: "Selected subcategory does not exist",
+        fieldErrors: { subcategoryId: ["Selected subcategory does not exist"] },
+      };
+    }
+
+    if (subcategory.categoryId !== categoryId) {
+      return {
+        ok: false,
+        message: "Selected subcategory does not belong to the selected category",
+        fieldErrors: {
+          subcategoryId: ["Subcategory does not belong to the selected category"],
+        },
+      };
+    }
+  } else if (existingCourse.categoryId !== categoryId) {
+    cleanSubcategoryId = null;
+  }
+
   try {
     await db.course.update({
       where: { id },
@@ -166,6 +254,7 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
         title,
         slug,
         categoryId,
+        subcategoryId: cleanSubcategoryId,
         level: toNullableString(level),
         duration,
         price,

@@ -63,6 +63,11 @@ interface CourseRow {
     name: string;
     slug: string;
   };
+  subcategory: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
 }
 
 interface CoursesTableProps {
@@ -71,21 +76,52 @@ interface CoursesTableProps {
   page: number;
   pageSize: number;
   totalPages: number;
+  categories?: Array<{ id: string; name: string }>;
+  subcategories?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    categoryId: string;
+    parentId: string | null;
+  }>;
 }
 
-export function CoursesTable({ items, total, page, totalPages }: CoursesTableProps) {
+export function CoursesTable({
+  items,
+  total,
+  page,
+  totalPages,
+  categories = [],
+  subcategories = [],
+}: CoursesTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const currentQ = searchParams.get("q") ?? "";
   const currentStatus = searchParams.get("status") ?? "ALL";
+  const currentCategoryId = searchParams.get("categoryId") ?? "ALL";
+  const currentSubcategoryId = searchParams.get("subcategoryId") ?? "ALL";
 
   const [searchTerm, setSearchTerm] = React.useState(currentQ);
 
-  const applyFilters = (newQ: string, newStatus: string, newPage = 1) => {
+  // Available subcategories for the selected category filter
+  const categorySubcategories = React.useMemo(() => {
+    if (!currentCategoryId || currentCategoryId === "ALL") return [];
+    return subcategories.filter((s) => s.categoryId === currentCategoryId);
+  }, [subcategories, currentCategoryId]);
+
+  const applyFilters = (
+    newQ: string,
+    newStatus: string,
+    newCat: string,
+    newSub: string,
+    newPage = 1,
+  ) => {
     const params = new URLSearchParams();
     if (newQ.trim()) params.set("q", newQ.trim());
     if (newStatus && newStatus !== "ALL") params.set("status", newStatus);
+    if (newCat && newCat !== "ALL") params.set("categoryId", newCat);
+    if (newSub && newSub !== "ALL") params.set("subcategoryId", newSub);
     if (newPage > 1) params.set("page", newPage.toString());
 
     const qs = params.toString();
@@ -94,11 +130,20 @@ export function CoursesTable({ items, total, page, totalPages }: CoursesTablePro
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    applyFilters(searchTerm, currentStatus, 1);
+    applyFilters(searchTerm, currentStatus, currentCategoryId, currentSubcategoryId, 1);
   };
 
   const handleStatusChange = (val: string) => {
-    applyFilters(searchTerm, val, 1);
+    applyFilters(searchTerm, val, currentCategoryId, currentSubcategoryId, 1);
+  };
+
+  const handleCategoryChange = (val: string) => {
+    // Reset subcategory filter when category filter changes
+    applyFilters(searchTerm, currentStatus, val, "ALL", 1);
+  };
+
+  const handleSubcategoryChange = (val: string) => {
+    applyFilters(searchTerm, currentStatus, currentCategoryId, val, 1);
   };
 
   const handleDelete = async (id: string) => {
@@ -133,27 +178,77 @@ export function CoursesTable({ items, total, page, totalPages }: CoursesTablePro
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <form onSubmit={handleSearchSubmit} className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by title, summary, or slug..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-card"
-          />
-        </form>
-        <div className="w-full sm:w-44">
-          <Select value={currentStatus} onValueChange={handleStatusChange}>
-            <SelectTrigger className="bg-card">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              <SelectItem value="ACTIVE">Active Only</SelectItem>
-              <SelectItem value="INACTIVE">Inactive Only</SelectItem>
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <form onSubmit={handleSearchSubmit} className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by title, summary, or slug..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 bg-card"
+            />
+          </form>
+
+          {/* Status Filter */}
+          <div className="w-full sm:w-40">
+            <Select value={currentStatus} onValueChange={handleStatusChange}>
+              <SelectTrigger className="bg-card">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="ACTIVE">Active Only</SelectItem>
+                <SelectItem value="INACTIVE">Inactive Only</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Category Filter */}
+          <div className="w-full sm:w-48">
+            <Select value={currentCategoryId} onValueChange={handleCategoryChange}>
+              <SelectTrigger className="bg-card">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Categories</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Subcategory Filter (Depends on chosen Category) */}
+          <div className="w-full sm:w-48">
+            <Select
+              value={currentSubcategoryId}
+              onValueChange={handleSubcategoryChange}
+              disabled={currentCategoryId === "ALL" || categorySubcategories.length === 0}
+            >
+              <SelectTrigger className="bg-card">
+                <SelectValue
+                  placeholder={
+                    currentCategoryId === "ALL"
+                      ? "Select category"
+                      : categorySubcategories.length === 0
+                        ? "No subcategories"
+                        : "All Subcategories"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Subcategories</SelectItem>
+                {categorySubcategories.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -165,6 +260,7 @@ export function CoursesTable({ items, total, page, totalPages }: CoursesTablePro
               <TableHead className="w-14">Order</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>Subcategory</TableHead>
               <TableHead>Level / Duration</TableHead>
               <TableHead className="text-center">Featured</TableHead>
               <TableHead>Status</TableHead>
@@ -174,7 +270,7 @@ export function CoursesTable({ items, total, page, totalPages }: CoursesTablePro
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <GraduationCap className="h-8 w-8 text-muted-foreground/60" />
                     <p>No courses matched your filters.</p>
@@ -197,6 +293,15 @@ export function CoursesTable({ items, total, page, totalPages }: CoursesTablePro
                     <Badge variant="outline" className="font-normal text-xs">
                       {course.category.name}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {course.subcategory ? (
+                      <Badge variant="secondary" className="font-normal text-xs">
+                        {course.subcategory.name}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground/60 text-xs">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     <div>{course.level || "—"}</div>

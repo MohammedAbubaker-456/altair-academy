@@ -8,7 +8,7 @@
  */
 
 import type { Metadata } from "next";
-import { getAllCategoriesAdmin } from "@/server/admin/categories";
+import { getAllCategoriesAdmin, getAllSubcategoriesAdmin } from "@/server/admin/categories";
 import { CourseForm } from "../CourseForm";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,15 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminNewCoursePage() {
-  const categories = await getAllCategoriesAdmin();
+  const [categories, subcategories] = await Promise.all([
+    getAllCategoriesAdmin(),
+    getAllSubcategoriesAdmin(),
+  ]);
 
-  return <CourseForm categories={categories.map((c) => ({ id: c.id, name: c.name }))} />;
+  return (
+    <CourseForm
+      categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+      subcategories={subcategories}
+    />
+  );
 }

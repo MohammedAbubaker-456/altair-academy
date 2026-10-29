@@ -17,6 +17,8 @@ import type { Prisma } from "@prisma/client";
 export interface CoursesAdminParams {
   q?: string | undefined;
   status?: "ACTIVE" | "INACTIVE" | "ALL" | undefined;
+  categoryId?: string | undefined;
+  subcategoryId?: string | undefined;
   page?: number | undefined;
   pageSize?: number | undefined;
 }
@@ -43,6 +45,29 @@ export async function getCoursesAdmin(params: CoursesAdminParams = {}) {
     where.status = params.status;
   }
 
+  if (params.categoryId && params.categoryId !== "ALL" && isValidObjectId(params.categoryId)) {
+    where.categoryId = params.categoryId;
+  }
+
+  if (
+    params.subcategoryId &&
+    params.subcategoryId !== "ALL" &&
+    isValidObjectId(params.subcategoryId)
+  ) {
+    const sub = await db.subcategory.findUnique({
+      where: { id: params.subcategoryId },
+      include: { children: { select: { id: true } } },
+    });
+
+    if (sub) {
+      if (sub.children.length > 0) {
+        where.subcategoryId = { in: [sub.id, ...sub.children.map((c) => c.id)] };
+      } else {
+        where.subcategoryId = sub.id;
+      }
+    }
+  }
+
   const [total, items] = await Promise.all([
     db.course.count({ where }),
     db.course.findMany({
@@ -52,6 +77,13 @@ export async function getCoursesAdmin(params: CoursesAdminParams = {}) {
       take: pageSize,
       include: {
         category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        subcategory: {
           select: {
             id: true,
             name: true,
@@ -86,6 +118,14 @@ export async function getCourseByIdAdmin(id: string) {
           id: true,
           name: true,
           slug: true,
+        },
+      },
+      subcategory: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          status: true,
         },
       },
     },

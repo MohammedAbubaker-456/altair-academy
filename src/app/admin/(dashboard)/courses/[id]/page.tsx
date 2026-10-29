@@ -10,7 +10,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCourseByIdAdmin } from "@/server/admin/courses";
-import { getAllCategoriesAdmin } from "@/server/admin/categories";
+import { getAllCategoriesAdmin, getAllSubcategoriesAdmin } from "@/server/admin/categories";
 import { CourseForm } from "../CourseForm";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,11 @@ interface AdminEditCoursePageProps {
 export default async function AdminEditCoursePage({ params }: AdminEditCoursePageProps) {
   const { id } = await params;
 
-  const [course, categories] = await Promise.all([getCourseByIdAdmin(id), getAllCategoriesAdmin()]);
+  const [course, categories, subcategories] = await Promise.all([
+    getCourseByIdAdmin(id),
+    getAllCategoriesAdmin(),
+    getAllSubcategoriesAdmin(),
+  ]);
 
   if (!course) {
     notFound();
@@ -43,6 +47,7 @@ export default async function AdminEditCoursePage({ params }: AdminEditCoursePag
         title: course.title,
         slug: course.slug,
         categoryId: course.categoryId,
+        subcategoryId: course.subcategoryId,
         level: course.level,
         duration: course.duration,
         price: course.price,
@@ -61,6 +66,7 @@ export default async function AdminEditCoursePage({ params }: AdminEditCoursePag
         status: course.status,
       }}
       categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+      subcategories={subcategories}
     />
   );
 }

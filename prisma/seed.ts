@@ -18,6 +18,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedCategories } from "./seed-data/categories";
+import { seedSubcategoryTree } from "./seed-data/subcategories";
 import { seedCourses } from "./seed-data/courses";
 import { seedTeamMembers } from "./seed-data/team";
 import { seedNewsPosts } from "./seed-data/news";
@@ -83,6 +84,100 @@ async function main() {
     }
   }
   console.log(`✅ Checked ${seedCategories.length} categories`);
+
+  // 2b. Subcategories (Insert-Only by [categoryId, slug])
+  function slugifySubcategory(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[\u2013\u2014]/g, "-") // Convert en-dash and em-dash to hyphen
+      .replace(/[^a-z0-9]+/g, "-") // Convert spaces and special characters to hyphen
+      .replace(/^-+|-+$/g, ""); // Strip leading and trailing hyphens
+  }
+
+  let totalSubcategoriesChecked = 0;
+  let newSubcategories = 0;
+  let skippedSubcategories = 0;
+
+  for (const treeNode of seedSubcategoryTree) {
+    const categoryId = categoryMap.get(treeNode.categorySlug);
+    if (!categoryId) {
+      throw new Error(
+        `❌ Fatal seed error: Unknown category slug "${treeNode.categorySlug}" in subcategory seed data.`,
+      );
+    }
+
+    if (!treeNode.children || treeNode.children.length === 0) continue;
+
+    for (let i = 0; i < treeNode.children.length; i++) {
+      const topLevelChild = treeNode.children[i]!;
+      const topSlug = slugifySubcategory(topLevelChild.name);
+      totalSubcategoriesChecked++;
+
+      let parentRecord = await prisma.subcategory.findUnique({
+        where: {
+          categoryId_slug: {
+            categoryId,
+            slug: topSlug,
+          },
+        },
+      });
+
+      if (!parentRecord) {
+        parentRecord = await prisma.subcategory.create({
+          data: {
+            categoryId,
+            parentId: null,
+            name: topLevelChild.name,
+            slug: topSlug,
+            order: i,
+            status: "ACTIVE",
+          },
+        });
+        newSubcategories++;
+      } else {
+        skippedSubcategories++;
+      }
+
+      // Check second level children
+      if (topLevelChild.children && topLevelChild.children.length > 0) {
+        for (let j = 0; j < topLevelChild.children.length; j++) {
+          const secondLevelChild = topLevelChild.children[j]!;
+          const secondSlug = slugifySubcategory(secondLevelChild.name);
+          totalSubcategoriesChecked++;
+
+          const existingSecondLevel = await prisma.subcategory.findUnique({
+            where: {
+              categoryId_slug: {
+                categoryId,
+                slug: secondSlug,
+              },
+            },
+          });
+
+          if (!existingSecondLevel) {
+            await prisma.subcategory.create({
+              data: {
+                categoryId,
+                parentId: parentRecord.id,
+                name: secondLevelChild.name,
+                slug: secondSlug,
+                order: j,
+                status: "ACTIVE",
+              },
+            });
+            newSubcategories++;
+          } else {
+            skippedSubcategories++;
+          }
+        }
+      }
+    }
+  }
+
+  console.log(
+    `✅ Checked ${totalSubcategoriesChecked} subcategories (${newSubcategories} created, ${skippedSubcategories} skipped)`,
+  );
 
   // 3. Courses (Insert-Only by Slug)
   let newCourses = 0;

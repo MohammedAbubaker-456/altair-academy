@@ -59,9 +59,7 @@ export default async function CoursesPage({ searchParams }: Props) {
     : undefined;
 
   const activeChildSub = subcategorySlug
-    ? topLevelSubcategories
-        .flatMap((s) => s.children ?? [])
-        .find((c) => c.slug === subcategorySlug)
+    ? topLevelSubcategories.flatMap((s) => s.children ?? []).find((c) => c.slug === subcategorySlug)
     : undefined;
 
   if (activeChildSub) {
@@ -149,38 +147,41 @@ export default async function CoursesPage({ searchParams }: Props) {
         )}
 
         {/* Row 3: Child Subcategories (shown when selected top-level subcategory has children) */}
-        {selectedCategory && activeTopSub && activeTopSub.children && activeTopSub.children.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-1 border-t border-border/50">
-            <Link
-              href={`/courses?category=${encodeURIComponent(selectedCategory.slug)}&subcategory=${encodeURIComponent(activeTopSub.slug)}`}
-              className={cn(
-                "rounded-full border px-4 py-1.5 text-sm transition-colors",
-                !activeChildSub
-                  ? "border-brand-red bg-brand-red text-brand-red-foreground"
-                  : "border-border text-primary hover:border-brand-red hover:text-brand-red",
-              )}
-            >
-              All {activeTopSub.name}
-            </Link>
-            {activeTopSub.children.map((child) => {
-              const isChildActive = activeChildSub?.slug === child.slug;
-              return (
-                <Link
-                  key={child.slug}
-                  href={`/courses?category=${encodeURIComponent(selectedCategory.slug)}&subcategory=${encodeURIComponent(child.slug)}`}
-                  className={cn(
-                    "rounded-full border px-4 py-1.5 text-sm transition-colors",
-                    isChildActive
-                      ? "border-brand-red bg-brand-red text-brand-red-foreground"
-                      : "border-border text-primary hover:border-brand-red hover:text-brand-red",
-                  )}
-                >
-                  {child.name}
-                </Link>
-              );
-            })}
-          </div>
-        )}
+        {selectedCategory &&
+          activeTopSub &&
+          activeTopSub.children &&
+          activeTopSub.children.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1 border-t border-border/50">
+              <Link
+                href={`/courses?category=${encodeURIComponent(selectedCategory.slug)}&subcategory=${encodeURIComponent(activeTopSub.slug)}`}
+                className={cn(
+                  "rounded-full border px-4 py-1.5 text-sm transition-colors",
+                  !activeChildSub
+                    ? "border-brand-red bg-brand-red text-brand-red-foreground"
+                    : "border-border text-primary hover:border-brand-red hover:text-brand-red",
+                )}
+              >
+                All {activeTopSub.name}
+              </Link>
+              {activeTopSub.children.map((child) => {
+                const isChildActive = activeChildSub?.slug === child.slug;
+                return (
+                  <Link
+                    key={child.slug}
+                    href={`/courses?category=${encodeURIComponent(selectedCategory.slug)}&subcategory=${encodeURIComponent(child.slug)}`}
+                    className={cn(
+                      "rounded-full border px-4 py-1.5 text-sm transition-colors",
+                      isChildActive
+                        ? "border-brand-red bg-brand-red text-brand-red-foreground"
+                        : "border-border text-primary hover:border-brand-red hover:text-brand-red",
+                    )}
+                  >
+                    {child.name}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
       </div>
 
       {filtered.length ? (

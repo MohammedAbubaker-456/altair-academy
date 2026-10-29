@@ -389,7 +389,13 @@ export function CoursesTable({
               size="sm"
               disabled={page <= 1}
               onClick={() =>
-                applyFilters(currentQ, currentStatus, currentCategoryId, currentSubcategoryId, page - 1)
+                applyFilters(
+                  currentQ,
+                  currentStatus,
+                  currentCategoryId,
+                  currentSubcategoryId,
+                  page - 1,
+                )
               }
             >
               <ChevronLeft className="h-4 w-4 mr-1" /> Previous
@@ -399,7 +405,13 @@ export function CoursesTable({
               size="sm"
               disabled={page >= totalPages}
               onClick={() =>
-                applyFilters(currentQ, currentStatus, currentCategoryId, currentSubcategoryId, page + 1)
+                applyFilters(
+                  currentQ,
+                  currentStatus,
+                  currentCategoryId,
+                  currentSubcategoryId,
+                  page + 1,
+                )
               }
             >
               Next <ChevronRight className="h-4 w-4 ml-1" />

@@ -216,11 +216,7 @@ function PlainTextFormField({
   );
 }
 
-export function CourseForm({
-  initialData,
-  categories,
-  subcategories = [],
-}: CourseFormProps) {
+export function CourseForm({ initialData, categories, subcategories = [] }: CourseFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 

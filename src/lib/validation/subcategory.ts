@@ -31,10 +31,7 @@ export const subcategorySchema = z.object({
     .trim()
     .nullable()
     .optional()
-    .refine(
-      (val) => !val || isValidObjectId(val),
-      "Please select a valid parent subcategory",
-    ),
+    .refine((val) => !val || isValidObjectId(val), "Please select a valid parent subcategory"),
   order: z.coerce
     .number()
     .int("Order must be an integer")

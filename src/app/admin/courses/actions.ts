@@ -77,8 +77,7 @@ export async function createCourseAction(input: unknown): Promise<CourseActionRe
   }
 
   // Verify subcategory relation if provided
-  const cleanSubcategoryId =
-    subcategoryId && subcategoryId.trim() ? subcategoryId.trim() : null;
+  const cleanSubcategoryId = subcategoryId && subcategoryId.trim() ? subcategoryId.trim() : null;
   if (cleanSubcategoryId) {
     if (!isValidObjectId(cleanSubcategoryId)) {
       return {
@@ -210,8 +209,7 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
   }
 
   // Verify subcategory relation if provided. If category changed and no subcategory provided, nullify.
-  let cleanSubcategoryId =
-    subcategoryId && subcategoryId.trim() ? subcategoryId.trim() : null;
+  let cleanSubcategoryId = subcategoryId && subcategoryId.trim() ? subcategoryId.trim() : null;
 
   if (cleanSubcategoryId) {
     if (!isValidObjectId(cleanSubcategoryId)) {

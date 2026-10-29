@@ -19,9 +19,7 @@ interface AdminSubcategoriesPageProps {
   params: Promise<{ categoryId: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: AdminSubcategoriesPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: AdminSubcategoriesPageProps): Promise<Metadata> {
   const { categoryId } = await params;
   const data = await getSubcategoriesByCategoryAdmin(categoryId);
 
@@ -38,9 +36,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function AdminSubcategoriesPage({
-  params,
-}: AdminSubcategoriesPageProps) {
+export default async function AdminSubcategoriesPage({ params }: AdminSubcategoriesPageProps) {
   const { categoryId } = await params;
   const data = await getSubcategoriesByCategoryAdmin(categoryId);
 
@@ -48,10 +44,5 @@ export default async function AdminSubcategoriesPage({
     notFound();
   }
 
-  return (
-    <SubcategoriesManager
-      category={data.category}
-      subcategories={data.subcategories}
-    />
-  );
+  return <SubcategoriesManager category={data.category} subcategories={data.subcategories} />;
 }

@@ -251,7 +251,8 @@ export function SubcategoriesManager({ category, subcategories }: SubcategoriesM
             {category.name} Subcategories
           </h1>
           <p className="text-sm text-muted-foreground">
-            Manage course subcategories and nesting levels for {category.name}. ({subcategories.length} total)
+            Manage course subcategories and nesting levels for {category.name}. (
+            {subcategories.length} total)
           </p>
         </div>
         <Button
@@ -282,7 +283,10 @@ export function SubcategoriesManager({ category, subcategories }: SubcategoriesM
                 <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <FolderTree className="h-8 w-8 text-muted-foreground/60" />
-                    <p>No subcategories found for {category.name}. Click "Add Subcategory" to create one.</p>
+                    <p>
+                      No subcategories found for {category.name}. Click "Add Subcategory" to create
+                      one.
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -290,10 +294,7 @@ export function SubcategoriesManager({ category, subcategories }: SubcategoriesM
               hierarchicalItems.map((sub) => {
                 const isChild = sub.depth > 0;
                 return (
-                  <TableRow
-                    key={sub.id}
-                    className={cn(isChild && "bg-muted/15")}
-                  >
+                  <TableRow key={sub.id} className={cn(isChild && "bg-muted/15")}>
                     <TableCell className="font-mono text-xs">{sub.order}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
@@ -473,8 +474,8 @@ export function SubcategoriesManager({ category, subcategories }: SubcategoriesM
               <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
                 <p className="font-medium text-foreground">Top-level Subcategory</p>
                 <p className="mt-0.5">
-                  This subcategory currently has {editingSubcategory?._count.children} child subcategor(ies).
-                  Subcategories with children must remain top-level.
+                  This subcategory currently has {editingSubcategory?._count.children} child
+                  subcategor(ies). Subcategories with children must remain top-level.
                 </p>
               </div>
             )}
@@ -483,16 +484,8 @@ export function SubcategoriesManager({ category, subcategories }: SubcategoriesM
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="sub-order">Display Order</Label>
-                <Input
-                  id="sub-order"
-                  type="number"
-                  min={0}
-                  max={9999}
-                  {...register("order")}
-                />
-                {errors.order && (
-                  <p className="text-xs text-destructive">{errors.order.message}</p>
-                )}
+                <Input id="sub-order" type="number" min={0} max={9999} {...register("order")} />
+                {errors.order && <p className="text-xs text-destructive">{errors.order.message}</p>}
               </div>
 
               <div className="space-y-1.5">

@@ -116,11 +116,13 @@ model Course {
   objective         String?
   content           String?
   whoShouldAttend   String?
+  prerequisites     String?
   certification     String?
   notesAndEquipment String?
   classCapacity     String?
   feeDetails        String?
   courseSupport     String?
+  courseNote        String?
   isFeatured        Boolean      @default(false)
   order             Int          @default(0)
   status            Status       @default(ACTIVE)

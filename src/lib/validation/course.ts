@@ -93,10 +93,7 @@ export const courseSchema = z.object({
     .max(5000, "Who Should Attend must be under 5,000 characters")
     .optional()
     .nullable(),
-  prerequisites: optionalSanitizedMarkdown(
-    5000,
-    "Pre-requirements must be under 5,000 characters",
-  ),
+  prerequisites: optionalSanitizedMarkdown(5000, "Pre-requirements must be under 5,000 characters"),
   certification: z
     .string()
     .max(300, "Certification must be under 300 characters")
@@ -122,10 +119,7 @@ export const courseSchema = z.object({
     .max(2000, "Course Support must be under 2,000 characters")
     .optional()
     .nullable(),
-  courseNote: optionalSanitizedMarkdown(
-    3000,
-    "Note must be under 3,000 characters",
-  ),
+  courseNote: optionalSanitizedMarkdown(3000, "Note must be under 3,000 characters"),
   isFeatured: z.boolean(),
   order: z.coerce.number().int().min(0, "Order must be 0 or greater"),
   status: z.enum(["ACTIVE", "INACTIVE"]),

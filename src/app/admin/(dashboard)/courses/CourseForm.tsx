@@ -97,7 +97,6 @@ interface CourseFormProps {
   subcategories?: SubcategoryOption[];
 }
 
-
 function MarkdownFormField({
   id,
   label,
@@ -137,11 +136,7 @@ function MarkdownFormField({
     const selectedText = value.substring(start, end) || placeholderText;
 
     const updated =
-      value.substring(0, start) +
-      prefix +
-      selectedText +
-      suffix +
-      value.substring(end);
+      value.substring(0, start) + prefix + selectedText + suffix + value.substring(end);
 
     if (updated.length > maxLength) return;
 
@@ -171,8 +166,7 @@ function MarkdownFormField({
 
     const selectionStart = start === end ? lineStart : start;
     const selectionEnd = start === end ? lineEnd : end;
-    const selectedText =
-      value.substring(selectionStart, selectionEnd) || "List item";
+    const selectedText = value.substring(selectionStart, selectionEnd) || "List item";
 
     const formatted = selectedText
       .split("\n")
@@ -185,10 +179,7 @@ function MarkdownFormField({
       })
       .join("\n");
 
-    const updated =
-      value.substring(0, selectionStart) +
-      formatted +
-      value.substring(selectionEnd);
+    const updated = value.substring(0, selectionStart) + formatted + value.substring(selectionEnd);
 
     if (updated.length > maxLength) return;
 
@@ -196,10 +187,7 @@ function MarkdownFormField({
 
     requestAnimationFrame(() => {
       textarea.focus();
-      textarea.setSelectionRange(
-        selectionStart,
-        selectionStart + formatted.length,
-      );
+      textarea.setSelectionRange(selectionStart, selectionStart + formatted.length);
     });
   };
 
@@ -219,10 +207,7 @@ function MarkdownFormField({
     const selectedText = value.substring(start, end) || "Link text";
     const formatted = `[${selectedText}](${url.trim()})`;
 
-    const updated =
-      value.substring(0, start) +
-      formatted +
-      value.substring(end);
+    const updated = value.substring(0, start) + formatted + value.substring(end);
 
     if (updated.length > maxLength) return;
 
@@ -230,10 +215,7 @@ function MarkdownFormField({
 
     requestAnimationFrame(() => {
       textarea.focus();
-      textarea.setSelectionRange(
-        start + 1,
-        start + 1 + selectedText.length,
-      );
+      textarea.setSelectionRange(start + 1, start + 1 + selectedText.length);
     });
   };
 
@@ -277,19 +259,14 @@ function MarkdownFormField({
         <span
           className={cn(
             "text-xs font-mono",
-            length > maxLength
-              ? "text-destructive font-semibold"
-              : "text-muted-foreground",
+            length > maxLength ? "text-destructive font-semibold" : "text-muted-foreground",
           )}
         >
           {length.toLocaleString()} / {maxLength.toLocaleString()} characters
         </span>
       </div>
 
-      <Tabs
-        value={tab}
-        onValueChange={(v) => setTab(v as "write" | "preview")}
-      >
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "write" | "preview")}>
         <div className="flex items-center justify-between gap-2">
           <TabsList className="grid w-36 grid-cols-2 h-8">
             <TabsTrigger value="write" className="text-xs">
@@ -299,11 +276,7 @@ function MarkdownFormField({
               Preview
             </TabsTrigger>
           </TabsList>
-          {hint && (
-            <span className="text-xs text-muted-foreground hidden sm:inline">
-              {hint}
-            </span>
-          )}
+          {hint && <span className="text-xs text-muted-foreground hidden sm:inline">{hint}</span>}
         </div>
 
         <TabsContent value="write" className="pt-2 space-y-2">

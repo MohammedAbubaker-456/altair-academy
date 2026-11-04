@@ -263,6 +263,8 @@ import {
   Award,
   BookOpen,
   Clock,
+  ClipboardCheck,
+  Info,
   LifeBuoy,
   ListChecks,
   Mail,
@@ -492,6 +494,15 @@ export default async function CourseDetailPage({ params }: Props) {
                 </DetailSection>
               )}
 
+              {has(course.prerequisites) && (
+                <DetailSection
+                  icon={<ClipboardCheck className="size-5" aria-hidden="true" />}
+                  title="Pre-requirements"
+                >
+                  <MarkdownContent content={course.prerequisites!} />
+                </DetailSection>
+              )}
+
               {has(course.notesAndEquipment) && (
                 <DetailSection
                   icon={<Package className="size-5" aria-hidden="true" />}
@@ -546,6 +557,15 @@ export default async function CourseDetailPage({ params }: Props) {
                   title="Course support"
                 >
                   <MarkdownContent content={course.courseSupport!} />
+                </DetailSection>
+              )}
+
+              {has(course.courseNote) && (
+                <DetailSection
+                  icon={<Info className="size-5" aria-hidden="true" />}
+                  title="Note"
+                >
+                  <MarkdownContent content={course.courseNote!} />
                 </DetailSection>
               )}
             </div>

@@ -41,7 +41,7 @@ export const courseSchema = z.object({
     .string()
     .trim()
     .min(1, "Duration is required")
-    .max(100, "Duration must be under 100 characters"),
+    .max(600, "Duration must be under 600 characters"),
   price: z
     .string()
     .trim()

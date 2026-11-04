@@ -261,7 +261,7 @@ export function CoursesTable({
               <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Subcategory</TableHead>
-              <TableHead>Level / Duration</TableHead>
+              {/* <TableHead>Level / Duration</TableHead> */}
               <TableHead className="text-center">Featured</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -303,12 +303,18 @@ export function CoursesTable({
                       <span className="text-muted-foreground/60 text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
+                  {/* <TableCell className="text-xs text-muted-foreground">
                     <div>{course.level || "—"}</div>
                     <div className="text-[11px] font-mono text-foreground/70">
                       {course.duration}
                     </div>
-                  </TableCell>
+                  </TableCell> */}
+                  {/* <TableCell className="w-[220px] max-w-[220px] text-xs text-muted-foreground">
+                    <div>{course.level || "—"}</div>
+                    <div className="max-w-[220px] whitespace-normal break-words text-[11px] font-mono text-foreground/70">
+                      {course.duration}
+                    </div>
+                  </TableCell> */}
                   <TableCell className="text-center">
                     {course.isFeatured ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">

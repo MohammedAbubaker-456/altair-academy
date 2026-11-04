@@ -39,7 +39,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MarkdownPreview } from "@/components/site/MarkdownContent";
 import { cn } from "@/lib/utils";
-import { Loader2, ArrowLeft } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Link as LinkIcon,
+  Heading2,
+} from "lucide-react";
 
 interface CategoryOption {
   id: string;
@@ -86,6 +95,7 @@ interface CourseFormProps {
   subcategories?: SubcategoryOption[];
 }
 
+
 function MarkdownFormField({
   id,
   label,
@@ -108,7 +118,155 @@ function MarkdownFormField({
   error?: string | undefined;
 }) {
   const [tab, setTab] = React.useState<"write" | "preview">("write");
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const length = (value || "").length;
+
+  // Apply Markdown around the selected text, or insert placeholder text.
+  const insertFormatting = (
+    prefix: string,
+    suffix: string = prefix,
+    placeholderText: string = "Text",
+  ) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end) || placeholderText;
+
+    const updated =
+      value.substring(0, start) +
+      prefix +
+      selectedText +
+      suffix +
+      value.substring(end);
+
+    if (updated.length > maxLength) return;
+
+    onChange(updated);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + prefix.length,
+        start + prefix.length + selectedText.length,
+      );
+    });
+  };
+
+  // Convert selected lines (or the current line) into a Markdown list.
+  const insertList = (ordered: boolean) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    // If there is no selection, format the entire current line.
+    const lineStart = value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+    const nextNewLine = value.indexOf("\n", start);
+    const lineEnd = nextNewLine === -1 ? value.length : nextNewLine;
+
+    const selectionStart = start === end ? lineStart : start;
+    const selectionEnd = start === end ? lineEnd : end;
+    const selectedText =
+      value.substring(selectionStart, selectionEnd) || "List item";
+
+    const formatted = selectedText
+      .split("\n")
+      .map((line, index) => {
+        if (!line.trim()) return line;
+
+        // Avoid stacking list markers when switching list types.
+        const cleanLine = line.replace(/^\s*(?:[-*+]|\d+\.)\s+/, "");
+        return ordered ? `${index + 1}. ${cleanLine}` : `- ${cleanLine}`;
+      })
+      .join("\n");
+
+    const updated =
+      value.substring(0, selectionStart) +
+      formatted +
+      value.substring(selectionEnd);
+
+    if (updated.length > maxLength) return;
+
+    onChange(updated);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        selectionStart,
+        selectionStart + formatted.length,
+      );
+    });
+  };
+
+  // Insert a Markdown link around the selected text.
+  const insertLink = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const url = window.prompt("Enter the URL (include https://):");
+    if (!url?.trim()) {
+      textarea.focus();
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end) || "Link text";
+    const formatted = `[${selectedText}](${url.trim()})`;
+
+    const updated =
+      value.substring(0, start) +
+      formatted +
+      value.substring(end);
+
+    if (updated.length > maxLength) return;
+
+    onChange(updated);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + 1,
+        start + 1 + selectedText.length,
+      );
+    });
+  };
+
+  const toolbarButtons = [
+    {
+      label: "Bold",
+      icon: <Bold className="h-4 w-4" />,
+      action: () => insertFormatting("**"),
+    },
+    {
+      label: "Italic",
+      icon: <Italic className="h-4 w-4" />,
+      action: () => insertFormatting("*"),
+    },
+    {
+      label: "Heading",
+      icon: <Heading2 className="h-4 w-4" />,
+      action: () => insertFormatting("## ", "", "Heading"),
+    },
+    {
+      label: "Bullet List",
+      icon: <List className="h-4 w-4" />,
+      action: () => insertList(false),
+    },
+    {
+      label: "Numbered List",
+      icon: <ListOrdered className="h-4 w-4" />,
+      action: () => insertList(true),
+    },
+    {
+      label: "Insert Link",
+      icon: <LinkIcon className="h-4 w-4" />,
+      action: insertLink,
+    },
+  ];
 
   return (
     <div className="space-y-1.5">
@@ -117,13 +275,19 @@ function MarkdownFormField({
         <span
           className={cn(
             "text-xs font-mono",
-            length > maxLength ? "text-destructive font-semibold" : "text-muted-foreground",
+            length > maxLength
+              ? "text-destructive font-semibold"
+              : "text-muted-foreground",
           )}
         >
           {length.toLocaleString()} / {maxLength.toLocaleString()} characters
         </span>
       </div>
-      <Tabs value={tab} onValueChange={(v) => setTab(v as "write" | "preview")}>
+
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setTab(v as "write" | "preview")}
+      >
         <div className="flex items-center justify-between gap-2">
           <TabsList className="grid w-36 grid-cols-2 h-8">
             <TabsTrigger value="write" className="text-xs">
@@ -133,18 +297,42 @@ function MarkdownFormField({
               Preview
             </TabsTrigger>
           </TabsList>
-          {hint && <span className="text-xs text-muted-foreground hidden sm:inline">{hint}</span>}
+          {hint && (
+            <span className="text-xs text-muted-foreground hidden sm:inline">
+              {hint}
+            </span>
+          )}
         </div>
-        <TabsContent value="write" className="pt-2">
+
+        <TabsContent value="write" className="pt-2 space-y-2">
+          <div className="flex flex-wrap items-center gap-1 rounded-md border border-border bg-muted/30 p-2">
+            {toolbarButtons.map((button) => (
+              <Button
+                key={button.label}
+                type="button"
+                variant="ghost"
+                size="sm"
+                title={button.label}
+                aria-label={button.label}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={button.action}
+              >
+                {button.icon}
+              </Button>
+            ))}
+          </div>
+
           <Textarea
+            ref={textareaRef}
             id={id}
             rows={rows}
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(event) => onChange(event.target.value)}
             placeholder={placeholder}
             maxLength={maxLength}
           />
         </TabsContent>
+
         <TabsContent value="preview" className="pt-2">
           <MarkdownPreview
             content={value}
@@ -152,6 +340,7 @@ function MarkdownFormField({
           />
         </TabsContent>
       </Tabs>
+
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );

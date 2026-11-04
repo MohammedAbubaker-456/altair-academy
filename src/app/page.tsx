@@ -113,12 +113,15 @@ export default async function Home() {
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:px-8 lg:py-24">
             <div>
               <h1 className="mt-5 font-display text-4xl leading-[1.05] font-bold tracking-tight text-primary sm:text-6xl">
-                Upskill Your NDT Certifications with Altair Academy
+                Upskill Your <span className="text-destructive">NDT Certifications</span> with Altair Academy
               </h1>
-              <p className="mt-5 max-w-xl text-base text-muted-foreground">
+              {/* <p className="mt-5 max-w-xl text-base text-muted-foreground">
                 A decade of hands-on inspection, integrity and management system training. Carefully
                 selected instructors, practical labs, and certifications employers across the region
                 actually recognise.
+              </p> */}
+              <p className="mt-5 max-w-xl text-base text-muted-foreground">
+                With over a decade of experience in inspection, integrity, and management system training, ALTAIR delivers industry-focused learning through carefully selected instructors, practical training labs, and internationally recognised certifications that help professionals advance their careers.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button variant="cta" size="lg" className="text-base" asChild>
@@ -247,10 +250,10 @@ export default async function Home() {
                 title="Learn From Our Most Requested Courses"
                 variant="divider"
               />
-              <p className="max-w-md text-sm text-muted-foreground">
+              {/* <p className="max-w-md text-sm text-muted-foreground">
                 Every programme below runs on a fixed calendar with practical assessment included.
                 Prices shown are per seat for public classroom delivery.
-              </p>
+              </p> */}
             </div>
             <div className="mt-12 grid gap-6 lg:grid-cols-2">
               {featuredCourses.map((course) => (
@@ -307,7 +310,9 @@ export default async function Home() {
                     className="mt-5 w-full text-base"
                     asChild
                   >
-                    <Link href={`/courses/${session.slug}`}>Reserve a Seat</Link>
+                    {/* <Link href={`/courses/${session.slug}`}>Reserve a Seat</Link> */}
+                    <Link href={`/contact`}>Reserve a Seat</Link>
+
                   </Button>
                 </article>
               ))}
@@ -360,11 +365,11 @@ export default async function Home() {
             <div>
               <SectionHeader
                 label="Join us now"
-                title={"Confused What to Choose? \nWe Got You!"}
-                description="Our support centre and course managers will help you pick the right subject and certification level for where you are in your career."
+                title={"Find the Right Course. Build the Right Career."}
+                description="Your next career milestone starts here. Choose your course and take the first step today."
                 variant="plain"
               />
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              {/* <div className="mt-8 flex flex-wrap items-center gap-3">
                 <Button variant="cta" className="text-base" asChild>
                   <Link href="/contact">Get Help Choosing</Link>
                 </Button>
@@ -388,7 +393,36 @@ export default async function Home() {
                     Chat on WhatsApp
                   </a>
                 ) : null}
+              </div> */}
+
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Button variant="cta" className="text-base" asChild>
+                  {/* <Link href="/contact">Get Help Choosing</Link> */}
+                  <Link href="/contact">Enrol Now</Link>
+
+                </Button>
+
+                {contactInfo.phoneHref && contactInfo.homepagePhoneDisplay ? (
+                  <a
+                    href={`tel:${contactInfo.phoneHref}`}
+                    className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-card px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary/5"
+                  >
+                    <Phone className="size-4 text-brand-red" aria-hidden="true" />
+                    {contactInfo.homepagePhoneDisplay}
+                  </a>
+                ) : null}
+
+                {contactInfo.whatsapp ? (
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center gap-2 rounded-md border border-primary/25 bg-card px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary/5"
+                  >
+                    <MessageCircle className="size-4 text-brand-red" aria-hidden="true" />
+                    Chat on WhatsApp
+                  </Link>
+                ) : null}
               </div>
+
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-navy p-6 text-primary-foreground">

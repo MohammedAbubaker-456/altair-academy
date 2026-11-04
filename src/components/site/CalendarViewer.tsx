@@ -599,6 +599,18 @@ export function CalendarViewer({
                     </div>
                   )}
 
+                  <div className="mt-6 flex items-center gap-6 border-t border-border pt-5 text-l font-bold pb-5">
+                    <p className="flex items-center gap-2 text-primary/80">
+                      <span className="inline-block size-3 rounded-sm bg-navy" />
+                      Training ({TRAINING_TIME})
+                    </p>
+
+                    <p className="flex items-center gap-2 text-primary/80">
+                      <span className="inline-block size-3 rounded-sm bg-brand-red" />
+                      Examination ({EXAM_TIME})
+                    </p>
+                  </div>
+
                   {/* Month view */}
                   {view === "month" && (
                     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">

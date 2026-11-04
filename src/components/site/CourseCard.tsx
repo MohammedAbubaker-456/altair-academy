@@ -65,11 +65,11 @@ export function CourseCard({ course }: { course: Course }) {
         </div>
 
         <dl className="mt-4 space-y-2 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Clock className="size-4 text-primary/60" aria-hidden="true" />
             <dt className="sr-only">Duration</dt>
             <dd>{course.duration}</dd>
-          </div>
+          </div> */}
           <div className="flex items-center gap-2">
             <Tag className="size-4 text-primary/60" aria-hidden="true" />
             <dt className="sr-only">Price</dt>

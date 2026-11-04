@@ -182,7 +182,7 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 | `/admin/calendar`               | Training Calendar          | Tabbed manager: Scheduled Sessions (multi-filter, pagination, duplication) and Calendar Course Codes (order, session count guard). |
 | `/admin/calendar/sessions/new` & `/[id]` | Session Form      | Schedule intake with course select, type, native date pickers, auto-end date, live overlap warning, and "Save & Add Another". |
 | `/admin/courses`               | Course Management          | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), category and subcategory filters, pagination, optimistic status toggle, preview links.                                                                |
-| `/admin/courses/new` & `/[id]` | Course Form                | Auto-slug, category selector, dependent grouped subcategory selector, detailed syllabus (Objective, Content, Who Should Attend, Certification, Notes, Capacity, Fee override, Support) with Write/Preview & counters. |
+| `/admin/courses/new` & `/[id]` | Course Form                | Auto-slug, category selector, dependent grouped subcategory selector, detailed syllabus (Objective, Content, Who Should Attend, Pre-requirements [max 5k], Certification, Notes, Capacity, Fee override, Support, Note [max 3k]) with Write/Preview & counters. |
 | `/admin/categories`            | Categories                 | Discipline manager, course and subcategory count tracking, "Subcategories" management action, modal create/edit dialog, **safeguards: deletion blocked if courses or subcategories exist**. |
 | `/admin/categories/[categoryId]/subcategories` | Subcategories | Hierarchical subcategory table (children indented under parent), course counts, order, optimistic status switch, modal create/edit dialog with parent select, **safeguards: deletion blocked if courses or children exist**. |
 | `/admin/team`                  | Team & Faculty             | Search, placement filters (`Management` / `Instructor`), optimistic status toggles.                                                                                           |
@@ -562,7 +562,25 @@ model Subcategory {
 
 ---
 
-## 14. Troubleshooting
+## 14. Course Syllabus Extensions: Pre-requirements & Notes
+
+The Course data model and public detail pages include two optional Markdown-enabled syllabus fields:
+
+1. **`prerequisites` (Pre-requirements)**:
+   - **Type**: Optional Markdown String (`String?`), max 5,000 characters.
+   - **Admin Form**: Located in the "Core Information" card under "Detailed Syllabus & Specifications", directly after the "Who Should Attend" field. Provides Markdown Write/Preview tabs, formatting toolbar, character counter, and bullet-list styling hint.
+   - **Public Detail Page**: Rendered inside the "Course details" card immediately following "Who should attend", using `MarkdownContent` (sanitized safe links, no raw HTML, no external images). Only rendered when content is present.
+
+2. **`courseNote` (Note)**:
+   - **Type**: Optional Markdown String (`String?`), max 3,000 characters.
+   - **Admin Form**: Located in the "Core Information" card under "Detailed Syllabus & Specifications", directly following "Course Support". Provides Markdown Write/Preview tabs, formatting toolbar, and live character counter.
+   - **Public Detail Page**: Rendered inside the "Course details" card immediately following "Course support", providing general intake, schedule notes, or candidate reminders. Only rendered when content is present.
+
+> **Important**: After pulling changes that introduce these fields, run `npm run db:push` to ensure your local MongoDB schema and Prisma Client are synchronized.
+
+---
+
+## 15. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 

@@ -64,7 +64,7 @@ altair-academy/
 │   │   ├── about/page.tsx           # Public About page with management leadership team
 │   │   ├── courses/                 # Public Course catalog with discipline filtering
 │   │   │   ├── page.tsx             # /courses catalog
-│   │   │   └── [slug]/page.tsx      # Dynamic course syllabus (Objective, Content, Fee, Support)
+│   │   │   └── [slug]/page.tsx      # Dynamic course syllabus (Objective, Content, Pre-requirements, Fee, Support, Note)
 │   │   ├── instructors/page.tsx     # Public Faculty directory with biographies and expertise tags
 │   │   ├── news/                    # Public News magazine & dynamic articles
 │   │   │   ├── page.tsx             # /news magazine (Hero featured, stories, editor picks with slug links)
@@ -103,7 +103,7 @@ altair-academy/
 │   │       ├── categories/
 │   │       │   ├── actions.ts       # Category server actions (CRUD + delete blocking on courses & subcategories)
 │   │       │   └── subcategory-actions.ts # Subcategory server actions (CRUD + 2-level depth guard + course delete guard)
-│   │       ├── courses/actions.ts   # Course server actions (CRUD + syllabus fields + subcategory validation + image cleanup)
+│   │       ├── courses/actions.ts   # Course server actions (CRUD + syllabus fields + prerequisites/courseNote + subcategory validation + image cleanup)
 │   │       ├── team/actions.ts      # Team & faculty server actions (CRUD + image cleanup)
 │   │       ├── news/actions.ts      # News post server actions (CRUD + body persistence + image cleanup)
 │   │       ├── faqs/actions.ts      # FAQ server actions (CRUD)
@@ -175,7 +175,7 @@ altair-academy/
 │   │       ├── calendar.ts          # Calendar course & session schema with real date & span validation
 │   │       ├── category.ts          # Category validation schema
 │   │       ├── subcategory.ts       # Subcategory validation schema (name, slug, parent, order, status)
-│   │       ├── course.ts            # Course schema with subcategoryId, syllabus & fee override fields
+│   │       ├── course.ts            # Course schema with subcategoryId, syllabus (prerequisites, courseNote) & fee override fields
 │   │       ├── lead.ts              # Contact lead validation schema (phone sanitization & honeypot)
 │   │       ├── application.ts       # Careers application schema (phone, specialisation, resume validation)
 │   │       ├── team.ts

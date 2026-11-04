@@ -11,24 +11,6 @@
 import { z } from "zod";
 import { isValidObjectId } from "@/lib/id";
 
-/* eslint-disable no-control-regex */
-function stripControlCharacters(str: string): string {
-  return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
-}
-/* eslint-enable no-control-regex */
-
-const optionalSanitizedMarkdown = (maxLength: number, message: string) =>
-  z
-    .string()
-    .trim()
-    .max(maxLength, message)
-    .transform((val) => {
-      const stripped = stripControlCharacters(val).trim();
-      return stripped.length > 0 ? stripped : null;
-    })
-    .optional()
-    .nullable();
-
 export const courseSchema = z.object({
   title: z
     .string()
@@ -93,7 +75,6 @@ export const courseSchema = z.object({
     .max(5000, "Who Should Attend must be under 5,000 characters")
     .optional()
     .nullable(),
-  prerequisites: optionalSanitizedMarkdown(5000, "Pre-requirements must be under 5,000 characters"),
   certification: z
     .string()
     .max(300, "Certification must be under 300 characters")
@@ -119,7 +100,6 @@ export const courseSchema = z.object({
     .max(2000, "Course Support must be under 2,000 characters")
     .optional()
     .nullable(),
-  courseNote: optionalSanitizedMarkdown(3000, "Note must be under 3,000 characters"),
   isFeatured: z.boolean(),
   order: z.coerce.number().int().min(0, "Order must be 0 or greater"),
   status: z.enum(["ACTIVE", "INACTIVE"]),

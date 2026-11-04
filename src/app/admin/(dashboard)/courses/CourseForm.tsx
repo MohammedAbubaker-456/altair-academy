@@ -79,11 +79,13 @@ interface CourseInitialData {
   objective?: string | null;
   content?: string | null;
   whoShouldAttend?: string | null;
+  prerequisites?: string | null;
   certification?: string | null;
   notesAndEquipment?: string | null;
   classCapacity?: string | null;
   feeDetails?: string | null;
   courseSupport?: string | null;
+  courseNote?: string | null;
   isFeatured: boolean;
   order: number;
   status: "ACTIVE" | "INACTIVE";
@@ -431,11 +433,13 @@ export function CourseForm({ initialData, categories, subcategories = [] }: Cour
       objective: initialData?.objective ?? "",
       content: initialData?.content ?? "",
       whoShouldAttend: initialData?.whoShouldAttend ?? "",
+      prerequisites: initialData?.prerequisites ?? "",
       certification: initialData?.certification ?? "",
       notesAndEquipment: initialData?.notesAndEquipment ?? "",
       classCapacity: initialData?.classCapacity ?? "",
       feeDetails: initialData?.feeDetails ?? "",
       courseSupport: initialData?.courseSupport ?? "",
+      courseNote: initialData?.courseNote ?? "",
       isFeatured: initialData?.isFeatured ?? false,
       order: initialData?.order ?? 0,
       status: initialData?.status ?? "ACTIVE",
@@ -739,6 +743,24 @@ export function CourseForm({ initialData, categories, subcategories = [] }: Cour
                 )}
               />
 
+              {/* 3b. Pre-requirements (Markdown, max 5,000) */}
+              <Controller
+                name="prerequisites"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-prerequisites"
+                    label="Pre-requirements (Optional)"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={5000}
+                    hint="Use - or * for bullet points. Max 5,000 chars."
+                    placeholder="Prerequisites, minimum qualifications, or prior certifications required..."
+                    error={errors.prerequisites?.message}
+                  />
+                )}
+              />
+
               {/* 4. Certification (plain text, max 300) */}
               <Controller
                 name="certification"
@@ -826,6 +848,25 @@ export function CourseForm({ initialData, categories, subcategories = [] }: Cour
                     hint="Online revision sessions, mentor support, etc. Max 2,000 chars."
                     placeholder="e.g. Complementary one-day online session and unlimited support on WhatsApp group..."
                     error={errors.courseSupport?.message}
+                  />
+                )}
+              />
+
+              {/* 9. Note (Markdown, max 3,000) */}
+              <Controller
+                name="courseNote"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-note"
+                    label="Note (Optional)"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={3000}
+                    rows={4}
+                    hint="Use - or * for bullet points. Max 3,000 chars."
+                    placeholder="Special instructions, schedule notes, or reminders..."
+                    error={errors.courseNote?.message}
                   />
                 )}
               />

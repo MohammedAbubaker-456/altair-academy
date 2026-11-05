@@ -263,6 +263,8 @@ import {
   Award,
   BookOpen,
   Clock,
+  ClipboardCheck,
+  Info,
   LifeBuoy,
   ListChecks,
   Mail,
@@ -386,6 +388,7 @@ export default async function CourseDetailPage({ params }: Props) {
                 sizes="(min-width: 1024px) 66vw, 100vw"
                 className="aspect-[16/8] w-full object-cover sm:aspect-[16/7]"
               />
+            ) : (
               // <Image
               //   src={course.image}
               //   alt={course.title}
@@ -397,7 +400,6 @@ export default async function CourseDetailPage({ params }: Props) {
               //   sizes="(min-width: 1024px) 56vw, 85vw"
               //   className="mx-auto h-auto w-[85%] object-contain"
               // />
-            ) : (
               <div className="flex aspect-[16/8] w-full items-center justify-center bg-secondary/50 text-muted-foreground sm:aspect-[16/7]">
                 <BookOpen className="size-16 opacity-30" aria-hidden="true" />
               </div>
@@ -492,6 +494,15 @@ export default async function CourseDetailPage({ params }: Props) {
                 </DetailSection>
               )}
 
+              {has(course.prerequisites) && (
+                <DetailSection
+                  icon={<ClipboardCheck className="size-5" aria-hidden="true" />}
+                  title="Pre-requirements"
+                >
+                  <MarkdownContent content={course.prerequisites!} />
+                </DetailSection>
+              )}
+
               {has(course.notesAndEquipment) && (
                 <DetailSection
                   icon={<Package className="size-5" aria-hidden="true" />}
@@ -546,6 +557,12 @@ export default async function CourseDetailPage({ params }: Props) {
                   title="Course support"
                 >
                   <MarkdownContent content={course.courseSupport!} />
+                </DetailSection>
+              )}
+
+              {has(course.courseNote) && (
+                <DetailSection icon={<Info className="size-5" aria-hidden="true" />} title="Note">
+                  <MarkdownContent content={course.courseNote!} />
                 </DetailSection>
               )}
             </div>

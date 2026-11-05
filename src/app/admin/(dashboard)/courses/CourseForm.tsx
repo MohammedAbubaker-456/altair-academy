@@ -79,11 +79,13 @@ interface CourseInitialData {
   objective?: string | null;
   content?: string | null;
   whoShouldAttend?: string | null;
+  prerequisites?: string | null;
   certification?: string | null;
   notesAndEquipment?: string | null;
   classCapacity?: string | null;
   feeDetails?: string | null;
   courseSupport?: string | null;
+  courseNote?: string | null;
   isFeatured: boolean;
   order: number;
   status: "ACTIVE" | "INACTIVE";
@@ -94,7 +96,6 @@ interface CourseFormProps {
   categories: CategoryOption[];
   subcategories?: SubcategoryOption[];
 }
-
 
 function MarkdownFormField({
   id,
@@ -135,11 +136,7 @@ function MarkdownFormField({
     const selectedText = value.substring(start, end) || placeholderText;
 
     const updated =
-      value.substring(0, start) +
-      prefix +
-      selectedText +
-      suffix +
-      value.substring(end);
+      value.substring(0, start) + prefix + selectedText + suffix + value.substring(end);
 
     if (updated.length > maxLength) return;
 
@@ -169,8 +166,7 @@ function MarkdownFormField({
 
     const selectionStart = start === end ? lineStart : start;
     const selectionEnd = start === end ? lineEnd : end;
-    const selectedText =
-      value.substring(selectionStart, selectionEnd) || "List item";
+    const selectedText = value.substring(selectionStart, selectionEnd) || "List item";
 
     const formatted = selectedText
       .split("\n")
@@ -183,10 +179,7 @@ function MarkdownFormField({
       })
       .join("\n");
 
-    const updated =
-      value.substring(0, selectionStart) +
-      formatted +
-      value.substring(selectionEnd);
+    const updated = value.substring(0, selectionStart) + formatted + value.substring(selectionEnd);
 
     if (updated.length > maxLength) return;
 
@@ -194,10 +187,7 @@ function MarkdownFormField({
 
     requestAnimationFrame(() => {
       textarea.focus();
-      textarea.setSelectionRange(
-        selectionStart,
-        selectionStart + formatted.length,
-      );
+      textarea.setSelectionRange(selectionStart, selectionStart + formatted.length);
     });
   };
 
@@ -217,10 +207,7 @@ function MarkdownFormField({
     const selectedText = value.substring(start, end) || "Link text";
     const formatted = `[${selectedText}](${url.trim()})`;
 
-    const updated =
-      value.substring(0, start) +
-      formatted +
-      value.substring(end);
+    const updated = value.substring(0, start) + formatted + value.substring(end);
 
     if (updated.length > maxLength) return;
 
@@ -228,10 +215,7 @@ function MarkdownFormField({
 
     requestAnimationFrame(() => {
       textarea.focus();
-      textarea.setSelectionRange(
-        start + 1,
-        start + 1 + selectedText.length,
-      );
+      textarea.setSelectionRange(start + 1, start + 1 + selectedText.length);
     });
   };
 
@@ -275,19 +259,14 @@ function MarkdownFormField({
         <span
           className={cn(
             "text-xs font-mono",
-            length > maxLength
-              ? "text-destructive font-semibold"
-              : "text-muted-foreground",
+            length > maxLength ? "text-destructive font-semibold" : "text-muted-foreground",
           )}
         >
           {length.toLocaleString()} / {maxLength.toLocaleString()} characters
         </span>
       </div>
 
-      <Tabs
-        value={tab}
-        onValueChange={(v) => setTab(v as "write" | "preview")}
-      >
+      <Tabs value={tab} onValueChange={(v) => setTab(v as "write" | "preview")}>
         <div className="flex items-center justify-between gap-2">
           <TabsList className="grid w-36 grid-cols-2 h-8">
             <TabsTrigger value="write" className="text-xs">
@@ -297,11 +276,7 @@ function MarkdownFormField({
               Preview
             </TabsTrigger>
           </TabsList>
-          {hint && (
-            <span className="text-xs text-muted-foreground hidden sm:inline">
-              {hint}
-            </span>
-          )}
+          {hint && <span className="text-xs text-muted-foreground hidden sm:inline">{hint}</span>}
         </div>
 
         <TabsContent value="write" className="pt-2 space-y-2">
@@ -431,11 +406,13 @@ export function CourseForm({ initialData, categories, subcategories = [] }: Cour
       objective: initialData?.objective ?? "",
       content: initialData?.content ?? "",
       whoShouldAttend: initialData?.whoShouldAttend ?? "",
+      prerequisites: initialData?.prerequisites ?? "",
       certification: initialData?.certification ?? "",
       notesAndEquipment: initialData?.notesAndEquipment ?? "",
       classCapacity: initialData?.classCapacity ?? "",
       feeDetails: initialData?.feeDetails ?? "",
       courseSupport: initialData?.courseSupport ?? "",
+      courseNote: initialData?.courseNote ?? "",
       isFeatured: initialData?.isFeatured ?? false,
       order: initialData?.order ?? 0,
       status: initialData?.status ?? "ACTIVE",
@@ -739,6 +716,24 @@ export function CourseForm({ initialData, categories, subcategories = [] }: Cour
                 )}
               />
 
+              {/* 3b. Pre-requirements (Markdown, max 5,000) */}
+              <Controller
+                name="prerequisites"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-prerequisites"
+                    label="Pre-requirements (Optional)"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={5000}
+                    hint="Use - or * for bullet points. Max 5,000 chars."
+                    placeholder="Prerequisites, minimum qualifications, or prior certifications required..."
+                    error={errors.prerequisites?.message}
+                  />
+                )}
+              />
+
               {/* 4. Certification (plain text, max 300) */}
               <Controller
                 name="certification"
@@ -826,6 +821,25 @@ export function CourseForm({ initialData, categories, subcategories = [] }: Cour
                     hint="Online revision sessions, mentor support, etc. Max 2,000 chars."
                     placeholder="e.g. Complementary one-day online session and unlimited support on WhatsApp group..."
                     error={errors.courseSupport?.message}
+                  />
+                )}
+              />
+
+              {/* 9. Note (Markdown, max 3,000) */}
+              <Controller
+                name="courseNote"
+                control={control}
+                render={({ field }) => (
+                  <MarkdownFormField
+                    id="course-note"
+                    label="Note (Optional)"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    maxLength={3000}
+                    rows={4}
+                    hint="Use - or * for bullet points. Max 3,000 chars."
+                    placeholder="Special instructions, schedule notes, or reminders..."
+                    error={errors.courseNote?.message}
                   />
                 )}
               />

@@ -37,6 +37,7 @@ next-env.d.ts
 
 # Deployment packages
 /deploy/
+/deploy/cpanel-package/
 *.tar.gz
 *.zip
 

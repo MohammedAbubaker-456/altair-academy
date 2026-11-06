@@ -138,10 +138,12 @@ export function HeaderClient({ menu }: HeaderClientProps) {
   };
 
   return (
-    <header className="relative z-50 w-full border-b border-border bg-background">
+    // <header className="relative z-50 w-full border-b border-border bg-background">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background shadow-sm">
+      {/* // <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shadow-sm"> */}
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-around gap-6 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className=" -ml-25 shrink-0">
+        {/* <Link href="/" className=" -ml-25 shrink-0">
           <Image
             src={logo}
             alt="Altair Academy"
@@ -149,6 +151,17 @@ export function HeaderClient({ menu }: HeaderClientProps) {
             height={70}
             priority
             className="h-[70px] w-auto"
+          />
+        </Link> */}
+
+        <Link href="/" className="shrink-0">
+          <Image
+            src={logo}
+            alt="Altair Academy"
+            width={222}
+            height={70}
+            priority
+            className="h-[48px] w-auto sm:h-[58px] lg:h-[70px]"
           />
         </Link>
 

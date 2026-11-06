@@ -28,6 +28,7 @@ import { getActiveCategories } from "@/server/queries/categories";
 import logo from "@/assets/altair-academy-logo.png";
 import { FloatingWhatsApp } from "@/components/site/FloatingWhatsApp";
 import { NewsletterForm } from "@/components/site/NewsletterForm";
+import { BackToTop } from "@/components/site/BackToTop";
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -248,6 +249,7 @@ export async function Footer() {
         </div>
       </div>
       <FloatingWhatsApp />
+        <BackToTop />
     </footer>
   );
 }

@@ -24,6 +24,7 @@ import { seedTeamMembers } from "./seed-data/team";
 import { seedNewsPosts } from "./seed-data/news";
 import { seedFaqs } from "./seed-data/faqs";
 import { seedTestimonials } from "./seed-data/testimonials";
+import { seedUpcomingIntakes } from "./seed-data/intakes";
 import { seedJobOpenings } from "./seed-data/careers";
 import { seedContactDetails } from "./seed-data/contact";
 import { seedLegalPages } from "./seed-data/legal";
@@ -413,6 +414,38 @@ async function main() {
   }
   console.log(
     `✅ Checked ${seedTestimonials.length} testimonials (${newTestimonials} created, ${skippedTestimonials} skipped)`,
+  );
+
+  // 6c. Upcoming Intakes (Insert-Only by Title + StartDate)
+  let newIntakes = 0;
+  let skippedIntakes = 0;
+  for (const intake of seedUpcomingIntakes) {
+    const existing = await prisma.upcomingIntake.findFirst({
+      where: {
+        title: intake.title,
+        startDate: intake.startDate,
+      },
+    });
+
+    if (!existing) {
+      await prisma.upcomingIntake.create({
+        data: {
+          title: intake.title,
+          startDate: intake.startDate,
+          endDate: intake.endDate,
+          location: intake.location,
+          points: intake.points,
+          order: intake.order,
+          status: "ACTIVE",
+        },
+      });
+      newIntakes++;
+    } else {
+      skippedIntakes++;
+    }
+  }
+  console.log(
+    `✅ Checked ${seedUpcomingIntakes.length} upcoming intakes (${newIntakes} created, ${skippedIntakes} skipped)`,
   );
 
   // 7. Job Openings (Insert-Only by Title)

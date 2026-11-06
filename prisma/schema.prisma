@@ -343,3 +343,18 @@ model CalendarSession {
   @@index([status, startDate])
   @@index([courseId])
 }
+
+model UpcomingIntake {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  startDate String
+  endDate   String
+  location  String
+  points    String[]
+  order     Int      @default(0)
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, endDate])
+}

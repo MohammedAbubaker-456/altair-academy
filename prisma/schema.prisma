@@ -231,6 +231,19 @@ model Faq {
   @@index([status, order])
 }
 
+model Testimonial {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  quote     String
+  name      String
+  company   String?
+  order     Int      @default(0)
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, order])
+}
+
 model JobOpening {
   id             String         @id @default(auto()) @map("_id") @db.ObjectId
   title          String

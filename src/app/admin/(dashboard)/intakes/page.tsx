@@ -59,3 +59,4 @@ export default async function AdminIntakesPage({ searchParams }: AdminIntakesPag
     />
   );
 }
+

@@ -65,3 +65,4 @@ export function IntakeCard({ intake }: IntakeCardProps) {
     </article>
   );
 }
+

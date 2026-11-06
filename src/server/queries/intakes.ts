@@ -31,11 +31,7 @@ export async function getUpcomingIntakes(limit: number = 4): Promise<UpcomingInt
         gte: today,
       },
     },
-    orderBy: [
-      { startDate: "asc" },
-      { order: "asc" },
-      { createdAt: "asc" },
-    ],
+    orderBy: [{ startDate: "asc" }, { order: "asc" }, { createdAt: "asc" }],
     take: limit,
     select: {
       id: true,

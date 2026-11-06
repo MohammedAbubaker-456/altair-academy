@@ -113,8 +113,8 @@ export default async function CourseDetailPage({ params }: Props) {
   if (!course) notFound();
 
   // Other courses from the same category (max 3)
-  const related = course.categorySlug
-    ? (await getAllActiveCourses(course.categorySlug))
+  const related = course.category?.slug
+    ? (await getAllActiveCourses(course.category.slug))
       .filter((c) => c.slug !== course.slug)
       .slice(0, 3)
     : [];
@@ -405,7 +405,7 @@ export default async function CourseDetailPage({ params }: Props) {
               </h2>
             </div>
             <Link
-              href={`/courses?category=${encodeURIComponent(course.categorySlug)}`}
+              href={`/courses?category=${encodeURIComponent(course.category.slug)}`}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-brand-red"
             >
               View all

@@ -2,8 +2,8 @@
  * Public Homepage
  *
  * Server Component rendering Altair Academy's landing page.
- * Loads featured courses, active categories, management team, and FAQs from MongoDB.
- * Testimonials and upcoming sessions remain static.
+ * Loads featured courses, active categories, management team, FAQs, and testimonials from MongoDB.
+ * Upcoming sessions remain static.
  *
  * Location: src/app/page.tsx
  * Type: Server Component
@@ -41,6 +41,7 @@ import { getFeaturedCourses } from "@/server/queries/courses";
 import { getActiveCategories } from "@/server/queries/categories";
 import { getManagementTeam } from "@/server/queries/team";
 import { getActiveFaqs } from "@/server/queries/faqs";
+import { getActiveTestimonials } from "@/server/queries/testimonials";
 import { getContactInfo } from "@/server/queries/contact";
 import heroImage from "@/assets/hero-classroom.jpg";
 import approachImage from "@/assets/approach-classroom.jpg";
@@ -92,13 +93,15 @@ const aboutPoints = [
 ];
 
 export default async function Home() {
-  const [categories, featuredCourses, managementTeam, faqs, contactInfo] = await Promise.all([
-    getActiveCategories(),
-    getFeaturedCourses(),
-    getManagementTeam(),
-    getActiveFaqs(),
-    getContactInfo(),
-  ]);
+  const [categories, featuredCourses, managementTeam, faqs, contactInfo, testimonials] =
+    await Promise.all([
+      getActiveCategories(),
+      getFeaturedCourses(),
+      getManagementTeam(),
+      getActiveFaqs(),
+      getContactInfo(),
+      getActiveTestimonials(),
+    ]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -465,17 +468,19 @@ export default async function Home() {
         </section>
 
         {/* Testimonials */}
-        <section className="bg-secondary py-20">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <SectionHeader
-              align="center"
-              label="Testimonials"
-              title="From Our Students"
-              variant="plain"
-            />
-            <Testimonials />
-          </div>
-        </section>
+        {testimonials.length > 0 && (
+          <section className="bg-secondary py-20">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+              <SectionHeader
+                align="center"
+                label="Testimonials"
+                title="From Our Students"
+                variant="plain"
+              />
+              <Testimonials testimonials={testimonials} />
+            </div>
+          </section>
+        )}
 
         {/* FAQ */}
         <section className="py-20">

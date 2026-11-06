@@ -1,139 +1,28 @@
-// import { Quote, Star } from "lucide-react";
-// import { testimonials } from "@/data/site";
-
-// function initials(name: string) {
-//   return name
-//     .split(" ")
-//     .map((n) => n[0])
-//     .join("")
-//     .slice(0, 2)
-//     .toUpperCase();
-// }
-
-// const columns = [testimonials.slice(0, 3), testimonials.slice(3, 6), testimonials.slice(6, 9)];
-
-// const cycleDuration = 9;
-
-// function TestimonialFan({ stack }: { stack: typeof testimonials }) {
-//   return (
-//     <div className="relative mx-auto w-full max-w-xs md:max-w-sm px-4" style={{ height: "440px" }}>
-//       {stack.map((t, i) => (
-//         <article
-//           key={t.name}
-//           className="testimonial-card flex h-[360px] flex-col overflow-hidden rounded-3xl border border-white/10 shadow-2xl"
-//           style={{ animationDelay: `${-i * 3}s` }}
-//         >
-//           {/* Top visual band */}
-//           <div
-//             className="testimonial-body flex h-28 shrink-0 items-center justify-center bg-navy-deep md:h-32"
-//             style={{ animationDelay: `${-i * 3}s` }}
-//           >
-//             <span className="flex size-14 items-center justify-center rounded-full bg-brand-red text-lg font-bold text-brand-red-foreground shadow-lg ring-4 ring-navy md:size-16">
-//               {initials(t.name)}
-//             </span>
-//           </div>
-
-//           {/* Body — only visible on the front card */}
-//           <div
-//             className="testimonial-body flex flex-1 flex-col items-center px-6 pt-5 text-center"
-//             style={{ animationDelay: `${-i * 3}s` }}
-//           >
-//             <div className="flex justify-center gap-1">
-//               {Array.from({ length: 5 }).map((_, j) => (
-//                 <Star
-//                   key={j}
-//                   className="size-3.5 fill-amber-400 text-amber-400 md:size-4"
-//                   aria-hidden="true"
-//                 />
-//               ))}
-//             </div>
-
-//             <h4 className="mt-3 font-display text-base font-semibold text-primary-foreground md:text-lg">
-//               {t.name}
-//             </h4>
-//             <p className="text-xs uppercase tracking-wider text-primary-foreground/60 md:text-sm">
-//               {t.company}
-//             </p>
-
-//             <p className="mt-3 line-clamp-4 text-sm italic leading-relaxed text-primary-foreground/90 md:text-base">
-//               “{t.quote}”
-//             </p>
-
-//             <Quote className="mt-auto mb-4 size-5 text-brand-red" aria-hidden="true" />
-//           </div>
-//         </article>
-//       ))}
-//     </div>
-//   );
-// }
-
-// export function Testimonials() {
-//   return (
-//     <div className="mt-12 md:mt-16">
-//       <style>
-//         {`
-//           @keyframes testimonial-fan {
-//             0%, 30% {
-//               transform: translateX(0) rotate(0deg) scale(1);
-//               z-index: 30;
-//               background-color: var(--navy);
-//               opacity: 1;
-//             }
-//             33%, 63% {
-//               transform: translateX(12%) rotate(4deg) scale(0.94);
-//               z-index: 20;
-//               background-color: color-mix(in oklab, var(--muted-foreground) 35%, var(--navy));
-//               opacity: 0.9;
-//             }
-//             66%, 96% {
-//               transform: translateX(-12%) rotate(-4deg) scale(0.94);
-//               z-index: 10;
-//               background-color: color-mix(in oklab, var(--muted-foreground) 35%, var(--navy));
-//               opacity: 0.9;
-//             }
-//             100% {
-//               transform: translateX(0) rotate(0deg) scale(1);
-//               z-index: 30;
-//               background-color: var(--navy);
-//               opacity: 1;
-//             }
-//           }
-//           @keyframes testimonial-body {
-//             0%, 30% { opacity: 1; }
-//             33%, 96% { opacity: 0; }
-//             100% { opacity: 1; }
-//           }
-//           .testimonial-card {
-//             animation: testimonial-fan ${cycleDuration}s infinite ease-in-out;
-//             position: absolute;
-//             top: 0;
-//             left: 5%;
-//             right: 5%;
-//             background-color: var(--navy);
-//           }
-//           .testimonial-body {
-//             animation: testimonial-body ${cycleDuration}s infinite ease-in-out;
-//           }
-//         `}
-//       </style>
-
-//       <div className="grid grid-cols-1 gap-12 px-4 md:grid-cols-3 md:gap-8 lg:gap-16 lg:px-8">
-//         {columns.map((stack, colIndex) => (
-//           <TestimonialFan key={colIndex} stack={stack} />
-//         ))}
-//       </div>
-//     </div>
-//   );
-// }
-
-// changes 1
-
+/**
+ * Testimonials Reel Carousel
+ *
+ * Interactive client carousel featuring a vertical scroll reel and animated
+ * typography for student and employer reviews.
+ *
+ * Location: src/components/site/Testimonials.tsx
+ * Type: Client Component ("use client")
+ */
 
 "use client";
 
 import * as React from "react";
 import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
-import { testimonials } from "@/data/site";
+
+export interface TestimonialItem {
+  id: string;
+  quote: string;
+  name: string;
+  company: string | null;
+}
+
+interface TestimonialsProps {
+  testimonials: TestimonialItem[];
+}
 
 const CELL = 96;
 const GAP = 8;
@@ -224,7 +113,7 @@ function AnimatedText({
   );
 }
 
-export function Testimonials() {
+export function Testimonials({ testimonials }: TestimonialsProps) {
   const [index, setIndex] = React.useState(0);
   const [displayIndex, setDisplayIndex] = React.useState(0);
   const [exiting, setExiting] = React.useState(false);
@@ -263,16 +152,16 @@ export function Testimonials() {
         setTimeout(() => {
           setDisplayIndex(next);
           setExiting(false);
-        }, EXIT_MS)
+        }, EXIT_MS),
       );
 
       timeouts.current.push(
         setTimeout(() => {
           animating.current = false;
-        }, SLIDE_MS)
+        }, SLIDE_MS),
       );
     },
-    [index, count]
+    [index, count],
   );
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -290,18 +179,16 @@ export function Testimonials() {
   if (count === 0) return null;
 
   const current = testimonials[displayIndex];
+  if (!current) return null;
 
-  const firstTileOffset =
-    (REEL_HEIGHT - CELL) / 2 - 3 * (CELL + GAP);
+  const firstTileOffset = (REEL_HEIGHT - CELL) / 2 - 3 * (CELL + GAP);
 
   const middleY = firstTileOffset - index * STEP;
   const sideY = -middleY;
 
   const columnStyle = (y: number): React.CSSProperties => ({
     transform: `translateY(${y}px)`,
-    transition: mounted
-      ? `transform ${SLIDE_MS}ms cubic-bezier(0.65,0,0.35,1)`
-      : "none",
+    transition: mounted ? `transform ${SLIDE_MS}ms cubic-bezier(0.65,0,0.35,1)` : "none",
   });
 
   const sideCellCount = 4 + 2 * count;
@@ -310,9 +197,7 @@ export function Testimonials() {
     ...Array.from({ length: 3 }, () => ({ type: "cell" as const })),
     ...testimonials.flatMap((item, i) => [
       { type: "featured" as const, item, index: i },
-      ...(i < count - 1
-        ? [{ type: "cell" as const }, { type: "cell" as const }]
-        : []),
+      ...(i < count - 1 ? [{ type: "cell" as const }, { type: "cell" as const }] : []),
     ]),
     ...Array.from({ length: 3 }, () => ({ type: "cell" as const })),
   ];
@@ -389,38 +274,25 @@ export function Testimonials() {
         >
           <div className="absolute inset-0 flex items-center justify-center gap-2">
             {/* Left column */}
-            <div
-              className="flex shrink-0 flex-col gap-2"
-              style={columnStyle(sideY)}
-            >
+            <div className="flex shrink-0 flex-col gap-2" style={columnStyle(sideY)}>
               {Array.from({ length: sideCellCount }).map((_, i) => (
                 <ReelCell key={i} />
               ))}
             </div>
 
             {/* Center column */}
-            <div
-              className="flex shrink-0 flex-col gap-2"
-              style={columnStyle(middleY)}
-            >
+            <div className="flex shrink-0 flex-col gap-2" style={columnStyle(middleY)}>
               {middleItems.map((item, i) =>
                 item.type === "featured" ? (
-                  <FeaturedTile
-                    key={i}
-                    name={item.item.name}
-                    index={item.index}
-                  />
+                  <FeaturedTile key={i} name={item.item.name} index={item.index} />
                 ) : (
                   <ReelCell key={i} />
-                )
+                ),
               )}
             </div>
 
             {/* Right column */}
-            <div
-              className="flex shrink-0 flex-col gap-2"
-              style={columnStyle(sideY)}
-            >
+            <div className="flex shrink-0 flex-col gap-2" style={columnStyle(sideY)}>
               {Array.from({ length: sideCellCount }).map((_, i) => (
                 <ReelCell key={i} />
               ))}
@@ -453,9 +325,11 @@ export function Testimonials() {
 
                 <div>
                   <p className="text-sm font-semibold">{current.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {current.company}
-                  </p>
+                  {current.company && (
+                    <p className="text-xs text-muted-foreground">
+                      {current.company}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -463,7 +337,7 @@ export function Testimonials() {
                 key={displayIndex}
                 className={cn(
                   "absolute inset-0 flex flex-col gap-5",
-                  exiting && "scroll-reel-exit"
+                  exiting && "scroll-reel-exit",
                 )}
               >
                 <p className="text-lg font-medium leading-relaxed tracking-tight text-foreground sm:text-xl">
@@ -480,9 +354,11 @@ export function Testimonials() {
                     />
                   </p>
 
-                  <p className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    {current.company}
-                  </p>
+                  {current.company && (
+                    <p className="mt-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      {current.company}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -513,8 +389,7 @@ export function Testimonials() {
             </div>
 
             <span className="text-xs font-medium tabular-nums text-muted-foreground">
-              {String(index + 1).padStart(2, "0")} /{" "}
-              {String(count).padStart(2, "0")}
+              {String(index + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
             </span>
           </div>
         </div>

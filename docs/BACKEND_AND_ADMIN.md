@@ -58,8 +58,8 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 > npm run db:seed
 > ```
 >
-> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`, `CalendarCourse`, `CalendarSession`, `Subcategory`, and `Testimonial`), establishes indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, `@@index([status, startDate])`, `@@index([courseId])`, `@@index([subcategoryId])`, `@@index([status, order])`, unique index on course code, composite unique index on `[courseId, kind, startDate, endDate]`, composite unique index on `[categoryId, slug]`, and `@@index([categoryId, parentId, order])`).
-> - `db:seed` performs safe, insert-only population: provisions testimonials, subcategories under matching categories (e.g., NDT -> ASNT Courses, PCN Courses, Special NDT; Office Productivity -> Beginner, Intermediate), calendar courses, and sessions without overwriting any existing administrator customizations.
+> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`, `CalendarCourse`, `CalendarSession`, `Subcategory`, `Testimonial`, and `UpcomingIntake`), establishes indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, `@@index([status, startDate])`, `@@index([courseId])`, `@@index([subcategoryId])`, `@@index([status, order])`, `@@index([status, endDate])`, unique index on course code, composite unique index on `[courseId, kind, startDate, endDate]`, composite unique index on `[categoryId, slug]`, and `@@index([categoryId, parentId, order])`).
+> - `db:seed` performs safe, insert-only population: provisions testimonials, upcoming intakes, subcategories under matching categories (e.g., NDT -> ASNT Courses, PCN Courses, Special NDT; Office Productivity -> Beginner, Intermediate), calendar courses, and sessions without overwriting any existing administrator customizations.
 
 ---
 
@@ -73,7 +73,7 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 | `npm run db:check`        | Verifies MongoDB connection & writable replica set                          | After starting local MongoDB or testing Atlas                     |
 | `npm run db:generate`     | Generates Prisma Client for native & Linux targets                          | After modifying `prisma/schema.prisma`                            |
 | `npm run db:push`         | Synchronizes Prisma schema with MongoDB                                     | Schema updates (local or Atlas from local PC)                     |
-| `npm run db:seed`         | Seeds categories, courses, team, news, FAQs, testimonials, careers, contact, legal, admin | Initial database setup & feature migrations                       |
+| `npm run db:seed`         | Seeds categories, courses, team, news, FAQs, testimonials, intakes, careers, contact, legal, admin | Initial database setup & feature migrations                       |
 | `npm run db:data-migrate` | Runs sequential data migrations from `prisma/data-migrations/`              | Schema evolution and transformations                              |
 | `npm run admin:create`    | Interactive CLI to provision additional admins                              | Account provisioning                                              |
 | `npm run package:cpanel`  | Prepares standalone cPanel Linux deployment package                         | Preparing production release (`deploy/altair-academy-cpanel.zip`) |
@@ -195,6 +195,8 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 | `/admin/legal`                 | Legal & Policy Documents   | Table of documents with canonical URLs, footer link status, last updated, status switch, and **core document protection**.                                                    |
 | `/admin/legal/new` & `/[id]`   | Legal Page Form            | Title, slug (auto-suggested, locked for core pages), meta description (max 200), **Markdown body (Write/Preview tabs)**, dynamic placeholder tokens, footer placement toggle. |
 | `/admin/faqs`                  | FAQs                       | Question and answer list, display order configuration, modal create/edit dialog.                                                                                              |
+| `/admin/calendar`              | Training Calendar (Full)   | Scheduled sessions, course codes, exam/training kinds, date spans, and session modals for the dedicated `/calendar` page.                                                     |
+| `/admin/intakes`               | Upcoming Intakes           | Scheduled intake cards for the home page "Training calendar" section. Timing filter (Upcoming / Past / All), search, status switch, duplicate, dynamic highlights points editor (max 5), non-blocking date/duplicate warnings, and live `IntakeCard` preview. |
 | `/admin/testimonials`          | Testimonials               | Search by quote, student name, or company, status filter (ACTIVE / INACTIVE), pagination, optimistic status switch, modal create/edit dialog with live character counter (max 600), deletion confirmation. |
 | `/admin/settings`              | Account Security           | Change admin password with current password verification.                                                                                                                     |
 | `/admin/login`                 | Authentication Portal      | Rate-limited login (max 5 failed attempts / 15 min), timing equalization, session cookie issuance.                                                                            |
@@ -640,7 +642,82 @@ model Testimonial {
 
 ---
 
-## 16. Troubleshooting
+## 16. Upcoming Intakes Module & Data Flow (Home Page Scheduled Intakes)
+
+### Distinction Between Upcoming Intakes & Training Calendar
+- **`UpcomingIntake`** (Collection: `UpcomingIntake`): Powers the scheduled intake cards displayed on the public home page under the section heading "Join Our Next Scheduled Intake". Cards present title, calendar date range, venue, bullet points, and a direct "Reserve a Seat" button linked to `/contact`.
+- **`CalendarSession` & `CalendarCourse`** (Collections: `CalendarSession`, `CalendarCourse`): Power the full dedicated `/calendar` page with course codes, certification levels, training/exam kinds, and booking workflows.
+- These two systems operate on completely separate MongoDB collections, schemas, and queries. They never read or write to each other.
+
+### The Data Model (`UpcomingIntake`)
+
+```prisma
+model UpcomingIntake {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  startDate String   // Calendar date "YYYY-MM-DD", inclusive
+  endDate   String   // Calendar date "YYYY-MM-DD", inclusive (defaults to startDate for single-day intakes)
+  location  String
+  points    String[] // Max 5 bullet points
+  order     Int      @default(0)
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, endDate])
+}
+```
+
+#### Rationale for Date-Only Strings (`YYYY-MM-DD`)
+- Same architecture as the Training Calendar module: storing calendar dates as fixed `"YYYY-MM-DD"` text strings eliminates timezone boundary shifts (Asia/Kuala_Lumpur vs UTC or client local time).
+- Lexicographical string comparison (`gte`, `lt`) functions reliably for date filtering.
+- Prevents React hydration mismatches on client renders.
+- Never instantiate calendar dates using `new Date("YYYY-MM-DD")` in formatting or query paths.
+
+### Validation Limits (`src/lib/validation/intake.ts`)
+- **`title`**: Required string, 3 to 120 characters. Trimmed, control characters stripped, plain text only.
+- **`startDate`**: Required real calendar date in `"YYYY-MM-DD"` format (rejects invalid days such as `2026-02-30`), year between 2000 and 2100.
+- **`endDate`**: Optional input (defaults to `startDate` if empty or whitespace). Valid calendar date in `"YYYY-MM-DD"` format, must be on or after `startDate`, and cannot span more than 31 days.
+- **`location`**: Required string, 2 to 120 characters. Trimmed, control characters stripped.
+- **`points`**: Array of 0 to 5 highlight strings. Each entry is trimmed, control characters stripped, empty entries dropped, duplicates deduplicated. 3 to 100 characters per point.
+- **`order`**: Integer between 0 and 9999.
+- **`status`**: Enum `ACTIVE` or `INACTIVE`.
+
+### Idempotent Seed Data (`prisma/seed-data/intakes.ts`)
+- Converts the 4 legacy static sessions from `src/data/site.ts` into structured calendar intakes:
+  1. `2026-10-12` | Visual Testing (VT) Level 1 | Kuala Lumpur Centre
+  2. `2026-10-26` | Weld Inspection Intensive | Kuala Lumpur Centre
+  3. `2026-11-09` | ISO 50001 Awareness | Live online classroom
+  4. `2026-11-23` | Asset Assessment with BIM | Kuala Lumpur Centre
+- **Insert-Only & Idempotent**: A record is recognized as existing when `title + startDate` match.
+- Re-running `npm run db:seed` inserts only missing baseline records and never overwrites administrator modifications.
+
+### Automatic Past Intake Hiding
+- Evaluated on the server using current date in `"Asia/Kuala_Lumpur"` timezone (`today = getTodayDateString("Asia/Kuala_Lumpur")`).
+- **Public Home Page**: `getUpcomingIntakes(limit = 4)` filters `status: "ACTIVE"` and `endDate >= today`. Any intake whose `endDate` is before today is automatically excluded from the public display.
+- **Zero-Active Fallback**: If 0 active upcoming intakes exist, the entire "Training calendar" section on the home page (including heading and SectionHeader) is omitted cleanly from DOM output.
+- **Admin Visibility**: All intakes (upcoming, today, and past) remain fully visible and manageable in `/admin/intakes`. The timing filter tabs (`Upcoming` [default], `Past`, `All`) and timing badges (`Upcoming`, `Today`, `Past`) let administrators review past cohorts or duplicate them for future schedules.
+
+### Admin Management (`/admin/intakes`)
+- Accessible via "Upcoming intakes" in the Content sidebar group (desktop and mobile), positioned next to "Training calendar".
+- Dashboard overview card displays real-time counts for **Upcoming Active**, **Past**, and **Inactive** intakes.
+- **Table View**: Order, Title, Date Range with raw strings, Location, Highlights point count, Timing badge (`Upcoming` / `Today` / `Past`), `StatusSwitch`, and action buttons (Edit, Duplicate, Delete).
+- **Search & Filters**: Search on `title` and `location`, timing filter tabs (`Upcoming` / `Past` / `All`), status filter (`ALL` / `ACTIVE` / `INACTIVE`), and 10-item pagination.
+- **Create & Edit Dialog**: Full-featured modal with:
+  - Native date pickers for `startDate` and `endDate` (auto-syncing end date).
+  - Dynamic highlight points editor: add, remove, reorder up/down, live character counter (`X / 100`).
+  - Non-blocking warnings: notifies when selected date is in the past (`endDate < today`) or when an intake with the same title already exists.
+  - **Live Preview**: Real `<IntakeCard />` component updating in real time as the admin types.
+- **Duplicate Action**: Row button opens the modal form prefilled with title, location, points, and order, but with blank dates ready for new scheduling.
+- **Server Actions**: `src/app/admin/intakes/actions.ts` (`"use server"`). Enforces `await requireAdmin()`, validates ObjectIds, runs schema validation, and revalidates `/admin`, `/admin/intakes`, and `revalidatePath("/")`.
+
+> [!IMPORTANT]
+> **Setup Requirement After Pulling**:
+> Always run `npm run db:push` followed by `npm run db:seed` to provision the `UpcomingIntake` collection and seed the baseline records.
+
+---
+
+## 17. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 

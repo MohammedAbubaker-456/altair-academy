@@ -32,7 +32,7 @@ altair-academy/
 ├── prisma/
 │   ├── schema.prisma                # MongoDB schema, binaryTargets ["native", "rhel-openssl-3.0.x"]
 │   ├── seed.ts                      # Idempotent seed script (upserting initial records & admin user)
-│   ├── seed-data/                   # Source seed datasets (categories, courses, team, news, faqs, testimonials)
+│   ├── seed-data/                   # Source seed datasets (categories, courses, team, news, faqs, testimonials, intakes)
 │   └── data-migrations/             # Programmatic data migrations run sequentially
 │
 ├── public/
@@ -60,7 +60,7 @@ altair-academy/
 │   │
 │   ├── app/                         # Next.js App Router route hierarchy
 │   │   ├── layout.tsx               # Global HTML shell, metadataBase (SITE_URL), Google Fonts
-│   │   ├── page.tsx                 # Public Home (Featured courses, pills, leadership, FAQs, testimonials, dynamic contact)
+│   │   ├── page.tsx                 # Public Home (Featured courses, pills, leadership, FAQs, testimonials, upcoming intakes, dynamic contact)
 │   │   ├── about/page.tsx           # Public About page with management leadership team
 │   │   ├── courses/                 # Public Course catalog with discipline filtering
 │   │   │   ├── page.tsx             # /courses catalog
@@ -100,6 +100,7 @@ altair-academy/
 │   │       ├── upload-actions.ts    # Server action for local disk image uploads
 │   │       ├── login/               # Authentication portal (rate-limited, timing equalization)
 │   │       ├── calendar/actions.ts  # Calendar server actions (CRUD for sessions & courses + overlap & delete safeguards)
+│   │       ├── intakes/actions.ts   # Upcoming intakes server actions (CRUD + optimistic status switch + duplicate + revalidation)
 │   │       ├── categories/
 │   │       │   ├── actions.ts       # Category server actions (CRUD + delete blocking on courses & subcategories)
 │   │       │   └── subcategory-actions.ts # Subcategory server actions (CRUD + 2-level depth guard + course delete guard)
@@ -123,6 +124,7 @@ altair-academy/
 │   │           ├── layout.tsx       # Dashboard layout (Sidebar, top navigation, admin identity)
 │   │           ├── page.tsx         # /admin Overview metrics (NEW leads/apps, active subscribers, & upcoming calendar counts)
 │   │           ├── calendar/        # /admin/calendar tabbed manager (Sessions / Course codes), /sessions/new, and /[id]
+│   │           ├── intakes/         # /admin/intakes table, timing tabs (Upcoming/Past/All), duplicate, live IntakeCard preview
 │   │           ├── leads/           # /admin/leads management table & /[id] detail viewer
 │   │           ├── applications/    # /admin/applications candidate table & /[id] resume viewer
 │   │           ├── subscribers/     # /admin/subscribers management table, summary cards & CSV export menu
@@ -184,6 +186,7 @@ altair-academy/
 │   │       ├── news.ts              # News schema with optional body (Markdown <= 50,000)
 │   │       ├── faqs.ts              # FAQ validation schema
 │   │       ├── testimonial.ts       # Testimonial validation schema (quote 10-600, name 2-100, company max 120, order 0-9999)
+│   │       ├── intake.ts            # UpcomingIntake validation schema (title 3-120, dates YYYY-MM-DD <= 31 days, points 0-5 items <= 100 chars)
 │   │       ├── careers.ts           # JobOpening validation schema
 │   │       ├── contact.ts           # ContactDetail schema with per-type refinements
 │   │       └── legal.ts             # LegalPage validation schema with reserved slug guards
@@ -192,6 +195,7 @@ altair-academy/
 │       ├── admin/                   # Administrative data queries (requireAdmin enforced)
 │       │   ├── stats.ts             # Dashboard overview stats across all models + NEW lead/app counts
 │       │   ├── calendar.ts          # Calendar sessions (multi-filter, pagination) & course codes
+│       │   ├── intakes.ts           # Upcoming intakes admin queries (timing, status, search, pagination)
 │       │   ├── leads.ts             # Leads admin search, status filter, pagination & ID query
 │       │   ├── applications.ts      # Applications admin search, status filter, pagination & ID query
 │       │   ├── courses.ts
@@ -213,6 +217,7 @@ altair-academy/
 │       │   ├── news.ts              # News queries + getNewsPostBySlug & getLatestNewsExcluding
 │       │   ├── faqs.ts
 │       │   ├── testimonials.ts      # getActiveTestimonials (ordered plain serialisable DTOs)
+│       │   ├── intakes.ts           # getUpcomingIntakes (active intakes where endDate >= today in Asia/Kuala_Lumpur)
 │       │   ├── careers.ts           # getActiveJobOpenings (ordered)
 │       │   ├── contact.ts           # getContactDetails (grouped) & getContactInfo (legacy adapter)
 │       │   └── legal.ts             # getFooterLegalLinks, getActiveLegalPageBySlug, replaceLegalTokens
@@ -220,4 +225,4 @@ altair-academy/
 ```
 
 > [!NOTE]
-> After pulling changes that include schema and seed updates (such as testimonials), run `npm run db:push` followed by `npm run db:seed`.
+> After pulling changes that include schema and seed updates (such as testimonials and upcoming intakes), run `npm run db:push` followed by `npm run db:seed`.

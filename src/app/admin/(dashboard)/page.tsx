@@ -31,6 +31,7 @@ import {
   FileUser,
   MailCheck,
   CalendarDays,
+  CalendarCheck,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -74,10 +75,30 @@ export default async function AdminDashboardPage() {
       totalLabel: "Sessions",
       activeLabel: "Upcoming Active",
       inactiveLabel: "Courses Active",
+      extraStat: undefined,
       icon: CalendarDays,
       href: "/admin/calendar",
       newHref: "/admin/calendar/sessions/new",
       description: "Intake schedules, session dates, and calendar course codes",
+    },
+    {
+      title: "Upcoming Intakes",
+      stats: {
+        total: stats.intakes.total,
+        active: stats.intakes.upcomingActive,
+        inactive: stats.intakes.inactive,
+      },
+      totalLabel: "Intakes",
+      activeLabel: "Upcoming Active",
+      inactiveLabel: "Inactive",
+      extraStat: {
+        label: "Past",
+        value: stats.intakes.past,
+      },
+      icon: CalendarCheck,
+      href: "/admin/intakes",
+      newHref: null,
+      description: "Home page scheduled intake cards, date ranges, and seat reservation highlights",
     },
     {
       title: "Team & Instructors",
@@ -341,12 +362,19 @@ export default async function AdminDashboardPage() {
                 </CardHeader>
 
                 <CardContent className="pt-0">
-                  <div className="flex items-center gap-3 py-2 text-xs border-y my-3">
+                  <div className="flex items-center gap-3 py-2 text-xs border-y my-3 flex-wrap">
                     <div className="flex items-center gap-1.5">
                       <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
                       <span className="font-medium text-foreground">{card.stats.active}</span>
                       <span className="text-muted-foreground">{card.activeLabel ?? "Active"}</span>
                     </div>
+                    {card.extraStat && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="inline-block h-2 w-2 rounded-full bg-slate-400" />
+                        <span className="font-medium text-foreground">{card.extraStat.value}</span>
+                        <span className="text-muted-foreground">{card.extraStat.label}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-1.5">
                       <span className="inline-block h-2 w-2 rounded-full bg-amber-500" />
                       <span className="font-medium text-foreground">{card.stats.inactive}</span>

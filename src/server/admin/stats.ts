@@ -48,10 +48,19 @@ export interface DashboardStats {
     sessionsActive: number;
     upcomingActiveSessions: number;
   };
+  intakes: {
+    total: number;
+    active: number;
+    inactive: number;
+    upcomingActive: number;
+    past: number;
+  };
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
   await requireAdmin();
+
+  const today = getTodayDateString("Asia/Kuala_Lumpur");
 
   const [
     coursesTotal,
@@ -83,6 +92,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     calendarSessionsTotal,
     calendarSessionsActive,
     upcomingActiveSessions,
+    intakesTotal,
+    intakesActive,
+    intakesUpcomingActive,
+    intakesPast,
   ] = await Promise.all([
     db.course.count(),
     db.course.count({ where: { status: "ACTIVE" } }),
@@ -115,7 +128,20 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     db.calendarSession.count({
       where: {
         status: "ACTIVE",
-        endDate: { gte: getTodayDateString() },
+        endDate: { gte: today },
+      },
+    }),
+    db.upcomingIntake.count(),
+    db.upcomingIntake.count({ where: { status: "ACTIVE" } }),
+    db.upcomingIntake.count({
+      where: {
+        status: "ACTIVE",
+        endDate: { gte: today },
+      },
+    }),
+    db.upcomingIntake.count({
+      where: {
+        endDate: { lt: today },
       },
     }),
   ]);
@@ -184,6 +210,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       sessionsTotal: calendarSessionsTotal,
       sessionsActive: calendarSessionsActive,
       upcomingActiveSessions,
+    },
+    intakes: {
+      total: intakesTotal,
+      active: intakesActive,
+      inactive: intakesTotal - intakesActive,
+      upcomingActive: intakesUpcomingActive,
+      past: intakesPast,
     },
   };
 }

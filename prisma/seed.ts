@@ -23,6 +23,7 @@ import { seedCourses } from "./seed-data/courses";
 import { seedTeamMembers } from "./seed-data/team";
 import { seedNewsPosts } from "./seed-data/news";
 import { seedFaqs } from "./seed-data/faqs";
+import { seedTestimonials } from "./seed-data/testimonials";
 import { seedJobOpenings } from "./seed-data/careers";
 import { seedContactDetails } from "./seed-data/contact";
 import { seedLegalPages } from "./seed-data/legal";
@@ -382,6 +383,37 @@ async function main() {
     }
   }
   console.log(`✅ Checked ${seedFaqs.length} FAQs (${newFaqs} created)`);
+
+  // 6b. Testimonials (Insert-Only by Quote + Name + Company)
+  let newTestimonials = 0;
+  let skippedTestimonials = 0;
+  for (const testimonial of seedTestimonials) {
+    const existing = await prisma.testimonial.findFirst({
+      where: {
+        quote: testimonial.quote,
+        name: testimonial.name,
+        company: testimonial.company,
+      },
+    });
+
+    if (!existing) {
+      await prisma.testimonial.create({
+        data: {
+          quote: testimonial.quote,
+          name: testimonial.name,
+          company: testimonial.company,
+          order: testimonial.order,
+          status: "ACTIVE",
+        },
+      });
+      newTestimonials++;
+    } else {
+      skippedTestimonials++;
+    }
+  }
+  console.log(
+    `✅ Checked ${seedTestimonials.length} testimonials (${newTestimonials} created, ${skippedTestimonials} skipped)`,
+  );
 
   // 7. Job Openings (Insert-Only by Title)
   let newJobs = 0;

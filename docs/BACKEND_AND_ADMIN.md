@@ -58,8 +58,8 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 > npm run db:seed
 > ```
 >
-> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`, `CalendarCourse`, `CalendarSession`, and `Subcategory`), establishes indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, `@@index([status, startDate])`, `@@index([courseId])`, `@@index([subcategoryId])`, unique index on course code, composite unique index on `[courseId, kind, startDate, endDate]`, composite unique index on `[categoryId, slug]`, and `@@index([categoryId, parentId, order])`).
-> - `db:seed` performs safe, insert-only population: provisions subcategories under matching categories (e.g., NDT -> ASNT Courses, PCN Courses, Special NDT; Office Productivity -> Beginner, Intermediate), calendar courses, and sessions without overwriting any existing administrator customizations.
+> - `db:push` syncs the MongoDB collections (`Lead`, `CareerApplication`, `NewsletterSubscriber`, `CalendarCourse`, `CalendarSession`, `Subcategory`, and `Testimonial`), establishes indexes (`@@index([status, createdAt])`, `@@index([status, subscribedAt])`, `@@index([status, startDate])`, `@@index([courseId])`, `@@index([subcategoryId])`, `@@index([status, order])`, unique index on course code, composite unique index on `[courseId, kind, startDate, endDate]`, composite unique index on `[categoryId, slug]`, and `@@index([categoryId, parentId, order])`).
+> - `db:seed` performs safe, insert-only population: provisions testimonials, subcategories under matching categories (e.g., NDT -> ASNT Courses, PCN Courses, Special NDT; Office Productivity -> Beginner, Intermediate), calendar courses, and sessions without overwriting any existing administrator customizations.
 
 ---
 
@@ -73,7 +73,7 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 | `npm run db:check`        | Verifies MongoDB connection & writable replica set                          | After starting local MongoDB or testing Atlas                     |
 | `npm run db:generate`     | Generates Prisma Client for native & Linux targets                          | After modifying `prisma/schema.prisma`                            |
 | `npm run db:push`         | Synchronizes Prisma schema with MongoDB                                     | Schema updates (local or Atlas from local PC)                     |
-| `npm run db:seed`         | Seeds categories, courses, team, news, FAQs, careers, contact, legal, admin | Initial database setup & feature migrations                       |
+| `npm run db:seed`         | Seeds categories, courses, team, news, FAQs, testimonials, careers, contact, legal, admin | Initial database setup & feature migrations                       |
 | `npm run db:data-migrate` | Runs sequential data migrations from `prisma/data-migrations/`              | Schema evolution and transformations                              |
 | `npm run admin:create`    | Interactive CLI to provision additional admins                              | Account provisioning                                              |
 | `npm run package:cpanel`  | Prepares standalone cPanel Linux deployment package                         | Preparing production release (`deploy/altair-academy-cpanel.zip`) |
@@ -113,7 +113,7 @@ npm run db:push
 
 ### Step 3: Seed Initial Data & First Administrator
 
-Populates categories, courses, team members, news posts, FAQs, job openings, contact channels, legal pages, and creates the first admin user:
+Populates categories, courses, team members, news posts, FAQs, testimonials, job openings, contact channels, legal pages, and creates the first admin user:
 
 ```bash
 npm run db:seed
@@ -195,6 +195,7 @@ Access the dashboard at `/admin`. If not authenticated, you will be redirected t
 | `/admin/legal`                 | Legal & Policy Documents   | Table of documents with canonical URLs, footer link status, last updated, status switch, and **core document protection**.                                                    |
 | `/admin/legal/new` & `/[id]`   | Legal Page Form            | Title, slug (auto-suggested, locked for core pages), meta description (max 200), **Markdown body (Write/Preview tabs)**, dynamic placeholder tokens, footer placement toggle. |
 | `/admin/faqs`                  | FAQs                       | Question and answer list, display order configuration, modal create/edit dialog.                                                                                              |
+| `/admin/testimonials`          | Testimonials               | Search by quote, student name, or company, status filter (ACTIVE / INACTIVE), pagination, optimistic status switch, modal create/edit dialog with live character counter (max 600), deletion confirmation. |
 | `/admin/settings`              | Account Security           | Change admin password with current password verification.                                                                                                                     |
 | `/admin/login`                 | Authentication Portal      | Rate-limited login (max 5 failed attempts / 15 min), timing equalization, session cookie issuance.                                                                            |
 
@@ -580,7 +581,66 @@ The Course data model and public detail pages include two optional Markdown-enab
 
 ---
 
-## 15. Troubleshooting
+## 15. Testimonials Module & Data Flow
+
+### The Data Model (`Testimonial`)
+
+Testimonials are managed in MongoDB via Prisma:
+
+```prisma
+model Testimonial {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  quote     String
+  name      String
+  company   String?
+  order     Int      @default(0)
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, order])
+}
+```
+
+### Validation Limits (`src/lib/validation/testimonial.ts`)
+
+- **`quote`**: Required string, 10 to 600 characters. Input is trimmed, stripped of control characters, and stored as plain text.
+- **`name`**: Required string, 2 to 100 characters. Trimmed, control characters stripped.
+- **`company`**: Optional string, maximum 120 characters. Trimmed, control characters stripped. Empty strings or whitespace-only inputs are converted to `null`.
+- **`order`**: Integer between 0 and 9999 for sequence control.
+- **`status`**: Enum `ACTIVE` or `INACTIVE`.
+
+### Idempotent Seed Data (`prisma/seed-data/testimonials.ts`)
+
+- Pre-populated with the 9 baseline student testimonials in their historical display order (1–9) with `ACTIVE` status.
+- **Insert-Only & Idempotent**: A record is considered existing when `quote + name + company` matches exactly.
+- Re-running `npm run db:seed` never overwrites, resets, or reverts edits made by administrators via the admin dashboard.
+
+### Admin Management (`/admin/testimonials`)
+
+- Accessible via the "Testimonials" item in the Content sidebar group (desktop and mobile).
+- Dashboard overview card displays real-time total, active, and inactive counts.
+- **Table view**: Displays display order, quote preview (truncated to ~80 characters), student name, company, optimistic status switch, and action buttons.
+- **Search & Filtering**: Search queries (`?q=`) filter over `quote`, `name`, and `company` concurrently. Status filter (`?status=ACTIVE|INACTIVE|ALL`) and 10-item pagination (`?page=`).
+- **Create & Edit Dialog**: Follows the modal dialog pattern with a live character counter on the quote textarea (`X / 600 characters`, highlighting if below 10 or exceeding 600).
+- **Optimistic Status Switch**: Uses `StatusSwitch` to instantly toggle between `ACTIVE` and `INACTIVE` with automated rollback and toast reporting if the mutation fails.
+- **Deletion**: Uses `DeleteDialog` for explicit confirmation before irreversible deletion.
+- **Server Actions**: Defined in `src/app/admin/testimonials/actions.ts` (`"use server"`). Enforces `await requireAdmin()`, validates MongoDB ObjectIds (`/^[a-f0-9]{24}$/`), logs errors server-side without leaking credentials, and revalidates `/admin`, `/admin/testimonials`, and `revalidatePath("/", "layout")`.
+
+### Public Site Data Flow (`src/server/queries/testimonials.ts`)
+
+- **Query**: `getActiveTestimonials()` fetches `status: "ACTIVE"` records ordered by `order asc, createdAt asc` as plain serialisable DTOs `{ id, quote, name, company }`.
+- **Server Component**: The public home page (`src/app/page.tsx`, `dynamic = "force-dynamic"`) queries active testimonials on the server and passes them to `<Testimonials testimonials={testimonials} />`.
+- **Zero-Active Fallback**: If there are no active testimonials, the entire section (including heading and container) is omitted cleanly from the page with no hydration mismatch.
+- **Client Reel**: `Testimonials.tsx` is a Client Component managing the interactive reel and typography animation with pure client-side state and zero database imports.
+
+> [!IMPORTANT]
+> **Setup Requirement After Pulling**:
+> Always run `npm run db:push` followed by `npm run db:seed` to provision the `Testimonial` collection and seed the baseline records.
+
+---
+
+## 16. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 

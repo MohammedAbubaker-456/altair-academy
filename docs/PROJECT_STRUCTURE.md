@@ -32,7 +32,7 @@ altair-academy/
 ├── prisma/
 │   ├── schema.prisma                # MongoDB schema, binaryTargets ["native", "rhel-openssl-3.0.x"]
 │   ├── seed.ts                      # Idempotent seed script (upserting initial records & admin user)
-│   ├── seed-data/                   # Source seed datasets (categories, courses, team, news, faqs)
+│   ├── seed-data/                   # Source seed datasets (categories, courses, team, news, faqs, testimonials)
 │   └── data-migrations/             # Programmatic data migrations run sequentially
 │
 ├── public/
@@ -60,7 +60,7 @@ altair-academy/
 │   │
 │   ├── app/                         # Next.js App Router route hierarchy
 │   │   ├── layout.tsx               # Global HTML shell, metadataBase (SITE_URL), Google Fonts
-│   │   ├── page.tsx                 # Public Home (Featured courses, pills, leadership, FAQs, dynamic contact)
+│   │   ├── page.tsx                 # Public Home (Featured courses, pills, leadership, FAQs, testimonials, dynamic contact)
 │   │   ├── about/page.tsx           # Public About page with management leadership team
 │   │   ├── courses/                 # Public Course catalog with discipline filtering
 │   │   │   ├── page.tsx             # /courses catalog
@@ -107,6 +107,7 @@ altair-academy/
 │   │       ├── team/actions.ts      # Team & faculty server actions (CRUD + image cleanup)
 │   │       ├── news/actions.ts      # News post server actions (CRUD + body persistence + image cleanup)
 │   │       ├── faqs/actions.ts      # FAQ server actions (CRUD)
+│   │       ├── testimonials/actions.ts # Testimonials server actions (CRUD + optimistic status switch + revalidation)
 │   │       ├── careers/actions.ts   # Careers server actions (CRUD + status toggle + revalidation)
 │   │       ├── contact/actions.ts   # Contact details server actions (CRUD + status toggle + layout revalidation)
 │   │       ├── legal/actions.ts     # Legal pages server actions (CRUD + core protection + layout revalidation)
@@ -131,6 +132,7 @@ altair-academy/
 │   │           ├── team/            # /admin/team list, /new, and /[id] forms
 │   │           ├── news/            # /admin/news list, /new, and /[id] forms (Markdown body & live preview)
 │   │           ├── faqs/            # /admin/faqs list & modal dialogs
+│   │           ├── testimonials/    # /admin/testimonials table, modal dialogs, search, filter & pagination
 │   │           ├── careers/         # /admin/careers table, /new, and /[id] forms
 │   │           ├── contact/         # /admin/contact grouped channels table, adaptive dialog, & footer preview
 │   │           ├── legal/           # /admin/legal table, /new, and /[id] forms (core protected)
@@ -180,6 +182,8 @@ altair-academy/
 │   │       ├── application.ts       # Careers application schema (phone, specialisation, resume validation)
 │   │       ├── team.ts
 │   │       ├── news.ts              # News schema with optional body (Markdown <= 50,000)
+│   │       ├── faqs.ts              # FAQ validation schema
+│   │       ├── testimonial.ts       # Testimonial validation schema (quote 10-600, name 2-100, company max 120, order 0-9999)
 │   │       ├── careers.ts           # JobOpening validation schema
 │   │       ├── contact.ts           # ContactDetail schema with per-type refinements
 │   │       └── legal.ts             # LegalPage validation schema with reserved slug guards
@@ -194,6 +198,8 @@ altair-academy/
 │       │   ├── categories.ts
 │       │   ├── team.ts
 │       │   ├── news.ts
+│       │   ├── faqs.ts              # FAQ admin queries
+│       │   ├── testimonials.ts      # Testimonials admin search, status filter, pagination & ID query
 │       │   ├── careers.ts           # Careers admin search, pagination & ID query
 │       │   ├── contact.ts           # Contact channels grouped & per-type counts
 │       │   └── legal.ts             # Legal pages query & ID lookup
@@ -206,8 +212,12 @@ altair-academy/
 │       │   ├── team.ts
 │       │   ├── news.ts              # News queries + getNewsPostBySlug & getLatestNewsExcluding
 │       │   ├── faqs.ts
+│       │   ├── testimonials.ts      # getActiveTestimonials (ordered plain serialisable DTOs)
 │       │   ├── careers.ts           # getActiveJobOpenings (ordered)
 │       │   ├── contact.ts           # getContactDetails (grouped) & getContactInfo (legacy adapter)
 │       │   └── legal.ts             # getFooterLegalLinks, getActiveLegalPageBySlug, replaceLegalTokens
 │       └── revalidate.ts            # Next.js on-demand cache revalidation (revalidatePath("/", "layout"))
 ```
+
+> [!NOTE]
+> After pulling changes that include schema and seed updates (such as testimonials), run `npm run db:push` followed by `npm run db:seed`.

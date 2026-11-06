@@ -715,7 +715,7 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
               {Array.from({ length: sideCellCount }).map((_, i) => (
                 <ReelTile
                   key={`left-${i}`}
-                  name={testimonials[i % count].name}
+                  name={testimonials[i % count]?.name ?? ""}
                 />
               ))}
             </div>
@@ -727,8 +727,8 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
             >
               {middleItems.map(({ item, active }, i) => (
                 <ReelTile
-                  key={`${item.id}-${i}`}
-                  name={item.name}
+                  key={`${item?.id ?? i}-${i}`}
+                  name={item?.name ?? ""}
                   active={active}
                 />
               ))}
@@ -742,7 +742,7 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
               {Array.from({ length: sideCellCount }).map((_, i) => (
                 <ReelTile
                   key={`right-${i}`}
-                  name={testimonials[(i + 2) % count].name}
+                  name={testimonials[(i + 2) % count]?.name ?? ""}
                 />
               ))}
             </div>

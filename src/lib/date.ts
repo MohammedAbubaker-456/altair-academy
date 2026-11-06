@@ -53,7 +53,7 @@ export function formatDateShort(
   }).format(d);
 }
 
-const MONTH_SHORT_NAMES = [
+export const MONTH_SHORT_NAMES = [
   "Jan",
   "Feb",
   "Mar",
@@ -67,6 +67,76 @@ const MONTH_SHORT_NAMES = [
   "Nov",
   "Dec",
 ];
+
+export const MONTH_FULL_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+/**
+ * Formats an intake date range with full month names and en-dash without locale/timezone shifts.
+ * Examples:
+ * - Single day: "12 October 2026"
+ * - Same month: "12–16 October 2026"
+ * - Across months: "28 January – 2 February 2026"
+ * - Across years: "30 December 2026 – 2 January 2027"
+ */
+export function formatIntakeDateRange(startStr: string, endStr?: string | null): string {
+  if (!startStr) return "—";
+  if (!endStr || startStr === endStr) {
+    const parts = startStr.split("-").map(Number);
+    const y = parts[0];
+    const m = parts[1];
+    const d = parts[2];
+    if (!y || !m || !d || m < 1 || m > 12) return startStr;
+    const month = MONTH_FULL_NAMES[m - 1];
+    return `${d} ${month} ${y}`;
+  }
+
+  const sParts = startStr.split("-").map(Number);
+  const eParts = endStr.split("-").map(Number);
+  const sY = sParts[0];
+  const sM = sParts[1];
+  const sD = sParts[2];
+  const eY = eParts[0];
+  const eM = eParts[1];
+  const eD = eParts[2];
+
+  if (!sY || !sM || !sD || !eY || !eM || !eD || sM < 1 || sM > 12 || eM < 1 || eM > 12) {
+    return `${startStr} – ${endStr}`;
+  }
+
+  const sMonth = MONTH_FULL_NAMES[sM - 1];
+  const eMonth = MONTH_FULL_NAMES[eM - 1];
+
+  // Single day (same day)
+  if (sY === eY && sM === eM && sD === eD) {
+    return `${sD} ${sMonth} ${sY}`;
+  }
+
+  // Same month, same year: "12–16 October 2026"
+  if (sY === eY && sM === eM) {
+    return `${sD}\u2013${eD} ${sMonth} ${sY}`;
+  }
+
+  // Across months, same year: "28 January – 2 February 2026"
+  if (sY === eY) {
+    return `${sD} ${sMonth} \u2013 ${eD} ${eMonth} ${sY}`;
+  }
+
+  // Across years: "30 December 2026 – 2 January 2027"
+  return `${sD} ${sMonth} ${sY} \u2013 ${eD} ${eMonth} ${eY}`;
+}
 
 /**
  * Formats a date-only "YYYY-MM-DD" string into a short date without Date object timezone shifts.

@@ -2,8 +2,8 @@
  * Public Homepage
  *
  * Server Component rendering Altair Academy's landing page.
- * Loads featured courses, active categories, management team, FAQs, and testimonials from MongoDB.
- * Upcoming sessions remain static.
+ * Loads featured courses, active categories, management team, FAQs, testimonials, and upcoming intakes from MongoDB.
+ * Pure server-driven data fetching.
  *
  * Location: src/app/page.tsx
  * Type: Server Component
@@ -18,7 +18,6 @@ import {
   Check,
   GraduationCap,
   Headphones,
-  MapPin,
   MessageCircle,
   MonitorPlay,
   Phone,
@@ -36,12 +35,13 @@ import { SectionHeader } from "@/components/site/SectionHeader";
 import { FeaturedCourseCard } from "@/components/site/FeaturedCourseCard";
 import { TeamCard } from "@/components/site/TeamCard";
 import { Testimonials } from "@/components/site/Testimonials";
-import { upcomingSessions } from "@/data/site";
+import { IntakeCard } from "@/components/site/IntakeCard";
 import { getFeaturedCourses } from "@/server/queries/courses";
 import { getActiveCategories } from "@/server/queries/categories";
 import { getManagementTeam } from "@/server/queries/team";
 import { getActiveFaqs } from "@/server/queries/faqs";
 import { getActiveTestimonials } from "@/server/queries/testimonials";
+import { getUpcomingIntakes } from "@/server/queries/intakes";
 import { getContactInfo } from "@/server/queries/contact";
 import heroImage from "@/assets/hero-classroom.jpg";
 import approachImage from "@/assets/approach-classroom.jpg";
@@ -93,15 +93,23 @@ const aboutPoints = [
 ];
 
 export default async function Home() {
-  const [categories, featuredCourses, managementTeam, faqs, contactInfo, testimonials] =
-    await Promise.all([
-      getActiveCategories(),
-      getFeaturedCourses(),
-      getManagementTeam(),
-      getActiveFaqs(),
-      getContactInfo(),
-      getActiveTestimonials(),
-    ]);
+  const [
+    categories,
+    featuredCourses,
+    managementTeam,
+    faqs,
+    contactInfo,
+    testimonials,
+    upcomingIntakes,
+  ] = await Promise.all([
+    getActiveCategories(),
+    getFeaturedCourses(),
+    getManagementTeam(),
+    getActiveFaqs(),
+    getContactInfo(),
+    getActiveTestimonials(),
+    getUpcomingIntakes(4),
+  ]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -272,56 +280,22 @@ export default async function Home() {
         </section>
 
         {/* Upcoming sessions */}
-        <section className="py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionHeader
-              label="Training calendar"
-              title="Join Our Next Scheduled Intake"
-              variant="plain"
-            />
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {upcomingSessions.map((session) => (
-                <article
-                  key={session.slug}
-                  className="card-lift flex flex-col rounded-xl border border-border bg-card p-5"
-                >
-                  <span className="eyebrow">{session.date}</span>
-                  <h3 className="mt-2 font-display text-base font-bold text-primary">
-                    {session.title}
-                  </h3>
-                  <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="size-3.5 text-brand-red" aria-hidden="true" />
-                    {session.location}
-                  </p>
-                  <ul className="mt-4 flex-1 space-y-1.5">
-                    {session.points.map((point) => (
-                      <li
-                        key={point}
-                        className="flex items-start gap-2 text-sm text-muted-foreground"
-                      >
-                        <Check
-                          className="mt-0.5 size-4 shrink-0 text-brand-red"
-                          aria-hidden="true"
-                        />
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant="ctaOutline"
-                    size="default"
-                    className="mt-5 w-full text-base"
-                    asChild
-                  >
-                    {/* <Link href={`/courses/${session.slug}`}>Reserve a Seat</Link> */}
-                    <Link href={`/contact`}>Reserve a Seat</Link>
-
-                  </Button>
-                </article>
-              ))}
+        {upcomingIntakes.length > 0 && (
+          <section className="py-20">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <SectionHeader
+                label="Training calendar"
+                title="Join Our Next Scheduled Intake"
+                variant="plain"
+              />
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {upcomingIntakes.map((intake) => (
+                  <IntakeCard key={intake.id} intake={intake} />
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Why Altair */}
         <section className="bg-navy py-20">

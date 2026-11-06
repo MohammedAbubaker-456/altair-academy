@@ -2,8 +2,8 @@
  * Static Site Data & Shared Constants
  *
  * Contains static datasets that remain unchanged: contact information,
- * navigation menus, upcoming sessions, and training formats.
- * Dynamic entities (Courses, Categories, Team, News, FAQs, Testimonials) are now stored in MongoDB.
+ * navigation menus, and training formats.
+ * Dynamic entities (Courses, Categories, Team, News, FAQs, Testimonials, Upcoming Intakes) are now stored in MongoDB.
  *
  * Location: src/data/site.ts
  * Type: Static Data Module
@@ -107,37 +107,6 @@ export const courseExtras: Record<
     instructor: { name: "Daniel Choo", role: "BIM Coordinator" },
   },
 };
-
-export const upcomingSessions = [
-  {
-    date: "12 October 2026",
-    title: "Visual Testing (VT) Level 1",
-    slug: "visual-testing-vt",
-    location: "Kuala Lumpur Centre",
-    points: ["3-day intensive schedule", "Practical exam included", "Seats limited to 12"],
-  },
-  {
-    date: "26 October 2026",
-    title: "Weld Inspection Intensive",
-    slug: "weld-inspection-wi",
-    location: "Kuala Lumpur Centre",
-    points: ["5-day supervisory track", "Code interpretation labs", "Certificate on completion"],
-  },
-  {
-    date: "9 November 2026",
-    title: "ISO 50001 Awareness",
-    slug: "iso-50001-energy-management",
-    location: "Live online classroom",
-    points: ["2-day awareness course", "Live Q&A with auditors", "Template pack provided"],
-  },
-  {
-    date: "23 November 2026",
-    title: "Asset Assessment with BIM",
-    slug: "infrastructure-asset-assessment-bim",
-    location: "Kuala Lumpur Centre",
-    points: ["4-day applied workshop", "Real project datasets", "Software walkthroughs"],
-  },
-];
 
 export const trainingFormats = [
   {

@@ -125,13 +125,14 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
   const count = testimonials.length;
 
   React.useEffect(() => {
+    const activeTimeouts = timeouts.current;
     const raf = requestAnimationFrame(() => {
       setMounted(true);
     });
 
     return () => {
       cancelAnimationFrame(raf);
-      timeouts.current.forEach(clearTimeout);
+      activeTimeouts.forEach(clearTimeout);
     };
   }, []);
 
@@ -303,32 +304,17 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
         {/* RIGHT: Testimonial Content */}
         <div className="flex min-w-0 flex-1 flex-col justify-between px-6 py-7 sm:px-8 md:py-10">
           <div className="flex flex-col gap-5">
-            <Quote
-              className="size-11 text-brand-red/70"
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
+            <Quote className="size-11 text-brand-red/70" strokeWidth={1.5} aria-hidden="true" />
 
             {/* Animated Quote */}
-            <div
-              className="relative w-full max-w-[460px]"
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              <div
-                aria-hidden="true"
-                className="invisible flex min-h-[145px] flex-col gap-5"
-              >
-                <p className="text-lg font-medium leading-relaxed sm:text-xl">
-                  {current.quote}
-                </p>
+            <div className="relative w-full max-w-[460px]" aria-live="polite" aria-atomic="true">
+              <div aria-hidden="true" className="invisible flex min-h-[145px] flex-col gap-5">
+                <p className="text-lg font-medium leading-relaxed sm:text-xl">{current.quote}</p>
 
                 <div>
                   <p className="text-sm font-semibold">{current.name}</p>
                   {current.company && (
-                    <p className="text-xs text-muted-foreground">
-                      {current.company}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{current.company}</p>
                   )}
                 </div>
               </div>
@@ -342,16 +328,12 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
               >
                 <p className="text-lg font-medium leading-relaxed tracking-tight text-foreground sm:text-xl">
                   “
-                  <AnimatedText text={current.quote} />
-                  ”
+                  <AnimatedText text={current.quote} />”
                 </p>
 
                 <div>
                   <p className="text-sm font-semibold text-foreground">
-                    <AnimatedText
-                      text={current.name}
-                      startIndex={current.quote.length + 5}
-                    />
+                    <AnimatedText text={current.name} startIndex={current.quote.length + 5} />
                   </p>
 
                   {current.company && (

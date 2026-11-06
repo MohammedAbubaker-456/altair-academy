@@ -45,12 +45,7 @@ export const testimonialSchema = z.object({
       const cleaned = stripControlCharacters(val).trim();
       return cleaned.length > 0 ? cleaned : null;
     })
-    .pipe(
-      z
-        .string()
-        .max(120, "Company name cannot exceed 120 characters")
-        .nullable(),
-    ),
+    .pipe(z.string().max(120, "Company name cannot exceed 120 characters").nullable()),
   order: z.coerce
     .number({ required_error: "Display order is required" })
     .int("Order must be an integer")
@@ -61,4 +56,5 @@ export const testimonialSchema = z.object({
   }),
 });
 
-export type TestimonialInput = z.infer<typeof testimonialSchema>;
+export type TestimonialInput = z.output<typeof testimonialSchema>;
+export type TestimonialFormValues = z.input<typeof testimonialSchema>;

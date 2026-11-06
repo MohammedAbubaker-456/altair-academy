@@ -25,6 +25,7 @@ export interface DashboardStats {
   team: EntityCount;
   news: EntityCount;
   faqs: EntityCount;
+  testimonials: EntityCount;
   careers: EntityCount;
   contact: EntityCount;
   legal: EntityCount;
@@ -63,6 +64,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     newsActive,
     faqsTotal,
     faqsActive,
+    testimonialsTotal,
+    testimonialsActive,
     careersTotal,
     careersActive,
     contactTotal,
@@ -91,6 +94,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     db.newsPost.count({ where: { status: "ACTIVE" } }),
     db.faq.count(),
     db.faq.count({ where: { status: "ACTIVE" } }),
+    db.testimonial.count(),
+    db.testimonial.count({ where: { status: "ACTIVE" } }),
     db.jobOpening.count(),
     db.jobOpening.count({ where: { status: "ACTIVE" } }),
     db.contactDetail.count(),
@@ -140,6 +145,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       total: faqsTotal,
       active: faqsActive,
       inactive: faqsTotal - faqsActive,
+    },
+    testimonials: {
+      total: testimonialsTotal,
+      active: testimonialsActive,
+      inactive: testimonialsTotal - testimonialsActive,
     },
     careers: {
       total: careersTotal,

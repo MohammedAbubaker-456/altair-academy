@@ -15,6 +15,7 @@ import {
   Users,
   Newspaper,
   HelpCircle,
+  Quote,
   Briefcase,
   PhoneCall,
   FileText,
@@ -65,6 +66,7 @@ export const contentNavItems: AdminNavItem[] = [
   { href: "/admin/team", label: "Team & Instructors", icon: Users },
   { href: "/admin/news", label: "News & Insights", icon: Newspaper },
   { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
+  { href: "/admin/testimonials", label: "Testimonials", icon: Quote },
   { href: "/admin/careers", label: "Careers", icon: Briefcase },
 ];
 

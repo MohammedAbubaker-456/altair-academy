@@ -20,6 +20,7 @@ import {
   Users,
   Newspaper,
   HelpCircle,
+  Quote,
   Briefcase,
   PhoneCall,
   FileText,
@@ -101,6 +102,14 @@ export default async function AdminDashboardPage() {
       href: "/admin/faqs",
       newHref: null,
       description: "Frequently asked questions for prospective students",
+    },
+    {
+      title: "Testimonials",
+      stats: stats.testimonials,
+      icon: Quote,
+      href: "/admin/testimonials",
+      newHref: null,
+      description: "Student and employer reviews for the public reel",
     },
     {
       title: "Careers",

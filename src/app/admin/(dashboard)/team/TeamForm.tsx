@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { SeoFormSection } from "@/components/admin/SeoFormSection";
 import { Loader2, ArrowLeft, X, Plus } from "lucide-react";
 import type { TeamPlacement } from "@prisma/client";
 
@@ -442,6 +443,22 @@ export function TeamForm({ initialData }: TeamFormProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Record-Level SEO (Optional) */}
+        <SeoFormSection
+          metaTitle={watch("metaTitle")}
+          metaDescription={watch("metaDescription")}
+          showOgImage={false}
+          onTitleChange={(val) => setValue("metaTitle", val || null, { shouldValidate: true })}
+          onDescriptionChange={(val) =>
+            setValue("metaDescription", val || null, { shouldValidate: true })
+          }
+          fallbackTitle={`${watch("name") || "Member"}, ${watch("role") || "Instructor"} — Altair Academy`}
+          fallbackDescription={watch("shortBio") || "Management team profile..."}
+          fallbackSlug={watch("slug") || ""}
+          fallbackImage={watch("image")}
+          basePath="/team/"
+        />
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 pt-4">

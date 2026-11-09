@@ -38,6 +38,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MarkdownPreview } from "@/components/site/MarkdownContent";
+import { SeoFormSection } from "@/components/admin/SeoFormSection";
 import { cn } from "@/lib/utils";
 import {
   Loader2,
@@ -970,6 +971,24 @@ export function CourseForm({ initialData, categories, subcategories = [] }: Cour
             </div>
           </CardContent>
         </Card>
+
+        {/* Record-Level SEO (Optional) */}
+        <SeoFormSection
+          metaTitle={watch("metaTitle")}
+          metaDescription={watch("metaDescription")}
+          ogImage={watch("ogImage")}
+          showOgImage={true}
+          onTitleChange={(val) => setValue("metaTitle", val || null, { shouldValidate: true })}
+          onDescriptionChange={(val) =>
+            setValue("metaDescription", val || null, { shouldValidate: true })
+          }
+          onOgImageChange={(val) => setValue("ogImage", val, { shouldValidate: true })}
+          fallbackTitle={`${watch("title") || "Course"} — Altair Academy`}
+          fallbackDescription={watch("summary") || "Technical training course..."}
+          fallbackSlug={watch("slug") || ""}
+          fallbackImage={watch("image")}
+          basePath="/courses/"
+        />
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 pt-4">

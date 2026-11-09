@@ -32,6 +32,7 @@ import {
   MailCheck,
   CalendarDays,
   CalendarCheck,
+  Search,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -155,6 +156,22 @@ export default async function AdminDashboardPage() {
       href: "/admin/legal",
       newHref: "/admin/legal/new",
       description: "Privacy policy, terms of service, and custom legal pages",
+    },
+    {
+      title: "SEO / Meta tags",
+      stats: {
+        total: stats.seo.total,
+        active: stats.seo.customized,
+        inactive: stats.seo.total - stats.seo.customized,
+      },
+      totalLabel: "Pages",
+      activeLabel: "Customised",
+      inactiveLabel: "Default",
+      extraStat: undefined,
+      icon: Search,
+      href: "/admin/seo",
+      newHref: null,
+      description: "Manage page titles, descriptions, Open Graph, and search indexing",
     },
   ];
 

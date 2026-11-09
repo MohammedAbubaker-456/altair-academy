@@ -12,6 +12,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
 import { getTodayDateString } from "@/lib/date";
+import { ALL_REGISTRY_KEYS } from "@/lib/seo/registry";
 
 export interface EntityCount {
   total: number;
@@ -55,6 +56,10 @@ export interface DashboardStats {
     upcomingActive: number;
     past: number;
   };
+  seo: {
+    customized: number;
+    total: number;
+  };
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -96,6 +101,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     intakesActive,
     intakesUpcomingActive,
     intakesPast,
+    seoCustomized,
   ] = await Promise.all([
     db.course.count(),
     db.course.count({ where: { status: "ACTIVE" } }),
@@ -144,6 +150,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         endDate: { lt: today },
       },
     }),
+    db.pageSeo.count(),
   ]);
 
   return {
@@ -217,6 +224,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       inactive: intakesTotal - intakesActive,
       upcomingActive: intakesUpcomingActive,
       past: intakesPast,
+    },
+    seo: {
+      customized: seoCustomized,
+      total: ALL_REGISTRY_KEYS.length,
     },
   };
 }

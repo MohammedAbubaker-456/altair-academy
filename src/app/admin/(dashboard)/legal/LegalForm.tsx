@@ -36,6 +36,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MarkdownPreview } from "@/components/site/MarkdownContent";
+import { SeoFormSection } from "@/components/admin/SeoFormSection";
 import {
   Loader2,
   ArrowLeft,
@@ -435,6 +436,21 @@ export function LegalForm({ initialData }: LegalFormProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Record-Level SEO (Optional) */}
+        <SeoFormSection
+          metaTitle={watch("metaTitle")}
+          metaDescription={watch("metaDescription")}
+          showOgImage={false}
+          onTitleChange={(val) => setValue("metaTitle", val || null, { shouldValidate: true })}
+          onDescriptionChange={(val) =>
+            setValue("metaDescription", val || null, { shouldValidate: true })
+          }
+          fallbackTitle={`${watch("title") || "Legal Page"} — Altair Academy`}
+          fallbackDescription={watch("metaDescription") || "Legal policy documentation..."}
+          fallbackSlug={watch("slug") || ""}
+          basePath={watch("slug") === "privacy" || watch("slug") === "terms" ? "/" : "/legal/"}
+        />
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 pt-4">

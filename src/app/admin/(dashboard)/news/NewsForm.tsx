@@ -36,6 +36,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MarkdownPreview } from "@/components/site/MarkdownContent";
+import { SeoFormSection } from "@/components/admin/SeoFormSection";
 import { Loader2, ArrowLeft, X, Plus, ExternalLink, AlertTriangle } from "lucide-react";
 import type { NewsKind } from "@prisma/client";
 
@@ -455,6 +456,24 @@ export function NewsForm({ initialData }: NewsFormProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Record-Level SEO (Optional) */}
+        <SeoFormSection
+          metaTitle={watch("metaTitle")}
+          metaDescription={watch("metaDescription")}
+          ogImage={watch("ogImage")}
+          showOgImage={true}
+          onTitleChange={(val) => setValue("metaTitle", val || null, { shouldValidate: true })}
+          onDescriptionChange={(val) =>
+            setValue("metaDescription", val || null, { shouldValidate: true })
+          }
+          onOgImageChange={(val) => setValue("ogImage", val, { shouldValidate: true })}
+          fallbackTitle={`${watch("title") || "Article"} — Altair Academy`}
+          fallbackDescription={watch("excerpt") || "News & insights article..."}
+          fallbackSlug={watch("slug") || ""}
+          fallbackImage={watch("image")}
+          basePath="/news/"
+        />
 
         {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 pt-4">

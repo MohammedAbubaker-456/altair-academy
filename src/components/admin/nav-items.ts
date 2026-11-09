@@ -25,6 +25,7 @@ import {
   MailCheck,
   CalendarDays,
   CalendarCheck,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 
@@ -78,6 +79,7 @@ export const contentNavItems: AdminNavItem[] = [
 export const siteSettingsNavItems: AdminNavItem[] = [
   { href: "/admin/contact", label: "Contact Details", icon: PhoneCall },
   { href: "/admin/legal", label: "Legal Pages", icon: FileText },
+  { href: "/admin/seo", label: "SEO / Meta tags", icon: Search },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

@@ -64,6 +64,9 @@ export async function createCourseAction(input: unknown): Promise<CourseActionRe
     isFeatured,
     order,
     status,
+    metaTitle,
+    metaDescription,
+    ogImage,
   } = parseResult.data;
 
   // Verify category exists
@@ -137,6 +140,9 @@ export async function createCourseAction(input: unknown): Promise<CourseActionRe
         isFeatured,
         order,
         status,
+        metaTitle: toNullableString(metaTitle),
+        metaDescription: toNullableString(metaDescription),
+        ogImage: toNullableString(ogImage),
       },
     });
     revalidatePublicData();
@@ -200,6 +206,9 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
     isFeatured,
     order,
     status,
+    metaTitle,
+    metaDescription,
+    ogImage,
   } = parseResult.data;
 
   // Verify category exists
@@ -277,6 +286,9 @@ export async function updateCourseAction(id: string, input: unknown): Promise<Co
         isFeatured,
         order,
         status,
+        metaTitle: toNullableString(metaTitle),
+        metaDescription: toNullableString(metaDescription),
+        ogImage: toNullableString(ogImage),
       },
     });
 
@@ -339,6 +351,9 @@ export async function deleteCourseAction(id: string): Promise<CourseActionResult
 
     if (course.image) {
       await storageService.deleteImage(course.image);
+    }
+    if (course.ogImage && course.ogImage !== course.image) {
+      await storageService.deleteImage(course.ogImage);
     }
 
     revalidatePublicData();

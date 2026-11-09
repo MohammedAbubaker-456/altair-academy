@@ -10,6 +10,7 @@
 
 import { z } from "zod";
 import { safeSlugSchema } from "@/lib/safe-url";
+import { optionalSanitizedText } from "./seo";
 
 export const legalPageSchema = z.object({
   title: z
@@ -18,6 +19,7 @@ export const legalPageSchema = z.object({
     .min(1, "Title is required")
     .max(200, "Title must be at most 200 characters"),
   slug: safeSlugSchema,
+  metaTitle: optionalSanitizedText(120, "Meta title cannot exceed 120 characters"),
   metaDescription: z
     .string()
     .trim()

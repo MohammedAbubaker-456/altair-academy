@@ -10,6 +10,7 @@
 
 import { z } from "zod";
 import { isValidObjectId } from "@/lib/id";
+import { optionalSanitizedText, optionalImagePath } from "./seo";
 
 /* eslint-disable no-control-regex */
 function stripControlCharacters(str: string): string {
@@ -123,6 +124,9 @@ export const courseSchema = z.object({
   isFeatured: z.boolean(),
   order: z.coerce.number().int().min(0, "Order must be 0 or greater"),
   status: z.enum(["ACTIVE", "INACTIVE"]),
+  metaTitle: optionalSanitizedText(120, "Meta title cannot exceed 120 characters"),
+  metaDescription: optionalSanitizedText(300, "Meta description cannot exceed 300 characters"),
+  ogImage: optionalImagePath,
 });
 
 export type CourseInput = z.infer<typeof courseSchema>;

@@ -35,7 +35,8 @@ export async function createLegalPageAction(input: unknown): Promise<LegalAction
     return { ok: false, message, fieldErrors };
   }
 
-  const { title, slug, metaDescription, body, showInFooter, order, status } = parseResult.data;
+  const { title, slug, metaTitle, metaDescription, body, showInFooter, order, status } =
+    parseResult.data;
 
   // The slugs 'privacy' and 'terms' are strictly reserved for core system pages
   if (slug === "privacy" || slug === "terms") {
@@ -51,6 +52,7 @@ export async function createLegalPageAction(input: unknown): Promise<LegalAction
       data: {
         title,
         slug,
+        metaTitle: metaTitle || null,
         metaDescription: metaDescription || null,
         body,
         showInFooter,
@@ -100,7 +102,8 @@ export async function updateLegalPageAction(
     return { ok: false, message: "Legal page not found" };
   }
 
-  const { title, slug, metaDescription, body, showInFooter, order, status } = parseResult.data;
+  const { title, slug, metaTitle, metaDescription, body, showInFooter, order, status } =
+    parseResult.data;
 
   // Core pages cannot change their slug
   const finalSlug = existing.isCore ? existing.slug : slug;
@@ -119,6 +122,7 @@ export async function updateLegalPageAction(
       data: {
         title,
         slug: finalSlug,
+        metaTitle: metaTitle || null,
         metaDescription: metaDescription || null,
         body,
         showInFooter,

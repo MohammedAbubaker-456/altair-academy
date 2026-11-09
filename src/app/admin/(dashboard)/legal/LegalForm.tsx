@@ -50,6 +50,7 @@ export interface LegalPageInitialData {
   id: string;
   slug: string;
   title: string;
+  metaTitle?: string | null;
   metaDescription: string | null;
   body: string;
   showInFooter: boolean;
@@ -81,6 +82,7 @@ export function LegalForm({ initialData }: LegalFormProps) {
     defaultValues: {
       title: initialData?.title ?? "",
       slug: initialData?.slug ?? "",
+      metaTitle: initialData?.metaTitle ?? null,
       metaDescription: initialData?.metaDescription ?? "",
       body: initialData?.body ?? "",
       showInFooter: initialData?.showInFooter ?? true,

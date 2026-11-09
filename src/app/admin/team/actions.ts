@@ -49,6 +49,8 @@ export async function createTeamMemberAction(input: unknown): Promise<TeamAction
     managementOrder,
     instructorOrder,
     status,
+    metaTitle,
+    metaDescription,
   } = parseResult.data;
 
   try {
@@ -67,6 +69,8 @@ export async function createTeamMemberAction(input: unknown): Promise<TeamAction
         managementOrder,
         instructorOrder,
         status,
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
       },
     });
     revalidatePublicData();
@@ -124,6 +128,8 @@ export async function updateTeamMemberAction(
     managementOrder,
     instructorOrder,
     status,
+    metaTitle,
+    metaDescription,
   } = parseResult.data;
 
   try {
@@ -143,6 +149,8 @@ export async function updateTeamMemberAction(
         managementOrder,
         instructorOrder,
         status,
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
       },
     });
 

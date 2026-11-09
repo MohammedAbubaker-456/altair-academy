@@ -9,6 +9,7 @@
  */
 
 import { z } from "zod";
+import { optionalSanitizedText, optionalImagePath } from "./seo";
 
 export const newsPostSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200),
@@ -36,6 +37,9 @@ export const newsPostSchema = z.object({
     .nullable(),
   publishedAt: z.coerce.date(),
   status: z.enum(["ACTIVE", "INACTIVE"]),
+  metaTitle: optionalSanitizedText(120, "Meta title cannot exceed 120 characters"),
+  metaDescription: optionalSanitizedText(300, "Meta description cannot exceed 300 characters"),
+  ogImage: optionalImagePath,
 });
 
 export type NewsPostInput = z.infer<typeof newsPostSchema>;

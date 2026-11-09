@@ -25,11 +25,11 @@ import type { PageSeo, SiteSeo } from "@prisma/client";
 
 export interface SeoContext {
   record?: {
-    metaTitle?: string | null | undefined;
-    metaDescription?: string | null | undefined;
-    ogImage?: string | null | undefined;
+    metaTitle?: string | null;
+    metaDescription?: string | null;
+    ogImage?: string | null;
     [key: string]: unknown;
-  } | null | undefined;
+  };
   replacements?: Record<string, string | null | undefined>;
   canonicalPath?: string;
   dynamicDefaults?: {
@@ -37,7 +37,7 @@ export interface SeoContext {
     description?: string;
     ogTitle?: string;
     ogDescription?: string;
-    ogImage?: string | null | undefined;
+    ogImage?: string | null;
   };
   publishedTime?: string;
   imageAlt?: string;
@@ -255,3 +255,4 @@ export async function getPageMetadata(
 
   return metadata;
 }
+

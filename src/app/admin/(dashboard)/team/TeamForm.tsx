@@ -53,6 +53,8 @@ interface TeamMemberInitialData {
   managementOrder: number;
   instructorOrder: number;
   status: "ACTIVE" | "INACTIVE";
+  metaTitle?: string | null;
+  metaDescription?: string | null;
 }
 
 interface TeamFormProps {
@@ -87,6 +89,8 @@ export function TeamForm({ initialData }: TeamFormProps) {
       managementOrder: initialData?.managementOrder ?? 0,
       instructorOrder: initialData?.instructorOrder ?? 0,
       status: initialData?.status ?? "ACTIVE",
+      metaTitle: initialData?.metaTitle ?? null,
+      metaDescription: initialData?.metaDescription ?? null,
     },
   });
 

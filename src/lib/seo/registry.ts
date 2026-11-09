@@ -322,3 +322,4 @@ export function isRegistryKey(key: string): boolean {
 export function getPlaceholdersForTemplate(key: string): string[] {
   return SEO_REGISTRY[key]?.allowedPlaceholders ?? [];
 }
+

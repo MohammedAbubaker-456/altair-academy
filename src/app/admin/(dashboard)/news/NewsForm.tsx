@@ -51,6 +51,9 @@ interface NewsPostInitialData {
   image: string | null;
   publishedAt: Date;
   status: "ACTIVE" | "INACTIVE";
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  ogImage?: string | null;
 }
 
 interface NewsFormProps {
@@ -87,6 +90,9 @@ export function NewsForm({ initialData }: NewsFormProps) {
       image: initialData?.image ?? null,
       publishedAt: new Date(defaultDateStr || Date.now()),
       status: initialData?.status ?? "ACTIVE",
+      metaTitle: initialData?.metaTitle ?? null,
+      metaDescription: initialData?.metaDescription ?? null,
+      ogImage: initialData?.ogImage ?? null,
     },
   });
 

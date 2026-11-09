@@ -89,6 +89,9 @@ interface CourseInitialData {
   isFeatured: boolean;
   order: number;
   status: "ACTIVE" | "INACTIVE";
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  ogImage?: string | null;
 }
 
 interface CourseFormProps {
@@ -416,6 +419,9 @@ export function CourseForm({ initialData, categories, subcategories = [] }: Cour
       isFeatured: initialData?.isFeatured ?? false,
       order: initialData?.order ?? 0,
       status: initialData?.status ?? "ACTIVE",
+      metaTitle: initialData?.metaTitle ?? null,
+      metaDescription: initialData?.metaDescription ?? null,
+      ogImage: initialData?.ogImage ?? null,
     },
   });
 

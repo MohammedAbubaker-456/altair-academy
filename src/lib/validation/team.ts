@@ -9,6 +9,7 @@
  */
 
 import { z } from "zod";
+import { optionalSanitizedText } from "./seo";
 
 export const teamMemberSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
@@ -41,6 +42,8 @@ export const teamMemberSchema = z.object({
   managementOrder: z.coerce.number().int().min(0),
   instructorOrder: z.coerce.number().int().min(0),
   status: z.enum(["ACTIVE", "INACTIVE"]),
+  metaTitle: optionalSanitizedText(120, "Meta title cannot exceed 120 characters"),
+  metaDescription: optionalSanitizedText(300, "Meta description cannot exceed 300 characters"),
 });
 
 export type TeamMemberInput = z.infer<typeof teamMemberSchema>;

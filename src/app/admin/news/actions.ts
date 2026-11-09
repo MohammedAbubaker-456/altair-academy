@@ -35,8 +35,21 @@ export async function createNewsPostAction(input: unknown): Promise<NewsActionRe
     return { ok: false, message, fieldErrors };
   }
 
-  const { title, slug, excerpt, body, kind, category, tags, image, publishedAt, status } =
-    parseResult.data;
+  const {
+    title,
+    slug,
+    excerpt,
+    body,
+    kind,
+    category,
+    tags,
+    image,
+    publishedAt,
+    status,
+    metaTitle,
+    metaDescription,
+    ogImage,
+  } = parseResult.data;
 
   try {
     const post = await db.newsPost.create({
@@ -51,6 +64,9 @@ export async function createNewsPostAction(input: unknown): Promise<NewsActionRe
         image: image || null,
         publishedAt,
         status,
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
+        ogImage: ogImage || null,
       },
     });
     revalidatePublicData();
@@ -91,8 +107,21 @@ export async function updateNewsPostAction(id: string, input: unknown): Promise<
     return { ok: false, message: "News post not found" };
   }
 
-  const { title, slug, excerpt, body, kind, category, tags, image, publishedAt, status } =
-    parseResult.data;
+  const {
+    title,
+    slug,
+    excerpt,
+    body,
+    kind,
+    category,
+    tags,
+    image,
+    publishedAt,
+    status,
+    metaTitle,
+    metaDescription,
+    ogImage,
+  } = parseResult.data;
 
   try {
     await db.newsPost.update({
@@ -108,6 +137,9 @@ export async function updateNewsPostAction(id: string, input: unknown): Promise<
         image: image || null,
         publishedAt,
         status,
+        metaTitle: metaTitle || null,
+        metaDescription: metaDescription || null,
+        ogImage: ogImage || null,
       },
     });
 
@@ -169,6 +201,9 @@ export async function deleteNewsPostAction(id: string): Promise<NewsActionResult
 
     if (post.image) {
       await storageService.deleteImage(post.image);
+    }
+    if (post.ogImage && post.ogImage !== post.image) {
+      await storageService.deleteImage(post.ogImage);
     }
 
     revalidatePublicData();

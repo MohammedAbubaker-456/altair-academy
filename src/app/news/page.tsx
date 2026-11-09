@@ -19,25 +19,15 @@ import { SectionHeader } from "@/components/site/SectionHeader";
 import { NewsStoryCard } from "@/components/site/NewsStoryCard";
 import { Button } from "@/components/ui/button";
 import { getNewsFeed } from "@/server/queries/news";
+import { getPageMetadata } from "@/server/seo";
 import { formatNewsDate } from "@/lib/format";
 import heroClassroom from "@/assets/hero-classroom.jpg";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "News & Training Updates — Altair Academy",
-  description:
-    "Course schedule announcements, accreditation news, industry notes and centre updates from Altair Academy's NDT and inspection training team.",
-  openGraph: {
-    title: "News & Training Updates — Altair Academy",
-    description:
-      "Intake announcements, accreditation updates and inspection industry notes from Altair Academy.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadata("news");
+}
 
 export default async function NewsPage() {
   const { featured, stories, picks } = await getNewsFeed();

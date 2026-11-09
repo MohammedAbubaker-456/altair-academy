@@ -8,26 +8,16 @@ import { Footer } from "@/components/site/Footer";
 import { SectionHeader } from "@/components/site/SectionHeader";
 import { TeamCard } from "@/components/site/TeamCard";
 import { getManagementTeam } from "@/server/queries/team";
+import { getPageMetadata } from "@/server/seo";
 import heroImage from "@/assets/hero-classroom.jpg";
 import aboutLab from "@/assets/about-lab.jpg";
 import aboutTeam from "@/assets/about-team.jpg";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "About Altair Academy — Global Leaders of Tomorrow",
-  description:
-    "Altair Academy is a BINDT-approved training organisation delivering NDT, API-ICP, BIM, corrosion and management system courses led by practising specialists.",
-  openGraph: {
-    title: "About Altair Academy",
-    description:
-      "Who we are, our mission, vision, core values and the management team behind Altair Academy.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadata("about");
+}
 
 const highlights = [
   {

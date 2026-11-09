@@ -14,25 +14,15 @@ import { CheckCircle2 } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { getInstructors } from "@/server/queries/team";
+import { getPageMetadata } from "@/server/seo";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-classroom.jpg";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Instructors — Altair Academy",
-  description:
-    "Meet the practising NDT, corrosion, BIM and management system specialists who lead every Altair Academy training programme.",
-  openGraph: {
-    title: "Leading Instructors — Altair Academy",
-    description:
-      "Practising specialists in NDT, welding, corrosion, BIM and quality leading every Altair class.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadata("instructors");
+}
 
 function initials(name: string) {
   return name

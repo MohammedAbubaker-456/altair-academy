@@ -43,25 +43,15 @@ import { getActiveFaqs } from "@/server/queries/faqs";
 import { getActiveTestimonials } from "@/server/queries/testimonials";
 import { getUpcomingIntakes } from "@/server/queries/intakes";
 import { getContactInfo } from "@/server/queries/contact";
+import { getPageMetadata } from "@/server/seo";
 import heroImage from "@/assets/hero-classroom.jpg";
 import approachImage from "@/assets/approach-classroom.jpg";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Altair Academy — Accredited Technical Training in Malaysia",
-  description:
-    "Altair Academy delivers accredited NDT, corrosion, BIM and management system training led by practising industry specialists. Explore courses and enrol today.",
-  openGraph: {
-    title: "Altair Academy — Accredited Technical Training",
-    description:
-      "Hands-on inspection, integrity and management system courses taught by working industry specialists.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadata("home");
+}
 
 const pillars = [
   {

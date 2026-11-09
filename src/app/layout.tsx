@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Barlow } from "next/font/google";
 import type { ReactNode } from "react";
+import { getSiteSeo } from "@/server/seo";
 import "../styles.css";
 
 const archivo = Archivo({
@@ -22,26 +23,33 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-const siteUrl = process.env["SITE_URL"]?.trim();
+export async function generateMetadata(): Promise<Metadata> {
+  const siteSeo = await getSiteSeo();
+  const siteUrl = process.env["SITE_URL"]?.trim();
+  const siteName = siteSeo?.siteName || "Altair Academy";
+  const description =
+    siteSeo?.defaultDescription ||
+    "Accredited NDT, corrosion, BIM and management system training led by practising industry specialists.";
 
-export const metadata: Metadata = {
-  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
-  title: "Altair Academy — Accredited Technical Training",
-  description:
-    "Accredited NDT, corrosion, BIM and management system training led by practising industry specialists.",
-  authors: [{ name: "Altair Academy" }],
-  openGraph: {
-    title: "Altair Academy — Accredited Technical Training",
-    description: "Practitioner-led technical certification training for industry professionals.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-  icons: {
-    icon: "/favicon.png",
-  },
-};
+  return {
+    metadataBase: siteUrl ? new URL(siteUrl) : undefined,
+    title: `${siteName} — Accredited Technical Training`,
+    description,
+    authors: [{ name: siteName }],
+    openGraph: {
+      title: `${siteName} — Accredited Technical Training`,
+      description: "Practitioner-led technical certification training for industry professionals.",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      ...(siteSeo?.twitterSite ? { site: siteSeo.twitterSite } : {}),
+    },
+    icons: {
+      icon: "/favicon.png",
+    },
+  };
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

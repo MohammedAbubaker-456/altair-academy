@@ -20,6 +20,7 @@ import { SectionHeader } from "@/components/site/SectionHeader";
 import { NewsStoryCard } from "@/components/site/NewsStoryCard";
 import { MarkdownContent } from "@/components/site/MarkdownContent";
 import { getNewsPostBySlug, getLatestNewsExcluding } from "@/server/queries/news";
+import { getPageMetadata } from "@/server/seo";
 import { formatNewsDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -41,32 +42,23 @@ export async function generateMetadata({ params }: NewsDetailPageProps): Promise
   }
 
   const siteUrl = process.env["SITE_URL"]?.trim().replace(/\/+$/, "");
-  const canonicalUrl = siteUrl ? `${siteUrl}/news/${post.slug}` : undefined;
-  const imageUrl = post.image
-    ? siteUrl && !post.image.startsWith("http")
-      ? `${siteUrl}${post.image}`
-      : post.image
-    : undefined;
+  const canonicalUrl = siteUrl ? `${siteUrl}/news/${post.slug}` : `/news/${post.slug}`;
 
-  return {
-    title: `${post.title} — Altair Academy`,
-    description: post.excerpt,
-    alternates: canonicalUrl ? { canonical: canonicalUrl } : undefined,
-    openGraph: {
-      title: `${post.title} — Altair Academy`,
-      description: post.excerpt,
-      type: "article",
-      publishedTime: post.publishedAt.toISOString(),
-      url: canonicalUrl,
-      images: imageUrl ? [{ url: imageUrl, alt: post.title }] : undefined,
+  return getPageMetadata("news-detail", {
+    record: {
+      metaTitle: post.metaTitle,
+      metaDescription: post.metaDescription,
+      ogImage: post.ogImage || post.image,
     },
-    twitter: {
-      card: "summary_large_image",
-      title: `${post.title} — Altair Academy`,
-      description: post.excerpt,
-      images: imageUrl ? [imageUrl] : undefined,
+    replacements: {
+      "{title}": post.title,
+      "{excerpt}": post.excerpt,
+      "{category}": post.category ?? "",
     },
-  };
+    canonicalPath: canonicalUrl,
+    publishedTime: post.publishedAt.toISOString(),
+    imageAlt: post.title,
+  });
 }
 
 export default async function NewsDetailPage({ params }: NewsDetailPageProps) {

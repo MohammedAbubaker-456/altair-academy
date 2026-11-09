@@ -10,6 +10,7 @@
 import type { Metadata } from "next";
 import { CalendarContent } from "@/components/site/CalendarContent";
 import { getActiveCalendarCourses, getActiveCalendarSessions } from "@/server/queries/calendar";
+import { getPageMetadata } from "@/server/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -52,18 +53,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const title = `${displayYear} Training Calendar | Altair Academy`;
 
-  return {
-    title,
-    description,
-    openGraph: {
+  return getPageMetadata("calendar", {
+    dynamicDefaults: {
       title,
-      description: "Month-by-month NDT Level 2 training and examination dates at Altair Academy.",
-      type: "website",
+      description,
+      ogTitle: title,
+      ogDescription: "Month-by-month NDT Level 2 training and examination dates at Altair Academy.",
     },
-    twitter: {
-      card: "summary_large_image",
-    },
-  };
+  });
 }
 
 export default async function CalendarPage() {

@@ -16,16 +16,13 @@ import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import { UnsubscribeForm } from "./UnsubscribeForm";
+import { getPageMetadata } from "@/server/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Unsubscribe from Newsletter | Altair Academy",
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadata("newsletter-unsubscribe");
+}
 
 interface UnsubscribePageProps {
   searchParams: Promise<{

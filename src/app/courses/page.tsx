@@ -14,21 +14,12 @@ import { PageShell } from "@/components/site/PageShell";
 import { CourseCard } from "@/components/site/CourseCard";
 import { getAllActiveCourses } from "@/server/queries/courses";
 import { getCategoryTree } from "@/server/queries/categories";
+import { getPageMetadata } from "@/server/seo";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Technical Training Courses — Altair Academy",
-  description:
-    "Browse Altair Academy courses across NDT, corrosion, BIM, management systems, plant maintenance and more.",
-  openGraph: {
-    title: "Technical Training Courses — Altair Academy",
-    description: "Browse accredited technical courses by category, level, duration and price.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadata("courses");
+}
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

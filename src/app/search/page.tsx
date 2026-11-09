@@ -12,20 +12,11 @@ import type { Metadata } from "next";
 import { PageShell } from "@/components/site/PageShell";
 import { CourseCard } from "@/components/site/CourseCard";
 import { searchActiveCourses } from "@/server/queries/courses";
+import { getPageMetadata } from "@/server/seo";
 
-export const metadata: Metadata = {
-  title: "Search Courses — Altair Academy",
-  description: "Search Altair Academy's technical training catalogue.",
-  robots: { index: false, follow: false },
-  openGraph: {
-    title: "Search Courses — Altair Academy",
-    description: "Find the right accredited technical course.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadata("search");
+}
 
 type Props = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

@@ -23,6 +23,7 @@ export interface LegalPageDTO {
   id: string;
   slug: string;
   title: string;
+  metaTitle: string | null;
   metaDescription: string | null;
   body: string;
   showInFooter: boolean;
@@ -79,6 +80,7 @@ export async function getActiveLegalPageBySlug(slug: string): Promise<LegalPageD
     id: page.id,
     slug: page.slug,
     title: page.title,
+    metaTitle: page.metaTitle,
     metaDescription: page.metaDescription,
     body: page.body,
     showInFooter: page.showInFooter,

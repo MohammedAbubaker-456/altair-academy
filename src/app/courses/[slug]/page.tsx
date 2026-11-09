@@ -37,6 +37,7 @@ import { CourseCard } from "@/components/site/CourseCard";
 import { Button } from "@/components/ui/button";
 import { getActiveCourseBySlug, getAllActiveCourses } from "@/server/queries/courses";
 import { getContactDetails } from "@/server/queries/contact";
+import { getPageMetadata } from "@/server/seo";
 import { MarkdownContent } from "@/components/site/MarkdownContent";
 
 type Props = {
@@ -54,18 +55,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       robots: { index: false, follow: false },
     };
   }
-  return {
-    title: `${course.title} — Altair Academy`,
-    description: course.summary,
-    openGraph: {
-      title: `${course.title} — Altair Academy`,
-      description: course.summary,
-      type: "website",
+
+  return getPageMetadata("course-detail", {
+    record: course,
+    replacements: {
+      "{title}": course.title,
+      "{summary}": course.summary,
+      "{category}": course.category?.name ?? "",
+      "{level}": course.level ?? "",
     },
-    twitter: {
-      card: "summary_large_image",
-    },
-  };
+  });
 }
 
 type DetailSectionData = {

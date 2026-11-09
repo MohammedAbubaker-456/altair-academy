@@ -13,22 +13,13 @@ import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
 import { ContactForm } from "@/components/site/ContactForm";
 import { getContactDetails } from "@/server/queries/contact";
+import { getPageMetadata } from "@/server/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Contact Altair Academy — Enrol or Ask a Question",
-  description:
-    "Reach the Altair Academy training team by phone, WhatsApp or email to choose a course or arrange in-house training.",
-  openGraph: {
-    title: "Contact Altair Academy",
-    description: "Phone, WhatsApp, email and office hours for our training team.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadata("contact");
+}
 
 export default async function ContactPage() {
   const contactDetails = await getContactDetails();

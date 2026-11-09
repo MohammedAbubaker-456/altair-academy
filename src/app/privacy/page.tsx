@@ -14,6 +14,7 @@ import { PageShell } from "@/components/site/PageShell";
 import { MarkdownContent } from "@/components/site/MarkdownContent";
 import { getActiveLegalPageBySlug, replaceLegalTokens } from "@/server/queries/legal";
 import { getContactInfo } from "@/server/queries/contact";
+import { getPageMetadata } from "@/server/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -31,25 +32,23 @@ function getExcerpt(body: string, metaDescription?: string | null): string {
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getActiveLegalPageBySlug("privacy");
   if (!page) {
-    return {
-      title: "Privacy Policy — Altair Academy",
-    };
+    return getPageMetadata("privacy");
   }
 
   const description = getExcerpt(page.body, page.metaDescription);
 
-  return {
-    title: `${page.title} — Altair Academy`,
-    description,
-    openGraph: {
+  return getPageMetadata("privacy", {
+    record: {
+      metaTitle: page.metaTitle,
+      metaDescription: page.metaDescription,
+    },
+    dynamicDefaults: {
       title: `${page.title} — Altair Academy`,
       description,
-      type: "website",
+      ogTitle: `${page.title} — Altair Academy`,
+      ogDescription: description,
     },
-    twitter: {
-      card: "summary_large_image",
-    },
-  };
+  });
 }
 
 export default async function PrivacyPage() {

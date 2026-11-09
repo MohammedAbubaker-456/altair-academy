@@ -13,6 +13,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/site/PageShell";
 import { getActiveTeamMemberBySlug } from "@/server/queries/team";
+import { getPageMetadata } from "@/server/seo";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -29,18 +30,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       robots: { index: false, follow: false },
     };
   }
-  return {
-    title: `${member.name}, ${member.role} — Altair Academy`,
-    description: member.shortBio,
-    openGraph: {
-      title: `${member.name} — Altair Academy`,
+  return getPageMetadata("team-detail", {
+    record: {
+      metaTitle: member.metaTitle,
+      metaDescription: member.metaDescription,
+    },
+    replacements: {
+      "{name}": member.name,
+      "{role}": member.role,
+      "{bio}": member.shortBio,
+    },
+    dynamicDefaults: {
+      title: `${member.name}, ${member.role} — Altair Academy`,
       description: member.shortBio,
-      type: "website",
+      ogTitle: `${member.name} — Altair Academy`,
+      ogDescription: member.shortBio,
     },
-    twitter: {
-      card: "summary_large_image",
-    },
-  };
+  });
 }
 
 export default async function TeamDetailPage({ params }: Props) {

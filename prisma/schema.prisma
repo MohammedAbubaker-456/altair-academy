@@ -123,6 +123,9 @@ model Course {
   feeDetails        String?
   courseSupport     String?
   courseNote        String?
+  metaTitle         String?
+  metaDescription   String?
+  ogImage           String?
   isFeatured        Boolean      @default(false)
   order             Int          @default(0)
   status            Status       @default(ACTIVE)
@@ -188,6 +191,8 @@ model TeamMember {
   instructorRole  String?
   shortBio        String
   fullBio         String?
+  metaTitle       String?
+  metaDescription String?
   expertise       String[]
   image           String?
   placements      TeamPlacement[]
@@ -211,6 +216,9 @@ model NewsPost {
   category    String?
   tags        String[]
   image       String?
+  metaTitle   String?
+  metaDescription String?
+  ogImage     String?
   publishedAt DateTime
   status      Status   @default(ACTIVE)
   createdAt   DateTime @default(now())
@@ -277,6 +285,7 @@ model LegalPage {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   slug            String   @unique
   title           String
+  metaTitle       String?
   metaDescription String?
   body            String
   showInFooter    Boolean  @default(true)
@@ -358,3 +367,29 @@ model UpcomingIntake {
 
   @@index([status, endDate])
 }
+
+model PageSeo {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  pageKey       String   @unique
+  title         String?
+  description   String?
+  ogTitle       String?
+  ogDescription String?
+  ogImage       String?
+  noIndex       Boolean?
+  canonicalPath String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SiteSeo {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  key                String   @unique @default("default")
+  siteName           String?
+  defaultDescription String?
+  defaultOgImage     String?
+  twitterSite        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+

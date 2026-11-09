@@ -2,6 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+// import { CircleChevronUp } from "lucide-react";
+import { ChevronsUp } from "lucide-react";
 
 const CIRCLE_RADIUS = 26;
 const CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
@@ -93,7 +95,9 @@ export function BackToTop() {
                 title="Back to top"
                 className="relative flex h-11 w-11 items-center justify-center rounded-full bg-primary text-2xl font-semibold text-primary-foreground shadow-lg transition-all duration-200 hover:scale-110 hover:bg-brand-red active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-red focus-visible:ring-offset-2"
             >
-                ↑
+                {/* ↑ */}
+                {/* <CircleChevronUp size={32} strokeWidth={2.5} /> */}
+                <ChevronsUp size={38} strokeWidth={2.0} />
             </button>
         </div>
     );

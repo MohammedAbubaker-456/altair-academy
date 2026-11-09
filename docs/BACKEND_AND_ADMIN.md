@@ -717,7 +717,67 @@ model UpcomingIntake {
 
 ---
 
-## 17. Troubleshooting
+## 17. SEO & Meta Tags Management System
+
+Altair Academy features a database-driven, multi-tier SEO management engine. The system allows administrators to customize page titles, descriptions, Open Graph cards, Twitter metadata, canonical paths, and search engine indexing rules (`noIndex`) for every public page on the site from the `/admin/seo` dashboard.
+
+### Architecture & Design Philosophy
+
+1. **Default-Driven & Zero Initial Footprint**: The entire baseline metadata for all 17 public routes is coded into `src/lib/seo/registry.ts`. No database rows are seeded or required for the site to display its optimal SEO tags. Until an administrator customizes a page, 100% of the rendered `<head>` output matches the original built-in defaults.
+2. **Lean Database Rows**: When an administrator clears all fields on an override, the system automatically deletes the `PageSeo` database row via `deleteMany({ where: { pageKey } })` rather than storing empty or null rows.
+3. **Multi-Tier Fallback Hierarchy**:
+   When any public page renders, metadata is resolved in the following priority order:
+   - **Tier 1 (Highest)**: Specific record-level fields (`metaTitle`, `metaDescription`, `ogImage` on individual courses, news articles, team members, or legal pages).
+   - **Tier 2**: Page-level database override row in `PageSeo` (e.g. `pageKey = "course-detail"` or `"home"`).
+   - **Tier 3**: Static registry baseline default from `src/lib/seo/registry.ts`.
+   - **Tier 4**: Global site-level defaults row in `SiteSeo` (key `"default"`: `siteName`, `defaultDescription`, `defaultOgImage`, `twitterSite`).
+   - **Tier 5 (Lowest)**: Root `src/app/layout.tsx` metadata fallback.
+
+### Detail Page Templates & Placeholders
+
+For dynamic routes, template items in the registry permit whitelisted placeholders:
+- **`course-detail`** (`/courses/[slug]`): `{title}`, `{summary}`, `{category}`, `{level}`
+- **`news-detail`** (`/news/[slug]`): `{title}`, `{excerpt}`, `{category}`
+- **`team-detail`** (`/team/[slug]`): `{name}`, `{role}`, `{bio}`
+- **`legal-detail`** (`/legal/[slug]`): `{title}`
+
+The server-side resolver replaces all recognized tokens using regular expressions, while stripping any empty or unused placeholder brackets without leaking `{...}` or `undefined` into the public output. Zod schemas strictly reject unrecognized tokens during admin save.
+
+### Server Resolver: `src/server/seo.ts`
+
+- **Cached Data Access**: Wrapped in React's `cache()` so repeated calls across Server Components in a single request (e.g. `generateMetadata` and child components) execute at most one database query.
+- **Fail-Safe Operation**: If a database connection error occurs, the resolver catches the error, logs a warning, and seamlessly falls back to registry defaults without throwing a 500 error.
+- **Absolute URL Normalization**: If `SITE_URL` is configured, relative image paths (e.g. `/uploads/...` or `/seed/...`) are converted to fully qualified URLs for Open Graph scrapers.
+
+### Admin Dashboard & Editor
+
+1. **Overview Registry Table (`/admin/seo`)**:
+   - Lists all registered pages grouped into **Main pages**, **Detail pages**, and **Legal**.
+   - **Source Badges**: `Default` (muted) or `Customised` (emerald badge).
+   - **Effective Title & Character Count**: Displays active title and color-coded description length badge (green when within recommended 70–160 characters, amber otherwise).
+   - **Indexing Badges**: `Index` vs `Noindex`.
+   - **Live Preview Links**: External link icons that open the live page (or a sample slug for templates) in a new tab.
+   - **Search & Filters**: Instant search by page name, path, or title, plus filter tabs for Source (All, Customised, Default) and Group.
+   - **Site Defaults Card**: Top card for managing global site-level fallback values (`SiteSeo`).
+
+2. **Single Page Editor (`/admin/seo/[pageKey]`)**:
+   - Meta title (max 120 chars) with live counter and recommended range indicator (30–60 chars).
+   - Meta description (max 300 chars) with live counter and recommended range indicator (70–160 chars).
+   - Open Graph title and description overrides.
+   - Social share image uploader (`ImageUpload`, recommended 1200 x 630 px).
+   - Canonical path override (must start with `/`).
+   - Indexing rule selector (`Default`, `Index`, `Noindex`) with safety confirmation warning when setting an indexable page to `Noindex`.
+   - Dynamic placeholder chips that insert tokens at the cursor.
+   - **Dual Live Previews**: Real-time Google search result snippet and Facebook/LinkedIn/X social share card previews.
+
+3. **Record-Level Collapsible SEO Section (`SeoFormSection`)**:
+   - Embedded into Course, News, Team, and Legal forms.
+   - Collapsed by default when empty; automatically expanded if custom values exist.
+   - Features the same real-time character count guidance and dual live previews.
+
+---
+
+## 18. Troubleshooting
 
 ### Problem: "Transactions are not supported by this deployment"
 

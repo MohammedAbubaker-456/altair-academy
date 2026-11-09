@@ -112,6 +112,7 @@ altair-academy/
 │   │       ├── careers/actions.ts   # Careers server actions (CRUD + status toggle + revalidation)
 │   │       ├── contact/actions.ts   # Contact details server actions (CRUD + status toggle + layout revalidation)
 │   │       ├── legal/actions.ts     # Legal pages server actions (CRUD + core protection + layout revalidation)
+│   │       ├── seo/actions.ts       # SEO server actions (savePageSeo, resetPageSeo, saveSiteSeo, resetSiteSeo + revalidation)
 │   │       ├── leads/actions.ts     # Lead server actions (setStatus, delete + admin revalidation)
 │   │       ├── applications/        # Applications actions & secure resume streaming route
 │   │       │   ├── actions.ts       # Application server actions (setStatus, delete + resume file cleanup)
@@ -138,6 +139,7 @@ altair-academy/
 │   │           ├── careers/         # /admin/careers table, /new, and /[id] forms
 │   │           ├── contact/         # /admin/contact grouped channels table, adaptive dialog, & footer preview
 │   │           ├── legal/           # /admin/legal table, /new, and /[id] forms (core protected)
+│   │           ├── seo/             # /admin/seo registry table, site defaults card, and /[pageKey] edit form with dual live previews
 │   │           └── settings/        # /admin/settings change-password form
 │   │
 │   ├── components/
@@ -147,6 +149,7 @@ altair-academy/
 │   │   │   ├── nav-items.ts         # Canonical navigation single source of truth (Overview, Inbox, Content, Settings)
 │   │   │   ├── DeleteDialog.tsx     # Accessible confirmation modal for destructive operations
 │   │   │   ├── ImageUpload.tsx      # File uploader, preview, replace, and remove (no URL pasting)
+│   │   │   ├── SeoFormSection.tsx   # Reusable collapsible SEO form with Google & social share card live previews
 │   │   │   └── StatusSwitch.tsx     # Optimistic toggle switch for ACTIVE/INACTIVE statuses
 │   │   ├── site/                    # Public website components
 │   │   │   ├── Header.tsx           # Async Server Component querying dynamic 2-level course menu from MongoDB
@@ -172,6 +175,8 @@ altair-academy/
 │   │   ├── careers.ts               # Employment type labels and formatters
 │   │   ├── legal.ts                 # Canonical legal URL resolution (legalHref)
 │   │   ├── storage.ts               # Local disk persistent public media storage driver
+│   │   ├── seo/
+│   │   │   └── registry.ts          # Central SEO page registry, static defaults & detail template placeholder definitions
 │   │   ├── auth/
 │   │   │   ├── session.ts           # Jose HS256 JWT cookie session management & requireAdmin()
 │   │   │   └── password.ts          # Bcrypt password hashing (cost factor 12) & timing equalization
@@ -189,9 +194,11 @@ altair-academy/
 │   │       ├── intake.ts            # UpcomingIntake validation schema (title 3-120, dates YYYY-MM-DD <= 31 days, points 0-5 items <= 100 chars)
 │   │       ├── careers.ts           # JobOpening validation schema
 │   │       ├── contact.ts           # ContactDetail schema with per-type refinements
-│   │       └── legal.ts             # LegalPage validation schema with reserved slug guards
+│   │       ├── legal.ts             # LegalPage validation schema with reserved slug guards
+│   │       └── seo.ts               # PageSeo & SiteSeo validation schemas with template placeholder enforcement
 │   │
 │   └── server/
+│       ├── seo.ts                   # Multi-tier metadata resolver (records > PageSeo > registry > SiteSeo) with React cache()
 │       ├── admin/                   # Administrative data queries (requireAdmin enforced)
 │       │   ├── stats.ts             # Dashboard overview stats across all models + NEW lead/app counts
 │       │   ├── calendar.ts          # Calendar sessions (multi-filter, pagination) & course codes

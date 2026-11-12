@@ -46,6 +46,7 @@ import { getContactInfo } from "@/server/queries/contact";
 import { getPageMetadata } from "@/server/seo";
 import heroImage from "@/assets/hero-classroom.jpg";
 import approachImage from "@/assets/approach-classroom.jpg";
+// import heroImg from "@/uploads/static/heroImage.png";
 
 export const dynamic = "force-dynamic";
 
@@ -156,6 +157,8 @@ export default async function Home() {
             <div className="relative">
               <Image
                 src={heroImage}
+                // src={heroImg}
+
                 alt="Instructor leading a technical training class at Altair Academy"
                 width={1600}
                 height={1000}

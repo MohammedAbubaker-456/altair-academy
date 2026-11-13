@@ -44,4 +44,3 @@ export function writeList(items: unknown): string {
   }
   return "[]";
 }
-

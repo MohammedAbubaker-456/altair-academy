@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteSeo = await getSiteSeo();
-  const siteUrl = process.env["SITE_URL"]?.trim();
+  const siteUrl = process.env["SITE_URL"]?.trim() || "https://altair-academy.netlify.app/";
   const siteName = siteSeo?.siteName || "Altair Academy";
   const description =
     siteSeo?.defaultDescription ||

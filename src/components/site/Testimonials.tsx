@@ -531,12 +531,24 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
 
   const count = testimonials.length;
 
+  // React.useEffect(() => {
+  //   const raf = requestAnimationFrame(() => setMounted(true));
+
+  //   return () => {
+  //     cancelAnimationFrame(raf);
+  //     timeouts.current.forEach(clearTimeout);
+  //   };
+  // }, []);
   React.useEffect(() => {
-    const raf = requestAnimationFrame(() => setMounted(true));
+    const activeTimeouts = timeouts.current;
+
+    const raf = requestAnimationFrame(() => {
+      setMounted(true);
+    });
 
     return () => {
       cancelAnimationFrame(raf);
-      timeouts.current.forEach(clearTimeout);
+      activeTimeouts.forEach(clearTimeout);
     };
   }, []);
 

@@ -45,6 +45,13 @@ next-env.d.ts
 .wrangler/
 .dev.vars
 
+# Database dumps & migration backups
+backups/
+db-dumps/
+*.sql
+*.sql.gz
+*.ndjson
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

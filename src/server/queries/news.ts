@@ -9,6 +9,15 @@
 
 import "server-only";
 import { db } from "@/lib/db";
+import { readList } from "@/lib/lists";
+
+function formatNewsPost<T extends { tags: string }>(post: T | null) {
+  if (!post) return null;
+  return {
+    ...post,
+    tags: readList(post.tags),
+  };
+}
 
 export async function getNewsFeed() {
   const [featured, stories, picks] = await Promise.all([
@@ -44,23 +53,24 @@ export async function getNewsFeed() {
   ]);
 
   return {
-    featured,
-    stories,
-    picks,
+    featured: formatNewsPost(featured),
+    stories: stories.map((s) => formatNewsPost(s)!),
+    picks: picks.map((p) => formatNewsPost(p)!),
   };
 }
 
 export async function getNewsPostBySlug(slug: string) {
-  return db.newsPost.findFirst({
+  const post = await db.newsPost.findFirst({
     where: {
       slug,
       status: "ACTIVE",
     },
   });
+  return formatNewsPost(post);
 }
 
 export async function getLatestNewsExcluding(id: string, limit = 3) {
-  return db.newsPost.findMany({
+  const posts = await db.newsPost.findMany({
     where: {
       status: "ACTIVE",
       id: {
@@ -72,4 +82,5 @@ export async function getLatestNewsExcluding(id: string, limit = 3) {
     },
     take: limit,
   });
+  return posts.map((p) => formatNewsPost(p)!);
 }

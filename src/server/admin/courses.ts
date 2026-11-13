@@ -35,9 +35,9 @@ export async function getCoursesAdmin(params: CoursesAdminParams = {}) {
   if (params.q?.trim()) {
     const query = params.q.trim();
     where.OR = [
-      { title: { contains: query, mode: "insensitive" } },
-      { summary: { contains: query, mode: "insensitive" } },
-      { slug: { contains: query, mode: "insensitive" } },
+      { title: { contains: query } },
+      { summary: { contains: query } },
+      { slug: { contains: query } },
     ];
   }
 

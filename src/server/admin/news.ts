@@ -11,6 +11,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
+import { readList } from "@/lib/lists";
 import type { Prisma, NewsKind } from "@prisma/client";
 
 export interface NewsAdminParams {
@@ -27,9 +28,9 @@ export async function getNewsPostsAdmin(params: NewsAdminParams = {}) {
   if (params.q?.trim()) {
     const query = params.q.trim();
     where.OR = [
-      { title: { contains: query, mode: "insensitive" } },
-      { excerpt: { contains: query, mode: "insensitive" } },
-      { category: { contains: query, mode: "insensitive" } },
+      { title: { contains: query } },
+      { excerpt: { contains: query } },
+      { category: { contains: query } },
     ];
   }
 
@@ -41,10 +42,15 @@ export async function getNewsPostsAdmin(params: NewsAdminParams = {}) {
     where.kind = params.kind;
   }
 
-  return db.newsPost.findMany({
+  const posts = await db.newsPost.findMany({
     where,
     orderBy: { publishedAt: "desc" },
   });
+
+  return posts.map((post) => ({
+    ...post,
+    tags: readList(post.tags),
+  }));
 }
 
 export async function getNewsPostByIdAdmin(id: string) {
@@ -52,7 +58,14 @@ export async function getNewsPostByIdAdmin(id: string) {
 
   if (!isValidObjectId(id)) return null;
 
-  return db.newsPost.findUnique({
+  const post = await db.newsPost.findUnique({
     where: { id },
   });
+
+  if (!post) return null;
+
+  return {
+    ...post,
+    tags: readList(post.tags),
+  };
 }

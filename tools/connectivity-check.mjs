@@ -1,19 +1,18 @@
 /**
- * GoDaddy / cPanel Pre-Flight Network & DNS Connectivity Diagnostic
+ * GoDaddy / cPanel Pre-Flight MariaDB Connectivity Diagnostic
  *
- * Verifies outbound TCP connectivity to MongoDB Atlas hosts on port 27017
- * directly from the hosting environment over SSH. Resolves DNS SRV records,
- * performs raw socket handshakes, and diagnoses blocked ports or missing IP allowlists.
+ * Verifies local TCP connectivity to MariaDB on port 3306
+ * directly from the hosting environment over SSH.
+ * Performs socket handshake and diagnoses blocked ports or network issues.
  * Never prints database credentials.
  *
  * Location: tools/connectivity-check.mjs
  * Type: Standalone Node.js CLI Tool (Runnable without tsx/dependencies)
  */
 
-import dns from "node:dns/promises";
 import net from "node:net";
 
-const TIMEOUT_MS = 6000;
+const TIMEOUT_MS = 5000;
 
 function sanitizeUrl(rawUrl) {
   try {
@@ -44,12 +43,14 @@ function testTcpConnection(host, port) {
     socket.on("connect", () => cleanup(true));
     socket.on("timeout", () => cleanup(false, "Connection timed out (no response)"));
     socket.on("error", (err) => cleanup(false, err.message));
+
+    socket.connect(port, host);
   });
 }
 
 async function run() {
   console.log("===============================================================================");
-  console.log("Altair Academy — Outbound MongoDB Atlas Connectivity Diagnostic");
+  console.log("Altair Academy — MariaDB Connectivity Diagnostic");
   console.log("===============================================================================\n");
 
   const databaseUrl = process.env.DATABASE_URL;
@@ -58,97 +59,41 @@ async function run() {
     console.error("❌ ERROR: DATABASE_URL environment variable is not set.");
     console.error("👉 If running over SSH, export it first:");
     console.error(
-      '   export DATABASE_URL="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/..."\n',
-    );
-    console.error(
-      "👉 In production, add DATABASE_URL in cPanel -> Setup Node.js App -> Environment Variables.",
+      '   export DATABASE_URL="mysql://<user>:<password>@localhost:3306/<dbname>"\n',
     );
     process.exit(1);
   }
 
-  console.log(`Configured Target: ${sanitizeUrl(databaseUrl)}\n`);
+  console.log(`Checking connection string: ${sanitizeUrl(databaseUrl)}\n`);
 
-  let targetHosts = [];
+  let host = "localhost";
+  let port = 3306;
 
-  if (databaseUrl.startsWith("mongodb+srv://")) {
-    try {
-      const urlWithoutScheme = databaseUrl.replace(/^mongodb\+srv:\/\//, "");
-      const hostPart = urlWithoutScheme.split("/")[0]?.split("@")?.pop();
-      const hostname = hostPart?.split(":")[0];
-
-      if (!hostname) {
-        throw new Error("Unable to parse hostname from mongodb+srv string.");
-      }
-
-      console.log(`1. Resolving DNS SRV records for: _mongodb._tcp.${hostname}...`);
-      const srvRecords = await dns.resolveSrv(`_mongodb._tcp.${hostname}`);
-
-      if (!srvRecords || srvRecords.length === 0) {
-        console.error("❌ No SRV records returned by DNS resolver.");
-        process.exit(1);
-      }
-
-      console.log(`   ✔ Discovered ${srvRecords.length} replica set nodes via DNS SRV.\n`);
-      targetHosts = srvRecords.map((r) => ({ host: r.name, port: r.port }));
-    } catch (err) {
-      console.error(`❌ DNS SRV Resolution failed: ${err.message}`);
-      console.error("👉 Check that the cluster hostname in DATABASE_URL is spelled correctly.");
-      console.error("👉 Check that the server's nameservers can resolve external domains.");
-      process.exit(1);
-    }
-  } else if (databaseUrl.startsWith("mongodb://")) {
-    try {
-      const parsed = new URL(databaseUrl);
-      const host = parsed.hostname || "127.0.0.1";
-      const port = parsed.port ? parseInt(parsed.port, 10) : 27017;
-      targetHosts = [{ host, port }];
-    } catch (err) {
-      console.error(`❌ Unable to parse connection string: ${err.message}`);
-      process.exit(1);
-    }
-  } else {
-    console.error("❌ Invalid DATABASE_URL protocol. Must start with mongodb:// or mongodb+srv://");
-    process.exit(1);
+  try {
+    const parsed = new URL(databaseUrl);
+    host = parsed.hostname || "localhost";
+    port = parsed.port ? parseInt(parsed.port, 10) : 3306;
+  } catch {
+    console.warn("⚠️ Could not parse host/port from DATABASE_URL, defaulting to localhost:3306");
   }
 
-  console.log(`2. Testing raw TCP handshake to discovered node(s) on port 27017...`);
-  let hasFailure = false;
+  console.log(`Probing TCP connection to ${host}:${port}...`);
+  const result = await testTcpConnection(host, port);
 
-  for (const target of targetHosts) {
-    const result = await testTcpConnection(target.host, target.port);
-    if (result.success) {
-      console.log(`   ✔ PASS: Connected to ${target.host}:${target.port}`);
-    } else {
-      console.log(
-        `   ❌ FAIL: Could not connect to ${target.host}:${target.port} (${result.error})`,
-      );
-      hasFailure = true;
-    }
-  }
-
-  console.log("\n-------------------------------------------------------------------------------");
-  if (!hasFailure) {
-    console.log("✔ ALL CHECKS PASSED: Outbound TCP traffic to MongoDB Atlas is working perfectly.");
-    console.log("  Your GoDaddy hosting environment can reach your database cluster.");
+  if (result.success) {
+    console.log(`✔ TCP socket to ${host}:${port} opened successfully!`);
+    console.log("  MariaDB is reachable and accepting connections.\n");
+    console.log("Next step: Run 'node tools/check-db.mjs' to verify credentials and query execution.\n");
     process.exit(0);
   } else {
-    console.error(
-      "❌ CONNECTIVITY FAILED: One or more MongoDB cluster nodes could not be reached.",
-    );
-    console.error("\nTroubleshooting Steps for GoDaddy Shared Hosting:");
-    console.error("1. Outbound Port 27017 Restriction:");
-    console.error(
-      "   Shared cPanel hosts occasionally restrict outbound TCP ports other than 80/443.",
-    );
-    console.error("   Contact GoDaddy Support if outbound port 27017 is blocked.");
-    console.error("2. Atlas IP Allowlist:");
-    console.error("   Check your server's outbound public IP address by running:");
-    console.error("   curl -s https://ifconfig.me");
-    console.error(
-      "   Add that IP under MongoDB Atlas -> Security -> Network Access -> Add IP Address.",
-    );
+    console.error(`❌ TCP connection to ${host}:${port} failed: ${result.error}`);
+    console.error("👉 Verify MariaDB service is running and listening on port 3306.");
+    console.error("   On GoDaddy cPanel, ensure database user has permissions for the database.\n");
     process.exit(1);
   }
 }
 
-void run();
+run().catch((err) => {
+  console.error("Unexpected failure:", err);
+  process.exit(1);
+});

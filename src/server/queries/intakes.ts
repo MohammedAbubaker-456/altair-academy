@@ -11,6 +11,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { getTodayDateString } from "@/lib/date";
+import { readList } from "@/lib/lists";
 
 export interface UpcomingIntakeDTO {
   id: string;
@@ -24,7 +25,7 @@ export interface UpcomingIntakeDTO {
 export async function getUpcomingIntakes(limit: number = 4): Promise<UpcomingIntakeDTO[]> {
   const today = getTodayDateString("Asia/Kuala_Lumpur");
 
-  return db.upcomingIntake.findMany({
+  const rows = await db.upcomingIntake.findMany({
     where: {
       status: "ACTIVE",
       endDate: {
@@ -42,4 +43,9 @@ export async function getUpcomingIntakes(limit: number = 4): Promise<UpcomingInt
       points: true,
     },
   });
+
+  return rows.map((r) => ({
+    ...r,
+    points: readList(r.points),
+  }));
 }

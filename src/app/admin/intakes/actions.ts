@@ -14,6 +14,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
+import { readList, writeList } from "@/lib/lists";
 import { upcomingIntakeSchema, type UpcomingIntakeInput } from "@/lib/validation/intake";
 import type { Status } from "@prisma/client";
 
@@ -57,7 +58,7 @@ export async function createIntake(input: unknown): Promise<IntakeActionResult> 
         startDate,
         endDate,
         location,
-        points,
+        points: writeList(points),
         order,
         status,
       },
@@ -101,7 +102,7 @@ export async function updateIntake(id: string, input: unknown): Promise<IntakeAc
         startDate,
         endDate,
         location,
-        points,
+        points: writeList(points),
         order,
         status,
       },
@@ -192,7 +193,7 @@ export async function duplicateIntake(
     startDate: overrides?.startDate ?? existing.startDate,
     endDate: overrides?.endDate ?? existing.endDate,
     location: overrides?.location ?? existing.location,
-    points: overrides?.points ?? existing.points,
+    points: overrides?.points ?? readList(existing.points),
     order: overrides?.order ?? existing.order,
     status: overrides?.status ?? "INACTIVE",
   };

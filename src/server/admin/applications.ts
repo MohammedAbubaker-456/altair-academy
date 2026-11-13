@@ -33,11 +33,11 @@ export async function getApplicationsAdmin(params: GetApplicationsParams = {}) {
   if (q && q.trim()) {
     const term = q.trim();
     where.OR = [
-      { name: { contains: term, mode: "insensitive" } },
-      { email: { contains: term, mode: "insensitive" } },
-      { phone: { contains: term, mode: "insensitive" } },
-      { specialisation: { contains: term, mode: "insensitive" } },
-      { message: { contains: term, mode: "insensitive" } },
+      { name: { contains: term } },
+      { email: { contains: term } },
+      { phone: { contains: term } },
+      { specialisation: { contains: term } },
+      { message: { contains: term } },
     ];
   }
 

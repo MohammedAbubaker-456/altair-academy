@@ -258,7 +258,7 @@ import "./server.js";
   console.log("1. Upload altair-academy-cpanel.zip via cPanel File Manager into your app root.");
   console.log("2. Click 'Extract' in cPanel File Manager.");
   console.log("3. Configure environment variables in cPanel 'Setup Node.js App'.");
-  console.log("4. Run 'node tools/connectivity-check.mjs' over SSH to verify Atlas connectivity.");
+  console.log("4. Run 'node tools/check-db.mjs' over SSH to verify MariaDB database connectivity.");
   console.log("5. Click 'Restart' in Setup Node.js App.");
   console.log("===============================================================================\n");
 }

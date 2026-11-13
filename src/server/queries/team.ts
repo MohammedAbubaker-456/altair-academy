@@ -9,43 +9,49 @@
 
 import "server-only";
 import { db } from "@/lib/db";
+import { readList } from "@/lib/lists";
+
+function formatMember<T extends { expertise: string }>(member: T | null) {
+  if (!member) return null;
+  return {
+    ...member,
+    expertise: readList(member.expertise),
+  };
+}
 
 export async function getManagementTeam() {
-  return db.teamMember.findMany({
+  const members = await db.teamMember.findMany({
     where: {
       status: "ACTIVE",
-      placements: {
-        has: "MANAGEMENT",
-      },
+      showInManagement: true,
     },
     orderBy: {
       managementOrder: "asc",
     },
   });
+  return members.map((m) => formatMember(m)!);
 }
 
 export async function getInstructors() {
-  return db.teamMember.findMany({
+  const members = await db.teamMember.findMany({
     where: {
       status: "ACTIVE",
-      placements: {
-        has: "INSTRUCTOR",
-      },
+      showInInstructors: true,
     },
     orderBy: {
       instructorOrder: "asc",
     },
   });
+  return members.map((m) => formatMember(m)!);
 }
 
 export async function getActiveTeamMemberBySlug(slug: string) {
-  return db.teamMember.findFirst({
+  const member = await db.teamMember.findFirst({
     where: {
       slug,
       status: "ACTIVE",
-      placements: {
-        has: "MANAGEMENT",
-      },
+      showInManagement: true,
     },
   });
+  return formatMember(member);
 }

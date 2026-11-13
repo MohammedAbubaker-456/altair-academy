@@ -37,7 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, ExternalLink, Search, Users } from "lucide-react";
-import type { TeamPlacement } from "@prisma/client";
+import type { TeamPlacement } from "@/types/team";
 
 interface TeamMemberRow {
   id: string;

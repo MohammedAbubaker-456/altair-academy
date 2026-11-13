@@ -1,8 +1,8 @@
 /**
  * Standalone Database Verification Tool for cPanel / Production
  *
- * Connects to MongoDB via PrismaClient, executes the raw `hello` command,
- * and validates that the database is an active, writable replica set member.
+ * Connects to MariaDB / MySQL via PrismaClient, executes `SELECT 1, VERSION(), DATABASE()`,
+ * and validates database connectivity.
  * Designed to run over SSH inside the cPanel Node.js virtual environment without tsx.
  * Never prints database credentials.
  *
@@ -26,7 +26,7 @@ function sanitizeUrl(rawUrl) {
 
 async function checkDatabase() {
   console.log("===============================================================================");
-  console.log("Altair Academy — Database Connection & Replica Set Diagnostic");
+  console.log("Altair Academy — MariaDB / MySQL Database Connection Diagnostic");
   console.log("===============================================================================\n");
 
   const databaseUrl = process.env.DATABASE_URL;
@@ -35,7 +35,7 @@ async function checkDatabase() {
     console.error("❌ ERROR: DATABASE_URL environment variable is not set.");
     console.error("👉 If running over SSH, export it first or enter the cPanel Node virtualenv:");
     console.error(
-      '   export DATABASE_URL="mongodb+srv://<user>:<password>@<cluster>.mongodb.net/..."\n',
+      '   export DATABASE_URL="mysql://<user>:<password>@localhost:3306/<dbname>"\n',
     );
     process.exit(1);
   }
@@ -47,45 +47,31 @@ async function checkDatabase() {
   });
 
   try {
-    const result = await prisma.$runCommandRaw({ hello: 1 });
+    const rawResult = await prisma.$queryRawUnsafe(
+      "SELECT 1 as ok, VERSION() as version, DATABASE() as db_name",
+    );
 
-    if (!result || result.ok !== 1) {
-      console.error("❌ MongoDB returned an unsuccessful status:", result);
+    const row = rawResult?.[0];
+
+    if (!row || row.ok !== 1) {
+      console.error("❌ Database returned an unexpected result:", rawResult);
       process.exit(1);
     }
 
-    if (!result.setName) {
-      console.error("\n❌ MongoDB is running standalone; Prisma needs a replica set.");
-      console.error(
-        "   Prisma requires multi-document transactions, supported only on replica sets.",
-      );
-      process.exit(1);
-    }
-
-    const isWritable = result.isWritablePrimary ?? result.ismaster ?? false;
-
-    if (!isWritable) {
-      console.warn(
-        `⚠️ Connected to replica set "${result.setName}", but the node (${result.me ?? "unknown"}) is not a writable primary.`,
-      );
-      console.warn(`   Current primary node: ${result.primary ?? "electing..."}`);
-      process.exit(1);
-    }
-
-    console.log("✔ SUCCESS: Connected to MongoDB successfully!");
-    console.log(`  Replica Set: ${result.setName}`);
-    console.log(`  Connected Node: ${result.me ?? "primary"}`);
-    console.log("  Status: Writable Primary (Transactions Ready)\n");
+    console.log("✔ SUCCESS: Connected to MariaDB / MySQL successfully!");
+    console.log(`  Engine:   ${row.version}`);
+    console.log(`  Database: ${row.db_name}`);
+    console.log("  Status:   Ready\n");
 
     process.exit(0);
   } catch (error) {
-    console.error("\n❌ MongoDB connection failed.");
+    console.error("\n❌ Database connection failed.");
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     if (
-      errorMessage.includes("AuthenticationFailed") ||
-      errorMessage.includes("bad auth") ||
-      errorMessage.includes("code 18")
+      errorMessage.includes("Access denied") ||
+      errorMessage.includes("1045") ||
+      errorMessage.includes("Authentication failed")
     ) {
       console.error("\nReason: Authentication failed.");
       console.error("👉 Check that the username and password in DATABASE_URL are correct.");
@@ -94,25 +80,19 @@ async function checkDatabase() {
       );
     } else if (
       errorMessage.includes("ENOTFOUND") ||
-      errorMessage.includes("querySrv") ||
       errorMessage.includes("getaddrinfo")
     ) {
       console.error("\nReason: DNS / Hostname resolution failed.");
-      console.error("👉 Verify the hostname in DATABASE_URL.");
-      console.error("   Ensure your DNS resolver can resolve MongoDB Atlas hostnames.");
+      console.error("👉 Verify the hostname in DATABASE_URL (e.g. localhost or 127.0.0.1).");
     } else if (
       errorMessage.includes("timed out") ||
-      errorMessage.includes("ETIMEDOUT") ||
-      errorMessage.includes("Server selection timed out")
+      errorMessage.includes("ETIMEDOUT")
     ) {
       console.error("\nReason: Connection timed out.");
-      console.error(
-        "👉 Check if your cPanel server's public IP address is allowlisted in Atlas Network Access.",
-      );
-      console.error("   Run 'curl -s https://ifconfig.me' to find the outbound IP.");
-    } else if (errorMessage.includes("ECONNREFUSED")) {
-      console.error("\nReason: Connection refused (127.0.0.1:27017).");
-      console.error("👉 The local MongoDB service is not running.");
+      console.error("👉 Check host and port (3306).");
+    } else if (errorMessage.includes("ECONNREFUSED") || errorMessage.includes("Can't reach database server")) {
+      console.error("\nReason: Connection refused (port 3306).");
+      console.error("👉 Verify that MySQL/MariaDB is running.");
     } else {
       console.error("\nDetails:", errorMessage);
     }

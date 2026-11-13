@@ -117,9 +117,9 @@ export async function getAdminCalendarSessions(params: GetAdminSessionsParams = 
     const term = q.trim();
     where.OR = [
       ...(Array.isArray(where.OR) ? where.OR : []),
-      { note: { contains: term, mode: "insensitive" } },
-      { location: { contains: term, mode: "insensitive" } },
-      { level: { contains: term, mode: "insensitive" } },
+      { note: { contains: term } },
+      { location: { contains: term } },
+      { level: { contains: term } },
     ];
   }
 

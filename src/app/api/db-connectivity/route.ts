@@ -1,37 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveSrv, lookup } from "node:dns/promises";
-import { createConnection } from "node:net";
+import { lookup } from "node:dns/promises";
+import net from "node:net";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TIMEOUT = 5000;
-
-function testTcp(host: string, port: number): Promise<any> {
+function testTcp(host: string, port: number): Promise<{
+    connected: boolean;
+    error?: string;
+    code?: string;
+}> {
     return new Promise((resolve) => {
-        const socket = createConnection({ host, port });
+        const socket = new net.Socket();
+        socket.setTimeout(5000);
 
-        const finish = (result: any) => {
+        socket.connect(port, host, () => {
             socket.destroy();
-            resolve(result);
-        };
-
-        socket.setTimeout(TIMEOUT);
-
-        socket.once("connect", () => {
-            finish({ connected: true });
+            resolve({ connected: true });
         });
 
-        socket.once("timeout", () => {
-            finish({
+        socket.on("timeout", () => {
+            socket.destroy();
+            resolve({
                 connected: false,
-                error: "Connection timed out",
-                code: "TIMEOUT",
+                error: "Timeout after 5000ms",
+                code: "ETIMEDOUT",
             });
         });
 
-        socket.once("error", (err: NodeJS.ErrnoException) => {
-            finish({
+        socket.on("error", (err: Error & { code?: string }) => {
+            socket.destroy();
+            resolve({
                 connected: false,
                 error: err.message,
                 code: err.code || "UNKNOWN",
@@ -41,7 +39,7 @@ function testTcp(host: string, port: number): Promise<any> {
 }
 
 export async function GET(request: NextRequest) {
-    const token = process.env.CONNECTIVITY_TEST_TOKEN;
+    const token = process.env["CONNECTIVITY_TEST_TOKEN"];
 
     if (!token) {
         return NextResponse.json(
@@ -58,8 +56,7 @@ export async function GET(request: NextRequest) {
         );
     }
 
-
-    const databaseUrl = process.env.DATABASE_URL;
+    const databaseUrl = process.env["DATABASE_URL"];
 
     if (!databaseUrl) {
         return NextResponse.json(
@@ -73,19 +70,10 @@ export async function GET(request: NextRequest) {
 
         let targets: { name: string; port: number }[] = [];
 
-        if (url.protocol === "mongodb+srv:") {
-            const records = await resolveSrv(
-                `_mongodb._tcp.${url.hostname}`
-            );
-
-            targets = records.map((record) => ({
-                name: record.name.replace(/\.$/, ""),
-                port: record.port,
-            }));
-        } else if (url.protocol === "mongodb:") {
+        if (url.protocol === "mysql:" || url.protocol === "mariadb:") {
             targets = [{
-                name: url.hostname,
-                port: Number(url.port || 27017),
+                name: url.hostname || "127.0.0.1",
+                port: Number(url.port || 3306),
             }];
         } else {
             return NextResponse.json({

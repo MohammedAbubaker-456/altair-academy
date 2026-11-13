@@ -37,7 +37,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SeoFormSection } from "@/components/admin/SeoFormSection";
 import { Loader2, ArrowLeft, X, Plus } from "lucide-react";
-import type { TeamPlacement } from "@prisma/client";
+import type { TeamPlacement } from "@/types/team";
 
 interface TeamMemberInitialData {
   id: string;

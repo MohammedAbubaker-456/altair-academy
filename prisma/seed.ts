@@ -234,7 +234,7 @@ async function main() {
     where: {
       OR: [
         { slug: "api-510-pressure-vessel-inspector" },
-        { title: { contains: "API 510", mode: "insensitive" } },
+        { title: { contains: "API 510" } },
       ],
     },
   });
@@ -315,9 +315,10 @@ async function main() {
           instructorRole: member.instructorRole,
           shortBio: member.shortBio,
           fullBio: member.fullBio,
-          expertise: member.expertise,
+          expertise: JSON.stringify(member.expertise),
           image: member.image,
-          placements: [...member.placements],
+          showInManagement: (member.placements as readonly string[]).includes("MANAGEMENT"),
+          showInInstructors: (member.placements as readonly string[]).includes("INSTRUCTOR"),
           managementOrder: member.managementOrder,
           instructorOrder: member.instructorOrder,
           status: "ACTIVE",
@@ -345,7 +346,7 @@ async function main() {
           body: post.excerpt, // Default body initialized from excerpt
           kind: post.kind,
           category: post.category,
-          tags: post.tags,
+          tags: JSON.stringify(post.tags),
           image: post.image,
           publishedAt: post.publishedAt,
           status: "ACTIVE",
@@ -434,7 +435,7 @@ async function main() {
           startDate: intake.startDate,
           endDate: intake.endDate,
           location: intake.location,
-          points: intake.points,
+          points: JSON.stringify(intake.points),
           order: intake.order,
           status: "ACTIVE",
         },

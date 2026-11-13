@@ -25,8 +25,8 @@ const envSchema = z
       .string({ required_error: "DATABASE_URL is required" })
       .min(1, "DATABASE_URL cannot be empty")
       .refine(
-        (url) => url.startsWith("mongodb://") || url.startsWith("mongodb+srv://"),
-        "DATABASE_URL must start with 'mongodb://' or 'mongodb+srv://'",
+        (url) => url.startsWith("mysql://") || url.startsWith("mariadb://"),
+        "DATABASE_URL must start with 'mysql://' or 'mariadb://'",
       ),
     AUTH_SECRET: z
       .string({ required_error: "AUTH_SECRET is required" })

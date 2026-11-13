@@ -13,6 +13,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { verifyAdminAction } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
+import { writeList } from "@/lib/lists";
 import { newsPostSchema } from "@/lib/validation/news";
 import { storageService } from "@/lib/storage";
 import { revalidatePublicData } from "@/server/revalidate";
@@ -60,7 +61,7 @@ export async function createNewsPostAction(input: unknown): Promise<NewsActionRe
         body: body || null,
         kind,
         category: category || null,
-        tags,
+        tags: writeList(tags),
         image: image || null,
         publishedAt,
         status,
@@ -133,7 +134,7 @@ export async function updateNewsPostAction(id: string, input: unknown): Promise<
         body: body || null,
         kind,
         category: category || null,
-        tags,
+        tags: writeList(tags),
         image: image || null,
         publishedAt,
         status,

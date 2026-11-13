@@ -29,10 +29,10 @@ export async function getCareersAdmin(params: GetCareersParams = {}) {
   if (q && q.trim()) {
     const term = q.trim();
     where.OR = [
-      { title: { contains: term, mode: "insensitive" } },
-      { location: { contains: term, mode: "insensitive" } },
-      { scope: { contains: term, mode: "insensitive" } },
-      { summary: { contains: term, mode: "insensitive" } },
+      { title: { contains: term } },
+      { location: { contains: term } },
+      { scope: { contains: term } },
+      { summary: { contains: term } },
     ];
   }
 

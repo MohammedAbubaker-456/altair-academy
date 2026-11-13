@@ -39,7 +39,7 @@ export async function getSubscribersAdmin(params: GetSubscribersParams = {}) {
   const where: Prisma.NewsletterSubscriberWhereInput = {};
 
   if (q && q.trim()) {
-    where.email = { contains: q.trim().toLowerCase(), mode: "insensitive" };
+    where.email = { contains: q.trim().toLowerCase() };
   }
 
   if (status && status !== "ALL") {

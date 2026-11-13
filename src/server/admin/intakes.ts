@@ -13,6 +13,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
 import { getTodayDateString } from "@/lib/date";
+import { readList } from "@/lib/lists";
 import type { Prisma, Status } from "@prisma/client";
 
 export type IntakeTimingFilter = "UPCOMING" | "PAST" | "ALL";
@@ -36,8 +37,8 @@ export async function getUpcomingIntakesAdmin(params: GetUpcomingIntakesParams =
   if (q && q.trim()) {
     const term = q.trim();
     where.OR = [
-      { title: { contains: term, mode: "insensitive" } },
-      { location: { contains: term, mode: "insensitive" } },
+      { title: { contains: term } },
+      { location: { contains: term } },
     ];
   }
 
@@ -69,7 +70,10 @@ export async function getUpcomingIntakesAdmin(params: GetUpcomingIntakesParams =
   const totalPages = Math.ceil(total / pageSize) || 1;
 
   return {
-    items,
+    items: items.map((item) => ({
+      ...item,
+      points: readList(item.points),
+    })),
     total,
     page,
     pageSize,
@@ -83,8 +87,15 @@ export async function getIntakeByIdAdmin(id: string) {
 
   if (!isValidObjectId(id)) return null;
 
-  return db.upcomingIntake.findUnique({
+  const intake = await db.upcomingIntake.findUnique({
     where: { id },
   });
+
+  if (!intake) return null;
+
+  return {
+    ...intake,
+    points: readList(intake.points),
+  };
 }
 

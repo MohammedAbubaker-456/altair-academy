@@ -158,12 +158,12 @@ export async function searchActiveCourses(query: string) {
     where: {
       status: "ACTIVE",
       OR: [
-        { title: { contains: term, mode: "insensitive" } },
-        { summary: { contains: term, mode: "insensitive" } },
-        { category: { slug: { contains: term, mode: "insensitive" } } },
-        { category: { name: { contains: term, mode: "insensitive" } } },
-        { subcategory: { name: { contains: term, mode: "insensitive" } } },
-        { subcategory: { slug: { contains: term, mode: "insensitive" } } },
+        { title: { contains: term } },
+        { summary: { contains: term } },
+        { category: { slug: { contains: term } } },
+        { category: { name: { contains: term } } },
+        { subcategory: { name: { contains: term } } },
+        { subcategory: { slug: { contains: term } } },
       ],
     },
     include: {

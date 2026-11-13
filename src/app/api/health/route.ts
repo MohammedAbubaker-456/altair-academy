@@ -2,7 +2,7 @@
  * System Health Check API Endpoint
  *
  * Provides a lightweight uptime probe for monitoring systems and GoDaddy cPanel
- * deployments. Pings MongoDB and returns HTTP 200 { ok: true } or 503 { ok: false }
+ * deployments. Pings MariaDB / MySQL and returns HTTP 200 { ok: true } or 503 { ok: false }
  * without exposing internal infrastructure details.
  *
  * Location: src/app/api/health/route.ts
@@ -16,16 +16,8 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    // Execute low-overhead ping command against MongoDB
-    const pingResult = await db.$runCommandRaw({ ping: 1 });
-    const isOk =
-      typeof pingResult === "object" &&
-      pingResult !== null &&
-      (pingResult as { ok?: number })["ok"] === 1;
-
-    if (!isOk) {
-      return NextResponse.json({ ok: false }, { status: 503 });
-    }
+    // Execute low-overhead ping query against MariaDB / MySQL
+    await db.$queryRawUnsafe("SELECT 1");
 
     return NextResponse.json(
       { ok: true },

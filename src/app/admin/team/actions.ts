@@ -13,6 +13,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { verifyAdminAction } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
+import { writeList } from "@/lib/lists";
 import { teamMemberSchema } from "@/lib/validation/team";
 import { storageService } from "@/lib/storage";
 import { revalidatePublicData } from "@/server/revalidate";
@@ -63,9 +64,10 @@ export async function createTeamMemberAction(input: unknown): Promise<TeamAction
         instructorName: instructorName || null,
         instructorRole: instructorRole || null,
         fullBio: fullBio || null,
-        expertise,
+        expertise: writeList(expertise),
         image: image || null,
-        placements,
+        showInManagement: placements.includes("MANAGEMENT"),
+        showInInstructors: placements.includes("INSTRUCTOR"),
         managementOrder,
         instructorOrder,
         status,
@@ -143,9 +145,10 @@ export async function updateTeamMemberAction(
         instructorName: instructorName || null,
         instructorRole: instructorRole || null,
         fullBio: fullBio || null,
-        expertise,
+        expertise: writeList(expertise),
         image: image || null,
-        placements,
+        showInManagement: placements.includes("MANAGEMENT"),
+        showInInstructors: placements.includes("INSTRUCTOR"),
         managementOrder,
         instructorOrder,
         status,

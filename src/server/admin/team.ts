@@ -12,12 +12,27 @@ import "server-only";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/session";
 import { isValidObjectId } from "@/lib/id";
-import type { Prisma, TeamPlacement } from "@prisma/client";
+import { readList } from "@/lib/lists";
+import type { Prisma } from "@prisma/client";
+import type { TeamPlacement } from "@/types/team";
 
 export interface TeamAdminParams {
   q?: string | undefined;
   status?: "ACTIVE" | "INACTIVE" | "ALL" | undefined;
   placement?: TeamPlacement | "ALL" | undefined;
+}
+
+function formatTeamMember<T extends { showInManagement: boolean; showInInstructors: boolean; expertise: string }>(
+  member: T,
+) {
+  const placements: TeamPlacement[] = [];
+  if (member.showInManagement) placements.push("MANAGEMENT");
+  if (member.showInInstructors) placements.push("INSTRUCTOR");
+  return {
+    ...member,
+    placements,
+    expertise: readList(member.expertise),
+  };
 }
 
 export async function getTeamMembersAdmin(params: TeamAdminParams = {}) {
@@ -28,10 +43,10 @@ export async function getTeamMembersAdmin(params: TeamAdminParams = {}) {
   if (params.q?.trim()) {
     const query = params.q.trim();
     where.OR = [
-      { name: { contains: query, mode: "insensitive" } },
-      { role: { contains: query, mode: "insensitive" } },
-      { instructorName: { contains: query, mode: "insensitive" } },
-      { instructorRole: { contains: query, mode: "insensitive" } },
+      { name: { contains: query } },
+      { role: { contains: query } },
+      { instructorName: { contains: query } },
+      { instructorRole: { contains: query } },
     ];
   }
 
@@ -40,13 +55,19 @@ export async function getTeamMembersAdmin(params: TeamAdminParams = {}) {
   }
 
   if (params.placement && params.placement !== "ALL") {
-    where.placements = { has: params.placement };
+    if (params.placement === "MANAGEMENT") {
+      where.showInManagement = true;
+    } else if (params.placement === "INSTRUCTOR") {
+      where.showInInstructors = true;
+    }
   }
 
-  return db.teamMember.findMany({
+  const members = await db.teamMember.findMany({
     where,
     orderBy: [{ managementOrder: "asc" }, { instructorOrder: "asc" }],
   });
+
+  return members.map(formatTeamMember);
 }
 
 export async function getTeamMemberByIdAdmin(id: string) {
@@ -54,7 +75,11 @@ export async function getTeamMemberByIdAdmin(id: string) {
 
   if (!isValidObjectId(id)) return null;
 
-  return db.teamMember.findUnique({
+  const member = await db.teamMember.findUnique({
     where: { id },
   });
+
+  if (!member) return null;
+
+  return formatTeamMember(member);
 }

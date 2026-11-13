@@ -31,9 +31,9 @@ export async function getTestimonialsAdmin(params: GetTestimonialsParams = {}) {
   if (q && q.trim()) {
     const term = q.trim();
     where.OR = [
-      { quote: { contains: term, mode: "insensitive" } },
-      { name: { contains: term, mode: "insensitive" } },
-      { company: { contains: term, mode: "insensitive" } },
+      { quote: { contains: term } },
+      { name: { contains: term } },
+      { company: { contains: term } },
     ];
   }
 

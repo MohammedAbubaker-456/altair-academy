@@ -7,7 +7,18 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: [".next", "dist", ".output", ".vinxi", "node_modules", "next-env.d.ts", "deploy"],
+    ignores: [
+      ".next",
+      "dist",
+      ".output",
+      ".vinxi",
+      "node_modules",
+      "next-env.d.ts",
+      "deploy",
+      "scratch",
+      "backups",
+      "db-dumps",
+    ],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],

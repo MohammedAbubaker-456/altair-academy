@@ -2,7 +2,7 @@
 
 ## Overview
 
-Altair Academy is an accredited technical training website and administrative management portal built on Next.js 15 (App Router, standalone output), TypeScript (strict mode), Tailwind CSS v4, shadcn/ui on Radix UI, MongoDB, and Prisma ORM 6.19.3. Configured for production deployment on GoDaddy "Web Hosting Deluxe" (cPanel with Phusion Passenger) and MongoDB Atlas.
+Altair Academy is an accredited technical training website and administrative management portal built on Next.js 15 (App Router, standalone output), TypeScript (strict mode), Tailwind CSS v4, shadcn/ui on Radix UI, MariaDB 10.11, and Prisma ORM 6.19.3. Configured for production deployment on GoDaddy "Web Hosting Deluxe" (cPanel with Phusion Passenger) and local cPanel MariaDB 10.11.
 
 ---
 
@@ -21,7 +21,8 @@ altair-academy/
 │
 ├── docs/
 │   ├── DEPLOYMENT_GODADDY_DELUXE.md # Complete GoDaddy Deluxe & cPanel Node.js 22 deployment guide
-│   ├── LOCAL_MONGODB_SETUP.md       # Native local MongoDB replica set setup guide (no Docker)
+│   ├── LOCAL_MYSQL_SETUP.md         # Local MariaDB / XAMPP setup guide on Windows
+│   ├── MYSQL_IMPORT_GODADDY.md      # phpMyAdmin database import guide for GoDaddy cPanel
 │   ├── BACKEND_AND_ADMIN.md         # Backend architecture, security, and admin manual
 │   └── PROJECT_STRUCTURE.md         # Architecture and directory reference
 │
@@ -30,7 +31,8 @@ altair-academy/
 ├── tsconfig.json                    # Strict TypeScript configuration
 │
 ├── prisma/
-│   ├── schema.prisma                # MongoDB schema, binaryTargets ["native", "rhel-openssl-3.0.x"]
+│   ├── schema.prisma                # MariaDB schema, binaryTargets ["native", "rhel-openssl-3.0.x"]
+│   ├── migrations/                  # Standard SQL migration history applied via prisma migrate
 │   ├── seed.ts                      # Idempotent seed script (upserting initial records & admin user)
 │   ├── seed-data/                   # Source seed datasets (categories, courses, team, news, faqs, testimonials, intakes)
 │   └── data-migrations/             # Programmatic data migrations run sequentially
@@ -39,14 +41,16 @@ altair-academy/
 │   └── seed/                        # Static seed images shipped inside every build
 │
 ├── scripts/
-│   ├── check-db.ts                  # Local database connectivity and replica set probe (npm run db:check)
+│   ├── check-db.ts                  # Local database connectivity probe (npm run db:check)
+│   ├── dump-db.ts                   # MariaDB SQL dump generator for phpMyAdmin (npm run db:dump)
+│   ├── migrate-mongo-to-mysql.ts    # Read-only MongoDB to MariaDB migration engine
 │   ├── package-cpanel.mjs           # Standalone packaging script (npm run package:cpanel)
 │   ├── create-admin.ts              # Interactive CLI script for generating new admin credentials
 │   └── run-data-migrations.ts       # Runner for applying unapplied data migrations via MigrationLog
 │
 ├── tools/                           # Standalone diagnostic tools for cPanel SSH (no tsx / no CLI dependencies)
-│   ├── connectivity-check.mjs       # Raw DNS SRV resolution and TCP socket probe to Atlas on port 27017
-│   └── check-db.mjs                 # Runtime Prisma client probe executing raw MongoDB `hello` command
+│   ├── connectivity-check.mjs       # TCP socket probe to local MariaDB on port 3306
+│   └── check-db.mjs                 # Runtime Prisma client probe executing SELECT 1 on MariaDB
 │
 ├── uploads/                         # Development persistent public media storage (outside src/)
 │   └── .gitkeep

@@ -249,9 +249,7 @@ const markdownComponents: Components = {
       return <span>{children}</span>;
     }
 
-    const isExternal =
-      href.startsWith("http://") ||
-      href.startsWith("https://");
+    const isExternal = href.startsWith("http://") || href.startsWith("https://");
 
     return (
       <a
@@ -259,9 +257,9 @@ const markdownComponents: Components = {
         className="font-medium text-brand-red underline underline-offset-4 hover:text-brand-red/80 transition-colors"
         {...(isExternal
           ? {
-            target: "_blank",
-            rel: "noopener noreferrer",
-          }
+              target: "_blank",
+              rel: "noopener noreferrer",
+            }
           : {})}
         {...props}
       >
@@ -271,19 +269,28 @@ const markdownComponents: Components = {
   },
 
   h1: ({ children, ...props }) => (
-    <h1 className="font-display text-3xl font-bold tracking-tight text-primary mt-8 mb-4 first:mt-0" {...props}>
+    <h1
+      className="font-display text-3xl font-bold tracking-tight text-primary mt-8 mb-4 first:mt-0"
+      {...props}
+    >
       {children}
     </h1>
   ),
 
   h2: ({ children, ...props }) => (
-    <h2 className="font-display text-2xl font-bold tracking-tight text-primary mt-7 mb-3 first:mt-0" {...props}>
+    <h2
+      className="font-display text-2xl font-bold tracking-tight text-primary mt-7 mb-3 first:mt-0"
+      {...props}
+    >
       {children}
     </h2>
   ),
 
   h3: ({ children, ...props }) => (
-    <h3 className="font-display text-xl font-bold tracking-tight text-primary mt-6 mb-2 first:mt-0" {...props}>
+    <h3
+      className="font-display text-xl font-bold tracking-tight text-primary mt-6 mb-2 first:mt-0"
+      {...props}
+    >
       {children}
     </h3>
   ),
@@ -354,24 +361,16 @@ const markdownComponents: Components = {
     </strong>
   ),
 
-  hr: ({ ...props }) => (
-    <hr className="my-8 border-border" {...props} />
-  ),
+  hr: ({ ...props }) => <hr className="my-8 border-border" {...props} />,
 };
 
 // Public Markdown renderer.
-export function MarkdownContent({
-  content,
-  className,
-}: MarkdownContentProps) {
+export function MarkdownContent({ content, className }: MarkdownContentProps) {
   if (!content) return null;
 
   return (
     <div className={cn("space-y-4 text-base text-muted-foreground leading-relaxed", className)}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={markdownComponents}
-      >
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
         {content}
       </ReactMarkdown>
     </div>
@@ -408,10 +407,7 @@ export function MarkdownPreview({
         className,
       )}
     >
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={markdownComponents}
-      >
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
         {content}
       </ReactMarkdown>
     </div>

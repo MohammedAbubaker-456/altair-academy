@@ -68,7 +68,8 @@ export function FloatingWhatsApp() {
       href="/contact"
       aria-label="Contact on WhatsApp"
       // className="fixed z-40 flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#25D366] print:hidden bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-[calc(1.25rem+env(safe-area-inset-right,0px))]"
-      className="fixed z-40 flex items-center justify-center gap-2 rounded-full bg-[#25D366] p-3 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#25D366] print:hidden bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-[calc(1.25rem+env(safe-area-inset-right,0px))] sm:px-5 sm:py-3"    >
+      className="fixed z-40 flex items-center justify-center gap-2 rounded-full bg-[#25D366] p-3 text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 motion-reduce:transform-none motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#25D366] print:hidden bottom-[calc(1.25rem+env(safe-area-inset-bottom,0px))] right-[calc(1.25rem+env(safe-area-inset-right,0px))] sm:px-5 sm:py-3"
+    >
       <svg
         viewBox="0 0 24 24"
         fill="currentColor"
@@ -82,6 +83,5 @@ export function FloatingWhatsApp() {
         Contact on WhatsApp
       </span>
     </Link>
-
   );
 }

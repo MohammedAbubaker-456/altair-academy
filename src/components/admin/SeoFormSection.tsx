@@ -52,8 +52,8 @@ export function SeoFormSection({
 }: SeoFormSectionProps) {
   const isCustomized = Boolean(
     (metaTitle && metaTitle.trim().length > 0) ||
-      (metaDescription && metaDescription.trim().length > 0) ||
-      (ogImage && ogImage.trim().length > 0),
+    (metaDescription && metaDescription.trim().length > 0) ||
+    (ogImage && ogImage.trim().length > 0),
   );
 
   const [isOpen, setIsOpen] = React.useState(isCustomized);
@@ -94,7 +94,10 @@ export function SeoFormSection({
               </span>
               <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
               {isCustomized ? (
-                <Badge variant="outline" className="text-emerald-700 bg-emerald-50 border-emerald-300 text-[11px] py-0">
+                <Badge
+                  variant="outline"
+                  className="text-emerald-700 bg-emerald-50 border-emerald-300 text-[11px] py-0"
+                >
                   Customised
                 </Badge>
               ) : (
@@ -104,7 +107,8 @@ export function SeoFormSection({
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Customize page title, meta description, and social share card overrides for this record.
+              Customize page title, meta description, and social share card overrides for this
+              record.
             </p>
           </div>
         </div>
@@ -179,7 +183,8 @@ export function SeoFormSection({
                   maxLength={300}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Recommended: 70–160 characters. Summarize the content concisely for search engines.
+                  Recommended: 70–160 characters. Summarize the content concisely for search
+                  engines.
                 </p>
               </div>
 
@@ -187,13 +192,10 @@ export function SeoFormSection({
               {showOgImage && onOgImageChange && (
                 <div className="space-y-1.5">
                   <Label className="text-sm font-medium">Custom Social Share Image</Label>
-                  <ImageUpload
-                    value={ogImage}
-                    onChange={onOgImageChange}
-                    folder="seo"
-                  />
+                  <ImageUpload value={ogImage} onChange={onOgImageChange} folder="seo" />
                   <p className="text-xs text-muted-foreground">
-                    Recommended dimensions: 1200 x 630 px. Overrides the item&apos;s main picture on Facebook, X, and LinkedIn.
+                    Recommended dimensions: 1200 x 630 px. Overrides the item&apos;s main picture on
+                    Facebook, X, and LinkedIn.
                   </p>
                 </div>
               )}
@@ -267,4 +269,3 @@ export function SeoFormSection({
     </div>
   );
 }
-

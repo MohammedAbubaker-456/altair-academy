@@ -82,7 +82,7 @@ DATABASE_URL="mysql://root@127.0.0.1:3306/altair_academy"
 MONGO_SOURCE_URL="mongodb+srv://<username>:<password>@cluster0.mongodb.net/altair?retryWrites=true&w=majority"
 ```
 
-*Note: If you configured a password for MySQL `root`, URL-encode any special characters in the password.*
+_Note: If you configured a password for MySQL `root`, URL-encode any special characters in the password._
 
 ---
 
@@ -98,6 +98,7 @@ SELECT SCHEMA_NAME, DEFAULT_CHARACTER_SET_NAME, DEFAULT_COLLATION_NAME FROM INFO
 ```
 
 Expected output:
+
 - `VERSION()`: `10.11.x-MariaDB` (or `10.4.x-MariaDB`)
 - `@@sql_mode`: Contains `STRICT_TRANS_TABLES`
 - `altair_academy`: `utf8mb4` / `utf8mb4_unicode_ci`

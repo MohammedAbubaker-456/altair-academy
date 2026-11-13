@@ -380,7 +380,7 @@
 //   );
 // }
 
-//changes 2 
+//changes 2
 
 "use client";
 
@@ -453,14 +453,7 @@ function cn(...classes: Array<string | false | undefined>) {
 //   );
 // }
 
-
-function ReelTile({
-  name,
-  active = false,
-}: {
-  name: string;
-  active?: boolean;
-}) {
+function ReelTile({ name, active = false }: { name: string; active?: boolean }) {
   return (
     <div
       aria-hidden="true"
@@ -468,7 +461,7 @@ function ReelTile({
         "relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl transition-all duration-300",
         active
           ? "border border-white/20 bg-gradient-to-br from-navy-deep via-navy to-brand-red/60 shadow-xl"
-          : "border border-gray-200 bg-gray-200/70 shadow-none"
+          : "border border-gray-200 bg-gray-200/70 shadow-none",
       )}
       style={{ width: CELL, height: CELL }}
     >
@@ -484,7 +477,7 @@ function ReelTile({
           "relative flex items-center justify-center rounded-full font-bold transition-all duration-300",
           active
             ? "size-14 border border-white/30 bg-brand-red text-xl text-brand-red-foreground shadow-lg ring-4 ring-white/10"
-            : "size-10 border border-gray-300 bg-gray-300/60 text-base text-gray-500"
+            : "size-10 border border-gray-300 bg-gray-300/60 text-base text-gray-500",
         )}
       >
         {firstInitial(name)}
@@ -492,7 +485,6 @@ function ReelTile({
     </div>
   );
 }
-
 
 /* Character-by-character text animation */
 function AnimatedText({ text }: { text: string }) {
@@ -565,16 +557,16 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
         setTimeout(() => {
           setDisplayIndex(next);
           setExiting(false);
-        }, EXIT_MS)
+        }, EXIT_MS),
       );
 
       timeouts.current.push(
         setTimeout(() => {
           animating.current = false;
-        }, SLIDE_MS)
+        }, SLIDE_MS),
       );
     },
-    [index, count]
+    [index, count],
   );
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -603,9 +595,7 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
 
   const columnStyle = (y: number): React.CSSProperties => ({
     transform: `translateY(${y}px)`,
-    transition: mounted
-      ? `transform ${SLIDE_MS}ms cubic-bezier(0.65,0,0.35,1)`
-      : "none",
+    transition: mounted ? `transform ${SLIDE_MS}ms cubic-bezier(0.65,0,0.35,1)` : "none",
   });
 
   const sideCellCount = Math.max(6, count * 2 + 4);
@@ -708,42 +698,23 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
           {/* Important: items-start prevents flexbox from shifting the reel columns vertically. */}
           <div className="absolute inset-0 flex items-start justify-center gap-2">
             {/* Left background column */}
-            <div
-              className="flex shrink-0 flex-col gap-2"
-              style={columnStyle(sideY)}
-            >
+            <div className="flex shrink-0 flex-col gap-2" style={columnStyle(sideY)}>
               {Array.from({ length: sideCellCount }).map((_, i) => (
-                <ReelTile
-                  key={`left-${i}`}
-                  name={testimonials[i % count]?.name ?? ""}
-                />
+                <ReelTile key={`left-${i}`} name={testimonials[i % count]?.name ?? ""} />
               ))}
             </div>
 
             {/* Center animated column */}
-            <div
-              className="flex shrink-0 flex-col gap-2"
-              style={columnStyle(middleY)}
-            >
+            <div className="flex shrink-0 flex-col gap-2" style={columnStyle(middleY)}>
               {middleItems.map(({ item, active }, i) => (
-                <ReelTile
-                  key={`${item?.id ?? i}-${i}`}
-                  name={item?.name ?? ""}
-                  active={active}
-                />
+                <ReelTile key={`${item?.id ?? i}-${i}`} name={item?.name ?? ""} active={active} />
               ))}
             </div>
 
             {/* Right background column */}
-            <div
-              className="flex shrink-0 flex-col gap-2"
-              style={columnStyle(sideY)}
-            >
+            <div className="flex shrink-0 flex-col gap-2" style={columnStyle(sideY)}>
               {Array.from({ length: sideCellCount }).map((_, i) => (
-                <ReelTile
-                  key={`right-${i}`}
-                  name={testimonials[(i + 2) % count]?.name ?? ""}
-                />
+                <ReelTile key={`right-${i}`} name={testimonials[(i + 2) % count]?.name ?? ""} />
               ))}
             </div>
           </div>
@@ -752,33 +723,18 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
         {/* RIGHT: Testimonial content */}
         <div className="flex min-w-0 flex-1 flex-col justify-between px-6 py-7 sm:px-8 md:py-10">
           <div className="flex flex-col gap-5">
-            <Quote
-              className="size-11 text-brand-red/70"
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
+            <Quote className="size-11 text-brand-red/70" strokeWidth={1.5} aria-hidden="true" />
 
             {/* Animated quote and author */}
-            <div
-              className="relative w-full max-w-[460px]"
-              aria-live="polite"
-              aria-atomic="true"
-            >
+            <div className="relative w-full max-w-[460px]" aria-live="polite" aria-atomic="true">
               {/* Invisible content reserves enough space */}
-              <div
-                aria-hidden="true"
-                className="invisible flex min-h-[145px] flex-col gap-5"
-              >
-                <p className="text-lg font-medium leading-relaxed sm:text-xl">
-                  {current.quote}
-                </p>
+              <div aria-hidden="true" className="invisible flex min-h-[145px] flex-col gap-5">
+                <p className="text-lg font-medium leading-relaxed sm:text-xl">{current.quote}</p>
 
                 <div>
                   <p className="text-sm font-semibold">{current.name}</p>
                   {current.company && (
-                    <p className="text-xs text-muted-foreground">
-                      {current.company}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{current.company}</p>
                   )}
                 </div>
               </div>
@@ -787,7 +743,7 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
                 key={displayIndex}
                 className={cn(
                   "absolute inset-0 flex flex-col gap-5",
-                  exiting && "scroll-reel-exit"
+                  exiting && "scroll-reel-exit",
                 )}
               >
                 <p className="text-lg font-medium leading-relaxed tracking-tight text-foreground sm:text-xl">
@@ -834,8 +790,7 @@ export function Testimonials({ testimonials }: TestimonialsProps) {
             </div>
 
             <span className="text-xs font-medium tabular-nums text-muted-foreground">
-              {String(index + 1).padStart(2, "0")} /{" "}
-              {String(count).padStart(2, "0")}
+              {String(index + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
             </span>
           </div>
         </div>

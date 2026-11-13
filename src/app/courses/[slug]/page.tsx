@@ -114,8 +114,8 @@ export default async function CourseDetailPage({ params }: Props) {
   // Other courses from the same category (max 3)
   const related = course.category?.slug
     ? (await getAllActiveCourses(course.category.slug))
-      .filter((c) => c.slug !== course.slug)
-      .slice(0, 3)
+        .filter((c) => c.slug !== course.slug)
+        .slice(0, 3)
     : [];
 
   const category = course.category;
@@ -167,73 +167,73 @@ export default async function CourseDetailPage({ params }: Props) {
   const sections: (DetailSectionData | null)[] = [
     has(course.objective)
       ? {
-        id: "objective",
-        title: "Course objective",
-        navLabel: "Objective",
-        icon: Target,
-        body: <MarkdownContent content={course.objective!} />,
-      }
+          id: "objective",
+          title: "Course objective",
+          navLabel: "Objective",
+          icon: Target,
+          body: <MarkdownContent content={course.objective!} />,
+        }
       : null,
     has(course.content)
       ? {
-        id: "content",
-        title: "Course content",
-        navLabel: "Content",
-        icon: ListChecks,
-        body: <MarkdownContent content={course.content!} />,
-      }
+          id: "content",
+          title: "Course content",
+          navLabel: "Content",
+          icon: ListChecks,
+          body: <MarkdownContent content={course.content!} />,
+        }
       : null,
     has(course.whoShouldAttend)
       ? {
-        id: "audience",
-        title: "Who should attend",
-        navLabel: "Who should attend",
-        icon: UserCheck,
-        body: <MarkdownContent content={course.whoShouldAttend!} />,
-      }
+          id: "audience",
+          title: "Who should attend",
+          navLabel: "Who should attend",
+          icon: UserCheck,
+          body: <MarkdownContent content={course.whoShouldAttend!} />,
+        }
       : null,
     has(course.prerequisites)
       ? {
-        id: "prerequisites",
-        title: "Pre-requirements",
-        navLabel: "Pre-requirements",
-        icon: ClipboardCheck,
-        body: <MarkdownContent content={course.prerequisites!} />,
-      }
+          id: "prerequisites",
+          title: "Pre-requirements",
+          navLabel: "Pre-requirements",
+          icon: ClipboardCheck,
+          body: <MarkdownContent content={course.prerequisites!} />,
+        }
       : null,
     has(course.notesAndEquipment)
       ? {
-        id: "notes",
-        title: "Course notes and equipment",
-        navLabel: "Notes & equipment",
-        icon: Package,
-        body: (
-          <p className="whitespace-pre-line text-base text-muted-foreground">
-            {course.notesAndEquipment}
-          </p>
-        ),
-      }
+          id: "notes",
+          title: "Course notes and equipment",
+          navLabel: "Notes & equipment",
+          icon: Package,
+          body: (
+            <p className="whitespace-pre-line text-base text-muted-foreground">
+              {course.notesAndEquipment}
+            </p>
+          ),
+        }
       : null,
     showFeeSection
       ? { id: "fee", title: "Course fee", navLabel: "Fee", icon: Wallet, body: feeBody }
       : null,
     has(course.courseSupport)
       ? {
-        id: "support",
-        title: "Course support",
-        navLabel: "Support",
-        icon: LifeBuoy,
-        body: <MarkdownContent content={course.courseSupport!} />,
-      }
+          id: "support",
+          title: "Course support",
+          navLabel: "Support",
+          icon: LifeBuoy,
+          body: <MarkdownContent content={course.courseSupport!} />,
+        }
       : null,
     has(course.courseNote)
       ? {
-        id: "note",
-        title: "Note",
-        navLabel: "Note",
-        icon: Info,
-        body: <MarkdownContent content={course.courseNote!} />,
-      }
+          id: "note",
+          title: "Note",
+          navLabel: "Note",
+          icon: Info,
+          body: <MarkdownContent content={course.courseNote!} />,
+        }
       : null,
   ];
   const visibleSections = sections.filter((s): s is DetailSectionData => s !== null);
@@ -435,4 +435,3 @@ export default async function CourseDetailPage({ params }: Props) {
     </PageShell>
   );
 }
-

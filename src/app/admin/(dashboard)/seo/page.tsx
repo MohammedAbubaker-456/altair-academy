@@ -43,11 +43,6 @@ export default async function AdminSeoPage() {
   const registryItems = getAllRegistryItems();
 
   return (
-    <SeoManager
-      registryItems={registryItems}
-      pageSeoMap={pageSeoMap}
-      initialSiteSeo={siteSeo}
-    />
+    <SeoManager registryItems={registryItems} pageSeoMap={pageSeoMap} initialSiteSeo={siteSeo} />
   );
 }
-

@@ -1,6 +1,6 @@
 # Altair Academy — Backend & Admin Dashboard Guide
 
-This document describes the backend architecture, MongoDB + Prisma setup, authentication, administration portal, local-disk media storage, and deployment guidelines for Altair Academy.
+This document describes the backend architecture, MariaDB + Prisma setup, authentication, administration portal, local-disk media storage, and deployment guidelines for Altair Academy.
 
 ---
 
@@ -8,10 +8,11 @@ This document describes the backend architecture, MongoDB + Prisma setup, authen
 
 ### Required Services
 
-1. **MongoDB (Replica Set required)**: Prisma requires a MongoDB replica set to support multi-document transactions.
-   - **Local Development**: Native local MongoDB running as a single-node replica set (`rs0`). No Docker. Follow the comprehensive setup guide:
-     👉 **[docs/LOCAL_MONGODB_SETUP.md](LOCAL_MONGODB_SETUP.md)**
-   - **Production (GoDaddy Web Hosting Deluxe / cPanel)**: MongoDB Atlas (Europe region nearest hosting data center). Shared cPanel servers cannot run MongoDB services. See the complete deployment guide:
+1. **MariaDB 10.11 / MySQL**:
+   - **Local Development**: Local XAMPP MariaDB 10.11 (or 10.4) on port 3306. Follow the setup guide:
+     👉 **[docs/LOCAL_MYSQL_SETUP.md](LOCAL_MYSQL_SETUP.md)**
+   - **Production (GoDaddy Web Hosting Deluxe / cPanel)**: cPanel MariaDB 10.11 on `localhost:3306`. Follow the phpMyAdmin import and deployment guides:
+     👉 **[docs/MYSQL_IMPORT_GODADDY.md](MYSQL_IMPORT_GODADDY.md)**
      👉 **[docs/DEPLOYMENT_GODADDY_DELUXE.md](DEPLOYMENT_GODADDY_DELUXE.md)**
 2. **Node.js**: v20.9.0 or higher (v22 recommended).
 
@@ -21,9 +22,9 @@ Create a `.env` file at the root of the project (modeled after `.env.example`):
 
 ```bash
 # ==============================================================================
-# DEVELOPMENT CONFIGURATION (Local Native MongoDB Replica Set)
+# DEVELOPMENT CONFIGURATION (Local XAMPP MariaDB)
 # ==============================================================================
-DATABASE_URL="mongodb://127.0.0.1:27017/altair-academy?replicaSet=rs0"
+DATABASE_URL="mysql://root@127.0.0.1:3306/altair_academy"
 AUTH_SECRET="development-auth-secret-minimum-32-characters-for-jwt-signing"
 
 # Optional: Public site canonical origin (recommended for canonical URLs & OG metadata)
@@ -65,19 +66,21 @@ ADMIN_PASSWORD="ChangeMeInProduction123!"
 
 ## 2. CLI Commands Reference
 
-| Command                   | Purpose                                                                     | When to Run                                                       |
-| ------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `npm run dev`             | Starts Next.js development server                                           | Standard local development                                        |
-| `npm run dev:clean`       | Removes `.next` build cache and starts clean dev server                     | After pulling branch updates or an interrupted dev session        |
-| `npm run build`           | Compiles Next.js standalone application                                     | Testing production build locally                                  |
-| `npm run db:check`        | Verifies MongoDB connection & writable replica set                          | After starting local MongoDB or testing Atlas                     |
-| `npm run db:generate`     | Generates Prisma Client for native & Linux targets                          | After modifying `prisma/schema.prisma`                            |
-| `npm run db:push`         | Synchronizes Prisma schema with MongoDB                                     | Schema updates (local or Atlas from local PC)                     |
+| Command                   | Purpose                                                                                            | When to Run                                                       |
+| ------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `npm run dev`             | Starts Next.js development server                                                                  | Standard local development                                        |
+| `npm run dev:clean`       | Removes `.next` build cache and starts clean dev server                                            | After pulling branch updates or an interrupted dev session        |
+| `npm run build`           | Compiles Next.js standalone application                                                            | Testing production build locally                                  |
+| `npm run db:check`        | Verifies MariaDB / MySQL connection and database ready                                             | After starting XAMPP MariaDB or verifying cPanel                  |
+| `npm run db:generate`     | Generates Prisma Client for native & Linux targets                                                 | After modifying `prisma/schema.prisma`                            |
+| `npm run db:migrate`      | Creates and applies development migrations via Prisma Migrate                                      | Schema updates in local development                               |
+| `npm run db:deploy`       | Deploys pending SQL migrations in production                                                       | Applying migrations in production environments                    |
+| `npm run db:dump`         | Exports full & schema SQL dumps for phpMyAdmin (`db-dumps/*.sql`)                                  | Preparing database import for GoDaddy cPanel phpMyAdmin           |
 | `npm run db:seed`         | Seeds categories, courses, team, news, FAQs, testimonials, intakes, careers, contact, legal, admin | Initial database setup & feature migrations                       |
-| `npm run db:data-migrate` | Runs sequential data migrations from `prisma/data-migrations/`              | Schema evolution and transformations                              |
-| `npm run admin:create`    | Interactive CLI to provision additional admins                              | Account provisioning                                              |
-| `npm run package:cpanel`  | Prepares standalone cPanel Linux deployment package                         | Preparing production release (`deploy/altair-academy-cpanel.zip`) |
-| `npm run lint`            | ESLint + Prettier code analysis                                             | Code quality check                                                |
+| `npm run db:data-migrate` | Runs sequential data migrations from `prisma/data-migrations/`                                     | Schema evolution and transformations                              |
+| `npm run admin:create`    | Interactive CLI to provision additional admins                                                     | Account provisioning                                              |
+| `npm run package:cpanel`  | Prepares standalone cPanel Linux deployment package                                                | Preparing production release (`deploy/altair-academy-cpanel.zip`) |
+| `npm run lint`            | ESLint + Prettier code analysis                                                                    | Code quality check                                                |
 
 > [!IMPORTANT]
 >
@@ -172,34 +175,34 @@ Because MongoDB does not use SQL migration files, schema evolutions and data tra
 
 Access the dashboard at `/admin`. If not authenticated, you will be redirected to `/admin/login`.
 
-| Route                          | Purpose                    | Key Features                                                                                                                                                                  |
-| ------------------------------ | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/admin`                       | System Overview            | Counts of active vs inactive entities across all collections, new leads & applications summary, database status.                                                              |
-| `/admin/leads`                 | Contact Leads Inbox        | Search (?q= over name/email/phone/message), status filter (NEW / CONTACTED / CLOSED), pagination, UTC date with explicit MYT (Asia/Kuala_Lumpur) display.                     |
-| `/admin/leads/[id]`            | Lead Detail Viewer         | Inspect candidate enquiry, status transition select, direct mailto and tel actions, message rendering with whitespace preservation, delete confirmation.                      |
-| `/admin/applications`          | Careers Applications Inbox | Search candidate name/email/phone/specialisation, status filter (NEW / REVIEWING / SHORTLISTED / REJECTED), attachment badges, pagination.                                    |
-| `/admin/applications/[id]`     | Application Detail Viewer  | Full candidate profile, status management, cover note, and **Resume Panel** with secure "View" and "Download" actions.                                                        |
-| `/admin/calendar`               | Training Calendar          | Tabbed manager: Scheduled Sessions (multi-filter, pagination, duplication) and Calendar Course Codes (order, session count guard). |
-| `/admin/calendar/sessions/new` & `/[id]` | Session Form      | Schedule intake with course select, type, native date pickers, auto-end date, live overlap warning, and "Save & Add Another". |
-| `/admin/courses`               | Course Management          | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), category and subcategory filters, pagination, optimistic status toggle, preview links.                                                                |
-| `/admin/courses/new` & `/[id]` | Course Form                | Auto-slug, category selector, dependent grouped subcategory selector, detailed syllabus (Objective, Content, Who Should Attend, Pre-requirements [max 5k], Certification, Notes, Capacity, Fee override, Support, Note [max 3k]) with Write/Preview & counters. |
-| `/admin/categories`            | Categories                 | Discipline manager, course and subcategory count tracking, "Subcategories" management action, modal create/edit dialog, **safeguards: deletion blocked if courses or subcategories exist**. |
-| `/admin/categories/[categoryId]/subcategories` | Subcategories | Hierarchical subcategory table (children indented under parent), course counts, order, optimistic status switch, modal create/edit dialog with parent select, **safeguards: deletion blocked if courses or children exist**. |
-| `/admin/team`                  | Team & Faculty             | Search, placement filters (`Management` / `Instructor`), optimistic status toggles.                                                                                           |
-| `/admin/team/new` & `/[id]`    | Team Member Form           | Leadership and instructor profiles, placement checkboxes, expertise tag chips, portrait photo upload.                                                                         |
-| `/admin/news`                  | News Articles              | Filter by section (`FEATURED`, `STORY`, `PICK`), status switch, public article links.                                                                                         |
-| `/admin/news/new` & `/[id]`    | News Post Form             | Contextual fields, date picker, media upload, **Body (Markdown)** textarea with Write/Preview tabs, slug change warning.                                                      |
-| `/admin/careers`               | Careers & Job Openings     | Table of openings with search, employment type tags, order, optimistic status switch, deletion confirmation.                                                                  |
-| `/admin/careers/new` & `/[id]` | Job Opening Form           | Title, employment type (Full Time / Part Time / Contract / Internship), location, scope, summary counter (max 600 chars), order.                                              |
-| `/admin/contact`               | Contact Details & Channels | Grouped by type (Address, Phone, WhatsApp, Email, Hours, Social) with adaptive dialog, status switch, and **Live Footer Preview**.                                            |
-| `/admin/legal`                 | Legal & Policy Documents   | Table of documents with canonical URLs, footer link status, last updated, status switch, and **core document protection**.                                                    |
-| `/admin/legal/new` & `/[id]`   | Legal Page Form            | Title, slug (auto-suggested, locked for core pages), meta description (max 200), **Markdown body (Write/Preview tabs)**, dynamic placeholder tokens, footer placement toggle. |
-| `/admin/faqs`                  | FAQs                       | Question and answer list, display order configuration, modal create/edit dialog.                                                                                              |
-| `/admin/calendar`              | Training Calendar (Full)   | Scheduled sessions, course codes, exam/training kinds, date spans, and session modals for the dedicated `/calendar` page.                                                     |
-| `/admin/intakes`               | Upcoming Intakes           | Scheduled intake cards for the home page "Training calendar" section. Timing filter (Upcoming / Past / All), search, status switch, duplicate, dynamic highlights points editor (max 5), non-blocking date/duplicate warnings, and live `IntakeCard` preview. |
-| `/admin/testimonials`          | Testimonials               | Search by quote, student name, or company, status filter (ACTIVE / INACTIVE), pagination, optimistic status switch, modal create/edit dialog with live character counter (max 600), deletion confirmation. |
-| `/admin/settings`              | Account Security           | Change admin password with current password verification.                                                                                                                     |
-| `/admin/login`                 | Authentication Portal      | Rate-limited login (max 5 failed attempts / 15 min), timing equalization, session cookie issuance.                                                                            |
+| Route                                          | Purpose                    | Key Features                                                                                                                                                                                                                                                    |
+| ---------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/admin`                                       | System Overview            | Counts of active vs inactive entities across all collections, new leads & applications summary, database status.                                                                                                                                                |
+| `/admin/leads`                                 | Contact Leads Inbox        | Search (?q= over name/email/phone/message), status filter (NEW / CONTACTED / CLOSED), pagination, UTC date with explicit MYT (Asia/Kuala_Lumpur) display.                                                                                                       |
+| `/admin/leads/[id]`                            | Lead Detail Viewer         | Inspect candidate enquiry, status transition select, direct mailto and tel actions, message rendering with whitespace preservation, delete confirmation.                                                                                                        |
+| `/admin/applications`                          | Careers Applications Inbox | Search candidate name/email/phone/specialisation, status filter (NEW / REVIEWING / SHORTLISTED / REJECTED), attachment badges, pagination.                                                                                                                      |
+| `/admin/applications/[id]`                     | Application Detail Viewer  | Full candidate profile, status management, cover note, and **Resume Panel** with secure "View" and "Download" actions.                                                                                                                                          |
+| `/admin/calendar`                              | Training Calendar          | Tabbed manager: Scheduled Sessions (multi-filter, pagination, duplication) and Calendar Course Codes (order, session count guard).                                                                                                                              |
+| `/admin/calendar/sessions/new` & `/[id]`       | Session Form               | Schedule intake with course select, type, native date pickers, auto-end date, live overlap warning, and "Save & Add Another".                                                                                                                                   |
+| `/admin/courses`                               | Course Management          | Search by keyword, status filter (`ACTIVE` / `INACTIVE`), category and subcategory filters, pagination, optimistic status toggle, preview links.                                                                                                                |
+| `/admin/courses/new` & `/[id]`                 | Course Form                | Auto-slug, category selector, dependent grouped subcategory selector, detailed syllabus (Objective, Content, Who Should Attend, Pre-requirements [max 5k], Certification, Notes, Capacity, Fee override, Support, Note [max 3k]) with Write/Preview & counters. |
+| `/admin/categories`                            | Categories                 | Discipline manager, course and subcategory count tracking, "Subcategories" management action, modal create/edit dialog, **safeguards: deletion blocked if courses or subcategories exist**.                                                                     |
+| `/admin/categories/[categoryId]/subcategories` | Subcategories              | Hierarchical subcategory table (children indented under parent), course counts, order, optimistic status switch, modal create/edit dialog with parent select, **safeguards: deletion blocked if courses or children exist**.                                    |
+| `/admin/team`                                  | Team & Faculty             | Search, placement filters (`Management` / `Instructor`), optimistic status toggles.                                                                                                                                                                             |
+| `/admin/team/new` & `/[id]`                    | Team Member Form           | Leadership and instructor profiles, placement checkboxes, expertise tag chips, portrait photo upload.                                                                                                                                                           |
+| `/admin/news`                                  | News Articles              | Filter by section (`FEATURED`, `STORY`, `PICK`), status switch, public article links.                                                                                                                                                                           |
+| `/admin/news/new` & `/[id]`                    | News Post Form             | Contextual fields, date picker, media upload, **Body (Markdown)** textarea with Write/Preview tabs, slug change warning.                                                                                                                                        |
+| `/admin/careers`                               | Careers & Job Openings     | Table of openings with search, employment type tags, order, optimistic status switch, deletion confirmation.                                                                                                                                                    |
+| `/admin/careers/new` & `/[id]`                 | Job Opening Form           | Title, employment type (Full Time / Part Time / Contract / Internship), location, scope, summary counter (max 600 chars), order.                                                                                                                                |
+| `/admin/contact`                               | Contact Details & Channels | Grouped by type (Address, Phone, WhatsApp, Email, Hours, Social) with adaptive dialog, status switch, and **Live Footer Preview**.                                                                                                                              |
+| `/admin/legal`                                 | Legal & Policy Documents   | Table of documents with canonical URLs, footer link status, last updated, status switch, and **core document protection**.                                                                                                                                      |
+| `/admin/legal/new` & `/[id]`                   | Legal Page Form            | Title, slug (auto-suggested, locked for core pages), meta description (max 200), **Markdown body (Write/Preview tabs)**, dynamic placeholder tokens, footer placement toggle.                                                                                   |
+| `/admin/faqs`                                  | FAQs                       | Question and answer list, display order configuration, modal create/edit dialog.                                                                                                                                                                                |
+| `/admin/calendar`                              | Training Calendar (Full)   | Scheduled sessions, course codes, exam/training kinds, date spans, and session modals for the dedicated `/calendar` page.                                                                                                                                       |
+| `/admin/intakes`                               | Upcoming Intakes           | Scheduled intake cards for the home page "Training calendar" section. Timing filter (Upcoming / Past / All), search, status switch, duplicate, dynamic highlights points editor (max 5), non-blocking date/duplicate warnings, and live `IntakeCard` preview.   |
+| `/admin/testimonials`                          | Testimonials               | Search by quote, student name, or company, status filter (ACTIVE / INACTIVE), pagination, optimistic status switch, modal create/edit dialog with live character counter (max 600), deletion confirmation.                                                      |
+| `/admin/settings`                              | Account Security           | Change admin password with current password verification.                                                                                                                                                                                                       |
+| `/admin/login`                                 | Authentication Portal      | Rate-limited login (max 5 failed attempts / 15 min), timing equalization, session cookie issuance.                                                                                                                                                              |
 
 ---
 
@@ -409,6 +412,7 @@ The training calendar is backed by two MongoDB models defined in `prisma/schema.
 ### Why Dates are Stored as "YYYY-MM-DD" Strings
 
 Calendar schedules represent discrete calendar days on a wall calendar rather than point-in-time instantaneous moments. Storing calendar dates as UTC `DateTime` objects or UNIX timestamps causes several critical issues:
+
 1. **Timezone Shifts**: A Date object created on a machine in UTC-5 or UTC+12 would shift the displayed day to the previous or next day depending on the client or server's local offset.
 2. **Deterministic String Comparison**: `"YYYY-MM-DD"` strings naturally sort in chronological order lexicographically, allowing exact equality, sorting, and range queries directly in MongoDB without timezone distortions.
 3. **Zero Hydration Mismatch**: Date-only strings parsed into numerical components (`year, month, day`) render identical DOM on both SSR and client paint, preventing React hydration mismatches.
@@ -433,6 +437,7 @@ Calendar schedules represent discrete calendar days on a wall calendar rather th
 The admin calendar module is organized into two tabs:
 
 #### 1. Scheduled Sessions Tab
+
 - **Table**: Displays Course (code badge + title + level), Session Type badge (`Training` in navy, `Exam` in brand-red), Formatted Dates (`formatDateOnlyRange`), Schedule Time, Location/Notes, Optimistic Status Switch, and Actions (Edit, Duplicate, Delete).
 - **Filters**:
   - `Year`: Selects a specific intake year (defaults to the current year or latest year with sessions).
@@ -446,6 +451,7 @@ The admin calendar module is organized into two tabs:
 - **Duplication Action**: Clicking "Duplicate" opens the new session form pre-populated with the source session's course, type, level, time label, location, note, and status, with the start and end dates cleared for rapid entry.
 
 #### 2. Course Codes Tab
+
 - **Table**: Displays code abbreviation, full name, display order sequence, attached session count badge, optimistic status switch, and actions (Edit, Delete).
 - **Create/Edit Dialog**: Accessible modal allowing modification of course code (uppercase), title, sequence order, and status.
 - **Safeguards**:
@@ -455,6 +461,7 @@ The admin calendar module is organized into two tabs:
 ### How to Add a Month of Sessions
 
 To add a new month of intakes (e.g., January 2027):
+
 1. Navigate to `/admin/calendar` in the admin dashboard.
 2. Click **Add Session** (or use **Duplicate** on an existing session).
 3. Select the **Course Method** (e.g., `UT`) and **Session Type** (e.g., `Training`).
@@ -645,6 +652,7 @@ model Testimonial {
 ## 16. Upcoming Intakes Module & Data Flow (Home Page Scheduled Intakes)
 
 ### Distinction Between Upcoming Intakes & Training Calendar
+
 - **`UpcomingIntake`** (Collection: `UpcomingIntake`): Powers the scheduled intake cards displayed on the public home page under the section heading "Join Our Next Scheduled Intake". Cards present title, calendar date range, venue, bullet points, and a direct "Reserve a Seat" button linked to `/contact`.
 - **`CalendarSession` & `CalendarCourse`** (Collections: `CalendarSession`, `CalendarCourse`): Power the full dedicated `/calendar` page with course codes, certification levels, training/exam kinds, and booking workflows.
 - These two systems operate on completely separate MongoDB collections, schemas, and queries. They never read or write to each other.
@@ -669,12 +677,14 @@ model UpcomingIntake {
 ```
 
 #### Rationale for Date-Only Strings (`YYYY-MM-DD`)
+
 - Same architecture as the Training Calendar module: storing calendar dates as fixed `"YYYY-MM-DD"` text strings eliminates timezone boundary shifts (Asia/Kuala_Lumpur vs UTC or client local time).
 - Lexicographical string comparison (`gte`, `lt`) functions reliably for date filtering.
 - Prevents React hydration mismatches on client renders.
 - Never instantiate calendar dates using `new Date("YYYY-MM-DD")` in formatting or query paths.
 
 ### Validation Limits (`src/lib/validation/intake.ts`)
+
 - **`title`**: Required string, 3 to 120 characters. Trimmed, control characters stripped, plain text only.
 - **`startDate`**: Required real calendar date in `"YYYY-MM-DD"` format (rejects invalid days such as `2026-02-30`), year between 2000 and 2100.
 - **`endDate`**: Optional input (defaults to `startDate` if empty or whitespace). Valid calendar date in `"YYYY-MM-DD"` format, must be on or after `startDate`, and cannot span more than 31 days.
@@ -684,6 +694,7 @@ model UpcomingIntake {
 - **`status`**: Enum `ACTIVE` or `INACTIVE`.
 
 ### Idempotent Seed Data (`prisma/seed-data/intakes.ts`)
+
 - Converts the 4 legacy static sessions from `src/data/site.ts` into structured calendar intakes:
   1. `2026-10-12` | Visual Testing (VT) Level 1 | Kuala Lumpur Centre
   2. `2026-10-26` | Weld Inspection Intensive | Kuala Lumpur Centre
@@ -693,12 +704,14 @@ model UpcomingIntake {
 - Re-running `npm run db:seed` inserts only missing baseline records and never overwrites administrator modifications.
 
 ### Automatic Past Intake Hiding
+
 - Evaluated on the server using current date in `"Asia/Kuala_Lumpur"` timezone (`today = getTodayDateString("Asia/Kuala_Lumpur")`).
 - **Public Home Page**: `getUpcomingIntakes(limit = 4)` filters `status: "ACTIVE"` and `endDate >= today`. Any intake whose `endDate` is before today is automatically excluded from the public display.
 - **Zero-Active Fallback**: If 0 active upcoming intakes exist, the entire "Training calendar" section on the home page (including heading and SectionHeader) is omitted cleanly from DOM output.
 - **Admin Visibility**: All intakes (upcoming, today, and past) remain fully visible and manageable in `/admin/intakes`. The timing filter tabs (`Upcoming` [default], `Past`, `All`) and timing badges (`Upcoming`, `Today`, `Past`) let administrators review past cohorts or duplicate them for future schedules.
 
 ### Admin Management (`/admin/intakes`)
+
 - Accessible via "Upcoming intakes" in the Content sidebar group (desktop and mobile), positioned next to "Training calendar".
 - Dashboard overview card displays real-time counts for **Upcoming Active**, **Past**, and **Inactive** intakes.
 - **Table View**: Order, Title, Date Range with raw strings, Location, Highlights point count, Timing badge (`Upcoming` / `Today` / `Past`), `StatusSwitch`, and action buttons (Edit, Duplicate, Delete).
@@ -736,6 +749,7 @@ Altair Academy features a database-driven, multi-tier SEO management engine. The
 ### Detail Page Templates & Placeholders
 
 For dynamic routes, template items in the registry permit whitelisted placeholders:
+
 - **`course-detail`** (`/courses/[slug]`): `{title}`, `{summary}`, `{category}`, `{level}`
 - **`news-detail`** (`/news/[slug]`): `{title}`, `{excerpt}`, `{category}`
 - **`team-detail`** (`/team/[slug]`): `{name}`, `{role}`, `{bio}`

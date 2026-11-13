@@ -19,9 +19,9 @@ async function checkDatabase() {
   });
 
   try {
-    const rawResult = await prisma.$queryRawUnsafe<Array<{ ok: number; version: string; db_name: string }>>(
-      "SELECT 1 as ok, VERSION() as version, DATABASE() as db_name",
-    );
+    const rawResult = await prisma.$queryRawUnsafe<
+      Array<{ ok: number; version: string; db_name: string }>
+    >("SELECT 1 as ok, VERSION() as version, DATABASE() as db_name");
 
     const row = rawResult?.[0];
 
@@ -51,24 +51,19 @@ async function checkDatabase() {
       console.error(
         "   Remember to URL-encode special characters in passwords (e.g. '@' -> '%40').",
       );
-    } else if (
-      errorMessage.includes("ENOTFOUND") ||
-      errorMessage.includes("getaddrinfo")
-    ) {
+    } else if (errorMessage.includes("ENOTFOUND") || errorMessage.includes("getaddrinfo")) {
       console.error("\nReason: DNS / Hostname resolution failed.");
       console.error("👉 Verify the hostname in your DATABASE_URL (e.g. 127.0.0.1 or localhost).");
-    } else if (
-      errorMessage.includes("timed out") ||
-      errorMessage.includes("ETIMEDOUT")
-    ) {
+    } else if (errorMessage.includes("timed out") || errorMessage.includes("ETIMEDOUT")) {
       console.error("\nReason: Connection timed out.");
       console.error("👉 Verify the host and port (typically 3306) are reachable.");
-    } else if (errorMessage.includes("ECONNREFUSED") || errorMessage.includes("Can't reach database server")) {
+    } else if (
+      errorMessage.includes("ECONNREFUSED") ||
+      errorMessage.includes("Can't reach database server")
+    ) {
       console.error("\nReason: Connection refused (port 3306).");
       console.error("👉 The MariaDB / MySQL service is not currently running.");
-      console.error(
-        "   Start MySQL from the XAMPP Control Panel or run 'net start MySQL'.",
-      );
+      console.error("   Start MySQL from the XAMPP Control Panel or run 'net start MySQL'.");
     } else {
       console.error("\nDetails:", errorMessage);
     }

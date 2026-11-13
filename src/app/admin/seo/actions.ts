@@ -57,10 +57,7 @@ function triggerSeoRevalidation(pageKey?: string) {
  * If all override fields are cleared, the row is automatically deleted
  * to keep the database lean and fully default-driven.
  */
-export async function savePageSeo(
-  pageKey: string,
-  input: unknown,
-): Promise<SeoActionResult> {
+export async function savePageSeo(pageKey: string, input: unknown): Promise<SeoActionResult> {
   await requireAdmin();
 
   if (!pageKey || !isRegistryKey(pageKey)) {
@@ -72,15 +69,12 @@ export async function savePageSeo(
     };
   }
 
-  const rawData =
-    typeof input === "object" && input !== null ? { ...input, pageKey } : { pageKey };
+  const rawData = typeof input === "object" && input !== null ? { ...input, pageKey } : { pageKey };
 
   const parseResult = pageSeoSchema.safeParse(rawData);
   if (!parseResult.success) {
     const fieldErrors = parseResult.error.flatten().fieldErrors;
-    const firstError = Object.entries(fieldErrors).find(
-      ([_, errs]) => errs && errs.length > 0,
-    );
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
     const message = firstError
       ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
       : "Validation failed";
@@ -135,10 +129,7 @@ export async function savePageSeo(
       message: "Page SEO settings saved successfully.",
     };
   } catch (error) {
-    console.error(
-      `[SEO Actions] Failed to save PageSeo for "${pageKey}":`,
-      error,
-    );
+    console.error(`[SEO Actions] Failed to save PageSeo for "${pageKey}":`, error);
     return {
       ok: false,
       success: false,
@@ -174,10 +165,7 @@ export async function resetPageSeo(pageKey: string): Promise<SeoActionResult> {
       message: "Page SEO reset to baseline defaults.",
     };
   } catch (error) {
-    console.error(
-      `[SEO Actions] Failed to reset PageSeo for "${pageKey}":`,
-      error,
-    );
+    console.error(`[SEO Actions] Failed to reset PageSeo for "${pageKey}":`, error);
     return {
       ok: false,
       success: false,
@@ -196,9 +184,7 @@ export async function saveSiteSeo(input: unknown): Promise<SeoActionResult> {
   const parseResult = siteSeoSchema.safeParse(input);
   if (!parseResult.success) {
     const fieldErrors = parseResult.error.flatten().fieldErrors;
-    const firstError = Object.entries(fieldErrors).find(
-      ([_, errs]) => errs && errs.length > 0,
-    );
+    const firstError = Object.entries(fieldErrors).find(([_, errs]) => errs && errs.length > 0);
     const message = firstError
       ? `Validation failed: ${firstError[0]} - ${firstError[1]![0]}`
       : "Validation failed";
@@ -285,4 +271,3 @@ export async function resetSiteSeo(): Promise<SeoActionResult> {
     };
   }
 }
-

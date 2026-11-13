@@ -36,10 +36,7 @@ export async function getUpcomingIntakesAdmin(params: GetUpcomingIntakesParams =
 
   if (q && q.trim()) {
     const term = q.trim();
-    where.OR = [
-      { title: { contains: term } },
-      { location: { contains: term } },
-    ];
+    where.OR = [{ title: { contains: term } }, { location: { contains: term } }];
   }
 
   if (status && status !== "ALL") {
@@ -98,4 +95,3 @@ export async function getIntakeByIdAdmin(id: string) {
     points: readList(intake.points),
   };
 }
-

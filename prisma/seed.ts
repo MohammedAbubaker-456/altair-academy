@@ -232,10 +232,7 @@ async function main() {
 
   const existingApi510 = await prisma.course.findFirst({
     where: {
-      OR: [
-        { slug: "api-510-pressure-vessel-inspector" },
-        { title: { contains: "API 510" } },
-      ],
+      OR: [{ slug: "api-510-pressure-vessel-inspector" }, { title: { contains: "API 510" } }],
     },
   });
 

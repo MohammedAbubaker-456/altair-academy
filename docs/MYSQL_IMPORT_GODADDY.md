@@ -18,22 +18,27 @@ This guide walks you through importing the Altair Academy MariaDB database dump 
 ## 2. Step-by-Step phpMyAdmin Import
 
 ### Step 1: Open phpMyAdmin
+
 1. Log into your **GoDaddy Account** and navigate to your **cPanel**.
 2. Under the **Databases** section, click **phpMyAdmin**.
 
 ### Step 2: Select Your Target Database
+
 1. In the left navigation sidebar of phpMyAdmin, click on your Altair Academy database (e.g., `cpuser_altair_db`).
    > **Important**: Ensure you have selected the database itself, so that the breadcrumb at the top reads: `Server: localhost >> Database: cpuser_altair_db`.
 
 ### Step 3: Open the Import Tab
+
 1. Click the **Import** tab on the top navigation bar.
 
 ### Step 4: Choose the Dump File
+
 1. Under **File to import**, click **Choose File** (or **Browse**).
 2. Select `altair_academy_full.sql` from your local `db-dumps/` folder.
 3. Verify **Character set of the file** is set to `utf-8` (default).
 
 ### Step 5: Execute the Import
+
 1. Leave the remaining settings at their defaults:
    - Partial import: Checked
    - Format: **SQL**
@@ -52,8 +57,8 @@ In phpMyAdmin, click the **SQL** tab and run the following queries to verify row
 
 ```sql
 -- 1. Verify total table collations (all must be utf8mb4_unicode_ci)
-SELECT TABLE_NAME, TABLE_COLLATION 
-FROM INFORMATION_SCHEMA.TABLES 
+SELECT TABLE_NAME, TABLE_COLLATION
+FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = DATABASE();
 
 -- 2. Verify primary data counts
@@ -77,6 +82,7 @@ SELECT 'admin_users', COUNT(*) FROM admin_users;
 ```
 
 ### Expected Row Counts:
+
 - `courses`: **69**
 - `calendar_sessions`: **38**
 - `categories`: **9**

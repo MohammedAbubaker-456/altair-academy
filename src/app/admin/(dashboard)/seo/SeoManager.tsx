@@ -68,11 +68,7 @@ const SAMPLE_TEMPLATE_PATHS: Record<string, string> = {
   "legal-detail": "/privacy",
 };
 
-export function SeoManager({
-  registryItems,
-  pageSeoMap,
-  initialSiteSeo,
-}: SeoManagerProps) {
+export function SeoManager({ registryItems, pageSeoMap, initialSiteSeo }: SeoManagerProps) {
   const router = useRouter();
 
   // Site defaults card state
@@ -103,13 +99,13 @@ export function SeoManager({
     const row = pageSeoMap[item.key];
     return Boolean(
       row &&
-        (row.title ||
-          row.description ||
-          row.ogTitle ||
-          row.ogDescription ||
-          row.ogImage ||
-          row.canonicalPath ||
-          row.noIndex !== null),
+      (row.title ||
+        row.description ||
+        row.ogTitle ||
+        row.ogDescription ||
+        row.ogImage ||
+        row.canonicalPath ||
+        row.noIndex !== null),
     );
   }).length;
   const defaultCount = totalCount - customizedCount;
@@ -133,7 +129,9 @@ export function SeoManager({
         toast.error(res.message);
       }
     } catch (err) {
-      toast.error("Failed to save site defaults: " + (err instanceof Error ? err.message : "Error"));
+      toast.error(
+        "Failed to save site defaults: " + (err instanceof Error ? err.message : "Error"),
+      );
     } finally {
       setIsSavingSite(false);
     }
@@ -186,13 +184,13 @@ export function SeoManager({
     const row = pageSeoMap[item.key];
     const isCustomized = Boolean(
       row &&
-        (row.title ||
-          row.description ||
-          row.ogTitle ||
-          row.ogDescription ||
-          row.ogImage ||
-          row.canonicalPath ||
-          row.noIndex !== null),
+      (row.title ||
+        row.description ||
+        row.ogTitle ||
+        row.ogDescription ||
+        row.ogImage ||
+        row.canonicalPath ||
+        row.noIndex !== null),
     );
 
     // Source Filter
@@ -209,7 +207,9 @@ export function SeoManager({
       const matchKey = item.key.toLowerCase().includes(term);
       const matchPath = item.path.toLowerCase().includes(term);
       const matchTitle = (row?.title || item.defaults.title).toLowerCase().includes(term);
-      const matchDesc = (row?.description || item.defaults.description).toLowerCase().includes(term);
+      const matchDesc = (row?.description || item.defaults.description)
+        .toLowerCase()
+        .includes(term);
       if (!matchLabel && !matchKey && !matchPath && !matchTitle && !matchDesc) return false;
     }
 
@@ -228,7 +228,8 @@ export function SeoManager({
             SEO &amp; Meta Tags Manager
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage titles, descriptions, social share cards, and search engine indexing across all public pages.
+            Manage titles, descriptions, social share cards, and search engine indexing across all
+            public pages.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -254,7 +255,10 @@ export function SeoManager({
               <div className="flex items-center gap-2">
                 <CardTitle className="text-base font-display">Global Site Defaults</CardTitle>
                 {initialSiteSeo ? (
-                  <Badge variant="outline" className="text-emerald-700 bg-emerald-50 border-emerald-300 text-[11px] py-0">
+                  <Badge
+                    variant="outline"
+                    className="text-emerald-700 bg-emerald-50 border-emerald-300 text-[11px] py-0"
+                  >
                     Customised
                   </Badge>
                 ) : (
@@ -264,12 +268,17 @@ export function SeoManager({
                 )}
               </div>
               <CardDescription className="text-xs mt-0.5">
-                Site name, default meta description, default Open Graph image, and Twitter / X handle.
+                Site name, default meta description, default Open Graph image, and Twitter / X
+                handle.
               </CardDescription>
             </div>
           </div>
           <div className="text-muted-foreground">
-            {isSiteDefaultsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+            {isSiteDefaultsOpen ? (
+              <ChevronUp className="h-5 w-5" />
+            ) : (
+              <ChevronDown className="h-5 w-5" />
+            )}
           </div>
         </button>
 
@@ -327,11 +336,7 @@ export function SeoManager({
               {/* Default OG Image */}
               <div className="space-y-1.5">
                 <Label>Default Social Share Image (1200 x 630 px)</Label>
-                <ImageUpload
-                  value={defaultOgImage}
-                  onChange={setDefaultOgImage}
-                  folder="seo"
-                />
+                <ImageUpload value={defaultOgImage} onChange={setDefaultOgImage} folder="seo" />
                 <p className="text-[11px] text-muted-foreground">
                   Recommended size: 1200 x 630 px. Shown when sharing links with no specific image.
                 </p>
@@ -478,13 +483,13 @@ export function SeoManager({
                       const row = pageSeoMap[item.key];
                       const isCustomized = Boolean(
                         row &&
-                          (row.title ||
-                            row.description ||
-                            row.ogTitle ||
-                            row.ogDescription ||
-                            row.ogImage ||
-                            row.canonicalPath ||
-                            row.noIndex !== null),
+                        (row.title ||
+                          row.description ||
+                          row.ogTitle ||
+                          row.ogDescription ||
+                          row.ogImage ||
+                          row.canonicalPath ||
+                          row.noIndex !== null),
                       );
 
                       const effectiveTitle = row?.title || item.defaults.title;
@@ -498,14 +503,10 @@ export function SeoManager({
                           ? row.noIndex
                           : item.defaults.noIndex;
 
-                      const liveUrl =
-                        SAMPLE_TEMPLATE_PATHS[item.key] || item.path;
+                      const liveUrl = SAMPLE_TEMPLATE_PATHS[item.key] || item.path;
 
                       return (
-                        <tr
-                          key={item.key}
-                          className="hover:bg-muted/20 transition-colors"
-                        >
+                        <tr key={item.key} className="hover:bg-muted/20 transition-colors">
                           {/* Page Name & Path */}
                           <td className="py-3 px-4">
                             <div className="flex flex-col">
@@ -560,9 +561,7 @@ export function SeoManager({
                           <td className="py-3 px-3">
                             <div className="line-clamp-1 text-xs" title={effectiveTitle}>
                               {row?.title ? (
-                                <span className="font-medium text-foreground">
-                                  {row.title}
-                                </span>
+                                <span className="font-medium text-foreground">{row.title}</span>
                               ) : (
                                 <span className="text-muted-foreground italic">
                                   {item.defaults.title}
@@ -588,10 +587,7 @@ export function SeoManager({
                           {/* Indexing Badge */}
                           <td className="py-3 px-3">
                             {isNoIndex ? (
-                              <Badge
-                                variant="destructive"
-                                className="text-[11px] py-0 font-medium"
-                              >
+                              <Badge variant="destructive" className="text-[11px] py-0 font-medium">
                                 Noindex
                               </Badge>
                             ) : (
@@ -673,8 +669,8 @@ export function SeoManager({
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Page SEO to Baseline Default?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will delete the customized database overrides for this page. The page will immediately
-              revert to using its built-in code defaults. This action cannot be undone.
+              This will delete the customized database overrides for this page. The page will
+              immediately revert to using its built-in code defaults. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -699,4 +695,3 @@ export function SeoManager({
     </div>
   );
 }
-

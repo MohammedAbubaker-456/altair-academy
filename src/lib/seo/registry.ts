@@ -77,8 +77,7 @@ export const SEO_REGISTRY: Record<string, SeoRegistryItem> = {
       description:
         "Altair Academy 2026 NDT Level 2 training and examination calendar for UT, MT, PT, PAUT, TOFD and RI courses.",
       ogTitle: "2026 Training Calendar | Altair Academy",
-      ogDescription:
-        "Month-by-month NDT Level 2 training and examination dates at Altair Academy.",
+      ogDescription: "Month-by-month NDT Level 2 training and examination dates at Altair Academy.",
       ogType: "website",
       twitterCard: "summary_large_image",
       noIndex: false,
@@ -111,8 +110,7 @@ export const SEO_REGISTRY: Record<string, SeoRegistryItem> = {
       description:
         "Reach the Altair Academy training team by phone, WhatsApp or email to choose a course or arrange in-house training.",
       ogTitle: "Contact Altair Academy",
-      ogDescription:
-        "Phone, WhatsApp, email and office hours for our training team.",
+      ogDescription: "Phone, WhatsApp, email and office hours for our training team.",
       ogType: "website",
       twitterCard: "summary_large_image",
       noIndex: false,
@@ -128,8 +126,7 @@ export const SEO_REGISTRY: Record<string, SeoRegistryItem> = {
       description:
         "Browse Altair Academy courses across NDT, corrosion, BIM, management systems, plant maintenance and more.",
       ogTitle: "Technical Training Courses — Altair Academy",
-      ogDescription:
-        "Browse accredited technical courses by category, level, duration and price.",
+      ogDescription: "Browse accredited technical courses by category, level, duration and price.",
       ogType: "website",
       twitterCard: "summary_large_image",
       noIndex: false,
@@ -322,4 +319,3 @@ export function isRegistryKey(key: string): boolean {
 export function getPlaceholdersForTemplate(key: string): string[] {
   return SEO_REGISTRY[key]?.allowedPlaceholders ?? [];
 }
-

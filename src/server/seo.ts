@@ -52,10 +52,7 @@ export const getSiteSeo = cache(async (): Promise<SiteSeo | null> => {
       where: { key: "default" },
     });
   } catch (error) {
-    console.error(
-      "[SEO] Failed to query SiteSeo:",
-      error instanceof Error ? error.message : error,
-    );
+    console.error("[SEO] Failed to query SiteSeo:", error instanceof Error ? error.message : error);
     return null;
   }
 });
@@ -148,10 +145,7 @@ export function replacePlaceholders(
 /**
  * Computes the complete Next.js Metadata object for a given registry page key
  */
-export async function getPageMetadata(
-  pageKey: string,
-  context?: SeoContext,
-): Promise<Metadata> {
+export async function getPageMetadata(pageKey: string, context?: SeoContext): Promise<Metadata> {
   const registryItem = getRegistryItem(pageKey);
   const [pageSeo, siteSeo] = await Promise.all([getPageSeo(pageKey), getSiteSeo()]);
 
@@ -255,4 +249,3 @@ export async function getPageMetadata(
 
   return metadata;
 }
-

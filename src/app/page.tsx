@@ -115,7 +115,8 @@ export default async function Home() {
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:px-8 lg:py-24">
             <div>
               <h1 className="mt-5 font-display text-4xl leading-[1.05] font-bold tracking-tight text-primary sm:text-6xl">
-                Upskill Your <span className="text-destructive">NDT Certifications</span> with Altair Academy
+                Upskill Your <span className="text-destructive">NDT Certifications</span> with
+                Altair Academy
               </h1>
               {/* <p className="mt-5 max-w-xl text-base text-muted-foreground">
                 A decade of hands-on inspection, integrity and management system training. Carefully
@@ -123,7 +124,10 @@ export default async function Home() {
                 actually recognise.
               </p> */}
               <p className="mt-5 max-w-xl text-base text-muted-foreground">
-                With over a decade of experience in inspection, integrity, and management system training, ALTAIR delivers industry-focused learning through carefully selected instructors, practical training labs, and internationally recognised certifications that help professionals advance their careers.
+                With over a decade of experience in inspection, integrity, and management system
+                training, ALTAIR delivers industry-focused learning through carefully selected
+                instructors, practical training labs, and internationally recognised certifications
+                that help professionals advance their careers.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button variant="cta" size="lg" className="text-base" asChild>
@@ -369,7 +373,6 @@ export default async function Home() {
                 <Button variant="cta" className="text-base" asChild>
                   {/* <Link href="/contact">Get Help Choosing</Link> */}
                   <Link href="/contact">Enrol Now</Link>
-
                 </Button>
 
                 {contactInfo.phoneHref && contactInfo.homepagePhoneDisplay ? (
@@ -392,7 +395,6 @@ export default async function Home() {
                   </Link>
                 ) : null}
               </div>
-
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-navy p-6 text-primary-foreground">

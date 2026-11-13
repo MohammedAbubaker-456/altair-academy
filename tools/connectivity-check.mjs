@@ -58,9 +58,7 @@ async function run() {
   if (!databaseUrl || databaseUrl.trim() === "") {
     console.error("❌ ERROR: DATABASE_URL environment variable is not set.");
     console.error("👉 If running over SSH, export it first:");
-    console.error(
-      '   export DATABASE_URL="mysql://<user>:<password>@localhost:3306/<dbname>"\n',
-    );
+    console.error('   export DATABASE_URL="mysql://<user>:<password>@localhost:3306/<dbname>"\n');
     process.exit(1);
   }
 
@@ -83,7 +81,9 @@ async function run() {
   if (result.success) {
     console.log(`✔ TCP socket to ${host}:${port} opened successfully!`);
     console.log("  MariaDB is reachable and accepting connections.\n");
-    console.log("Next step: Run 'node tools/check-db.mjs' to verify credentials and query execution.\n");
+    console.log(
+      "Next step: Run 'node tools/check-db.mjs' to verify credentials and query execution.\n",
+    );
     process.exit(0);
   } else {
     console.error(`❌ TCP connection to ${host}:${port} failed: ${result.error}`);

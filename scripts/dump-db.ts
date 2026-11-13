@@ -26,10 +26,7 @@ fs.mkdirSync(dumpDir, { recursive: true });
 
 // Find mysqldump executable
 function findMysqldump(): string {
-  const candidates = [
-    "C:\\xampp\\mysql\\bin\\mysqldump.exe",
-    "mysqldump",
-  ];
+  const candidates = ["C:\\xampp\\mysql\\bin\\mysqldump.exe", "mysqldump"];
 
   for (const candidate of candidates) {
     try {
@@ -44,7 +41,9 @@ function findMysqldump(): string {
     }
   }
 
-  throw new Error("mysqldump executable not found. Ensure XAMPP MariaDB is installed at C:\\xampp\\mysql");
+  throw new Error(
+    "mysqldump executable not found. Ensure XAMPP MariaDB is installed at C:\\xampp\\mysql",
+  );
 }
 
 function parseDatabaseUrl(rawUrl?: string) {
@@ -66,7 +65,7 @@ async function runDump() {
   const mysqldumpBin = findMysqldump();
   console.log(`Using mysqldump: ${mysqldumpBin}`);
 
-  const dbConfig = parseDatabaseUrl(process.env.DATABASE_URL);
+  const dbConfig = parseDatabaseUrl(process.env["DATABASE_URL"]);
   console.log(`Source Host:    ${dbConfig.host}:${dbConfig.port}`);
   console.log(`Source Database:${dbConfig.database}\n`);
 
@@ -117,7 +116,9 @@ async function runDump() {
 
   fs.writeFileSync(schemaDumpPath, sanitizedSchema, "utf8");
   const schemaStats = fs.statSync(schemaDumpPath);
-  console.log(`✔ Schema dump created: ${schemaDumpPath} (${(schemaStats.size / 1024).toFixed(1)} KB)\n`);
+  console.log(
+    `✔ Schema dump created: ${schemaDumpPath} (${(schemaStats.size / 1024).toFixed(1)} KB)\n`,
+  );
 
   // Verify safety checks
   console.log("🔍 Verifying dump characteristics:");

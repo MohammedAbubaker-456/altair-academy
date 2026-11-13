@@ -59,7 +59,6 @@
 //   }
 // }
 
-
 /**
  * Admin Image Upload Server Action
  *
@@ -79,8 +78,7 @@ const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export type UploadActionResult =
-  | { ok: true; url: string }
-  | { ok: false; message: string; authError?: boolean };
+  { ok: true; url: string } | { ok: false; message: string; authError?: boolean };
 
 export async function uploadImageAction(
   formData: FormData,
@@ -114,11 +112,7 @@ export async function uploadImageAction(
     const buffer = Buffer.from(arrayBuffer);
 
     // Pass the original uploaded filename to the storage service.
-    const url = await storageService.uploadImage(
-      buffer,
-      folder,
-      file.name,
-    );
+    const url = await storageService.uploadImage(buffer, folder, file.name);
 
     return { ok: true, url };
   } catch (err) {

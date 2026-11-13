@@ -71,27 +71,27 @@ const SAMPLE_TEMPLATE_REPLACEMENTS: Record<string, Record<string, string>> = {
     "{title}": "Ultrasonic Testing Level 2 (UT2)",
     "{category}": "Non-Destructive Testing",
     "{level}": "Level 2 Certification",
-    "{summary}": "Comprehensive 80-hour practitioner certification course covering manual ultrasonic examination techniques.",
+    "{summary}":
+      "Comprehensive 80-hour practitioner certification course covering manual ultrasonic examination techniques.",
   },
   "news-detail": {
     "{title}": "Welding Inspection Certification Changes for 2026",
-    "{excerpt}": "Key revisions to inspection syllabus, practical assessment standards, and renewal schedules.",
+    "{excerpt}":
+      "Key revisions to inspection syllabus, practical assessment standards, and renewal schedules.",
     "{category}": "Industry Insights",
   },
   "team-detail": {
     "{name}": "Shaik Khaja Mohiuddin",
     "{role}": "Managing Director & Senior Level III",
-    "{bio}": "Practising Level III specialist with over 25 years of global field testing experience.",
+    "{bio}":
+      "Practising Level III specialist with over 25 years of global field testing experience.",
   },
   "legal-detail": {
     "{title}": "Cookie & Compliance Policy",
   },
 };
 
-export function EditPageSeoForm({
-  registryItem,
-  initialPageSeo,
-}: EditPageSeoFormProps) {
+export function EditPageSeoForm({ registryItem, initialPageSeo }: EditPageSeoFormProps) {
   const router = useRouter();
 
   // Field states
@@ -112,7 +112,9 @@ export function EditPageSeoForm({
   const [indexing, setIndexing] = React.useState<string>(initialIndexing);
 
   // Active focused input for placeholder insertion
-  const [activeField, setActiveField] = React.useState<"title" | "desc" | "ogTitle" | "ogDesc">("title");
+  const [activeField, setActiveField] = React.useState<"title" | "desc" | "ogTitle" | "ogDesc">(
+    "title",
+  );
 
   // Actions and dialog state
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -121,13 +123,13 @@ export function EditPageSeoForm({
 
   const isCustomized = Boolean(
     initialPageSeo &&
-      (initialPageSeo.title ||
-        initialPageSeo.description ||
-        initialPageSeo.ogTitle ||
-        initialPageSeo.ogDescription ||
-        initialPageSeo.ogImage ||
-        initialPageSeo.canonicalPath ||
-        initialPageSeo.noIndex !== null),
+    (initialPageSeo.title ||
+      initialPageSeo.description ||
+      initialPageSeo.ogTitle ||
+      initialPageSeo.ogDescription ||
+      initialPageSeo.ogImage ||
+      initialPageSeo.canonicalPath ||
+      initialPageSeo.noIndex !== null),
   );
 
   // Character counts
@@ -172,18 +174,17 @@ export function EditPageSeoForm({
   const previewRawDesc = description.trim() || registryItem.defaults.description;
   const previewDesc = replaceTokens(previewRawDesc);
 
-  const previewOgTitle = replaceTokens(ogTitle.trim() || title.trim() || registryItem.defaults.ogTitle);
+  const previewOgTitle = replaceTokens(
+    ogTitle.trim() || title.trim() || registryItem.defaults.ogTitle,
+  );
   const previewOgDesc = replaceTokens(
     ogDescription.trim() || description.trim() || registryItem.defaults.ogDescription,
   );
 
-  const previewImage =
-    ogImage || registryItem.defaults.ogImage || "/seed/courses/ndt-level2.webp";
+  const previewImage = ogImage || registryItem.defaults.ogImage || "/seed/courses/ndt-level2.webp";
 
   const effectivePath =
-    canonicalPath.trim() ||
-    SAMPLE_TEMPLATE_PATHS[registryItem.key] ||
-    registryItem.path;
+    canonicalPath.trim() || SAMPLE_TEMPLATE_PATHS[registryItem.key] || registryItem.path;
 
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -268,7 +269,10 @@ export function EditPageSeoForm({
                   Edit SEO — {registryItem.label}
                 </h1>
                 {isCustomized ? (
-                  <Badge variant="outline" className="text-emerald-700 bg-emerald-50 border-emerald-300 text-xs py-0.5">
+                  <Badge
+                    variant="outline"
+                    className="text-emerald-700 bg-emerald-50 border-emerald-300 text-xs py-0.5"
+                  >
                     Customised
                   </Badge>
                 ) : (
@@ -278,7 +282,10 @@ export function EditPageSeoForm({
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Path: <code className="bg-muted px-1.5 py-0.5 rounded font-mono">{registryItem.path}</code>
+                Path:{" "}
+                <code className="bg-muted px-1.5 py-0.5 rounded font-mono">
+                  {registryItem.path}
+                </code>
               </p>
             </div>
           </div>
@@ -307,7 +314,8 @@ export function EditPageSeoForm({
               <span>Available Dynamic Placeholders for this Template</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Click a placeholder chip to insert it into the active text field. These tokens will be dynamically replaced by each record&apos;s data when the page renders.
+              Click a placeholder chip to insert it into the active text field. These tokens will be
+              dynamically replaced by each record&apos;s data when the page renders.
             </p>
             <div className="flex flex-wrap gap-1.5 pt-1">
               {registryItem.allowedPlaceholders.map((token) => (
@@ -332,7 +340,9 @@ export function EditPageSeoForm({
           <div className="lg:col-span-7 space-y-6">
             <Card className="border-border shadow-xs">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-display">Page Metadata &amp; Search Tags</CardTitle>
+                <CardTitle className="text-base font-display">
+                  Page Metadata &amp; Search Tags
+                </CardTitle>
                 <CardDescription className="text-xs">
                   Leave any field blank to preserve its default value.
                 </CardDescription>
@@ -416,7 +426,8 @@ export function EditPageSeoForm({
                     maxLength={200}
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Must start with a single &apos;/&apos; (e.g. <code>{registryItem.path}</code>). Leave blank to use standard route path.
+                    Must start with a single &apos;/&apos; (e.g. <code>{registryItem.path}</code>).
+                    Leave blank to use standard route path.
                   </p>
                 </div>
 
@@ -443,7 +454,9 @@ export function EditPageSeoForm({
                     <div className="flex items-start gap-2 p-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/20 text-xs text-amber-800 dark:text-amber-300 mt-2">
                       <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                       <div>
-                        <strong>Notice:</strong> Setting this page to Noindex will instruct Google, Bing, and other search engines to drop this page from their public search results.
+                        <strong>Notice:</strong> Setting this page to Noindex will instruct Google,
+                        Bing, and other search engines to drop this page from their public search
+                        results.
                       </div>
                     </div>
                   )}
@@ -454,7 +467,9 @@ export function EditPageSeoForm({
             {/* Open Graph & Social Share Card Overrides */}
             <Card className="border-border shadow-xs">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base font-display">Social Share Overrides (Open Graph)</CardTitle>
+                <CardTitle className="text-base font-display">
+                  Social Share Overrides (Open Graph)
+                </CardTitle>
                 <CardDescription className="text-xs">
                   Specific titles and pictures for Facebook, X, LinkedIn, and messaging apps.
                 </CardDescription>
@@ -510,13 +525,10 @@ export function EditPageSeoForm({
                 {/* OG Image Upload */}
                 <div className="space-y-1.5">
                   <Label className="text-sm font-medium">Custom Social Share Image</Label>
-                  <ImageUpload
-                    value={ogImage}
-                    onChange={setOgImage}
-                    folder="seo"
-                  />
+                  <ImageUpload value={ogImage} onChange={setOgImage} folder="seo" />
                   <p className="text-[11px] text-muted-foreground">
-                    Recommended dimensions: 1200 x 630 px (1.91:1 aspect ratio). Supported: PNG, JPG, WebP.
+                    Recommended dimensions: 1200 x 630 px (1.91:1 aspect ratio). Supported: PNG,
+                    JPG, WebP.
                   </p>
                 </div>
               </CardContent>
@@ -599,7 +611,9 @@ export function EditPageSeoForm({
                   <div className="pt-2 border-t flex items-center justify-between text-[11px] text-muted-foreground">
                     <span>
                       Indexing:{" "}
-                      <strong className={indexing === "NOINDEX" ? "text-destructive" : "text-emerald-600"}>
+                      <strong
+                        className={indexing === "NOINDEX" ? "text-destructive" : "text-emerald-600"}
+                      >
                         {indexing === "NOINDEX" ? "Noindex" : "Index"}
                       </strong>
                     </span>
@@ -648,7 +662,9 @@ export function EditPageSeoForm({
               <div className="p-3.5 rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground space-y-1">
                 <div className="font-medium text-foreground">Multi-tier Resolution Notice:</div>
                 <p className="text-[11px] leading-relaxed">
-                  When a public page renders, overrides defined here take precedence over registry defaults. If individual records (such as specific courses or news articles) specify their own SEO tags, those take highest priority.
+                  When a public page renders, overrides defined here take precedence over registry
+                  defaults. If individual records (such as specific courses or news articles)
+                  specify their own SEO tags, those take highest priority.
                 </p>
               </div>
             </div>
@@ -662,7 +678,8 @@ export function EditPageSeoForm({
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Page SEO to Default?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove all custom overrides for <strong>{registryItem.label}</strong> and revert to built-in code baseline defaults.
+              This will remove all custom overrides for <strong>{registryItem.label}</strong> and
+              revert to built-in code baseline defaults.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -680,4 +697,3 @@ export function EditPageSeoForm({
     </div>
   );
 }
-

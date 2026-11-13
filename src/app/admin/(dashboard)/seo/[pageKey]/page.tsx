@@ -57,11 +57,5 @@ export default async function EditPageSeoPage({ params }: EditPageSeoProps) {
     where: { pageKey },
   });
 
-  return (
-    <EditPageSeoForm
-      registryItem={registryItem}
-      initialPageSeo={pageSeo}
-    />
-  );
+  return <EditPageSeoForm registryItem={registryItem} initialPageSeo={pageSeo} />;
 }
-

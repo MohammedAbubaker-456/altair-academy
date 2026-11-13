@@ -73,4 +73,3 @@ export const seedTestimonials = [
     order: 9,
   },
 ];
-

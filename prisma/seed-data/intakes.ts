@@ -80,4 +80,3 @@ export const seedUpcomingIntakes = rawSeedUpcomingSessions.map((session, index) 
     order: index + 1,
   };
 });
-

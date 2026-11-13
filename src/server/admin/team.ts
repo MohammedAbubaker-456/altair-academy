@@ -22,9 +22,9 @@ export interface TeamAdminParams {
   placement?: TeamPlacement | "ALL" | undefined;
 }
 
-function formatTeamMember<T extends { showInManagement: boolean; showInInstructors: boolean; expertise: string }>(
-  member: T,
-) {
+function formatTeamMember<
+  T extends { showInManagement: boolean; showInInstructors: boolean; expertise: string },
+>(member: T) {
   const placements: TeamPlacement[] = [];
   if (member.showInManagement) placements.push("MANAGEMENT");
   if (member.showInInstructors) placements.push("INSTRUCTOR");

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Altair Academy — Comprehensive Calendar Verification Suite
  *
@@ -10,15 +11,8 @@
 import { PrismaClient } from "@prisma/client";
 import { SignJWT } from "jose";
 import * as dotenv from "dotenv";
-import {
-  calendarCourseSchema,
-  calendarSessionSchema,
-} from "../src/lib/validation/calendar";
-import {
-  formatDateOnly,
-  formatDateOnlyRange,
-  getTodayDateString,
-} from "../src/lib/date";
+import { calendarCourseSchema, calendarSessionSchema } from "../src/lib/validation/calendar";
+import { formatDateOnly, formatDateOnlyRange, getTodayDateString } from "../src/lib/date";
 import { seedCalendarCourses, seedCalendar2026Level2 } from "../prisma/seed-data/calendar";
 
 dotenv.config();
@@ -56,22 +50,36 @@ async function main() {
   assert(
     codes.join(",") === "UT,MT,PT,PAUT,TOFD,RI",
     "Active calendar courses match expected codes in order: UT,MT,PT,PAUT,TOFD,RI",
-    codes.join(",")
+    codes.join(","),
   );
 
   const totalSessions = await db.calendarSession.count();
   const trainingCount = await db.calendarSession.count({ where: { kind: "TRAINING" } });
   const examCount = await db.calendarSession.count({ where: { kind: "EXAM" } });
 
-  assert(totalSessions === 37, "Total calendar sessions seeded is exactly 37", `found ${totalSessions}`);
+  assert(
+    totalSessions === 37,
+    "Total calendar sessions seeded is exactly 37",
+    `found ${totalSessions}`,
+  );
   assert(trainingCount === 19, "Total training sessions is exactly 19", `found ${trainingCount}`);
   assert(examCount === 18, "Total exam sessions is exactly 18", `found ${examCount}`);
 
   // Slot-for-slot verification against raw baseline
   let slotMismatch = false;
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   for (const monthEntry of seedCalendar2026Level2) {
@@ -140,7 +148,7 @@ async function main() {
   });
   assert(
     lowercaseCourse.success && lowercaseCourse.data.code === "UT",
-    "calendarCourseSchema auto-transforms lowercase course code 'ut' to uppercase 'UT'"
+    "calendarCourseSchema auto-transforms lowercase course code 'ut' to uppercase 'UT'",
   );
 
   const shortCourse = calendarCourseSchema.safeParse({
@@ -203,32 +211,32 @@ async function main() {
   assert(
     formatDateOnly("2026-01-17") === "17 Jan 2026",
     "formatDateOnly formats single date correctly to short format '17 Jan 2026'",
-    formatDateOnly("2026-01-17")
+    formatDateOnly("2026-01-17"),
   );
   assert(
     formatDateOnlyRange("2026-01-12", "2026-01-16") === "12–16 Jan 2026",
     "formatDateOnlyRange formats same-month range correctly to '12–16 Jan 2026'",
-    formatDateOnlyRange("2026-01-12", "2026-01-16")
+    formatDateOnlyRange("2026-01-12", "2026-01-16"),
   );
   assert(
     formatDateOnlyRange("2026-01-28", "2026-02-02") === "28 Jan – 2 Feb 2026",
     "formatDateOnlyRange formats cross-month range correctly",
-    formatDateOnlyRange("2026-01-28", "2026-02-02")
+    formatDateOnlyRange("2026-01-28", "2026-02-02"),
   );
   assert(
     formatDateOnlyRange("2025-12-28", "2026-01-03") === "28 Dec 2025 – 3 Jan 2026",
     "formatDateOnlyRange formats cross-year range correctly",
-    formatDateOnlyRange("2025-12-28", "2026-01-03")
+    formatDateOnlyRange("2025-12-28", "2026-01-03"),
   );
   assert(
     formatDateOnlyRange("2026-01-17", "2026-01-17") === "17 Jan 2026",
     "formatDateOnlyRange formats single-day range correctly to '17 Jan 2026'",
-    formatDateOnlyRange("2026-01-17", "2026-01-17")
+    formatDateOnlyRange("2026-01-17", "2026-01-17"),
   );
   assert(
     /^\d{4}-\d{2}-\d{2}$/.test(getTodayDateString("Asia/Kuala_Lumpur")),
     "getTodayDateString returns YYYY-MM-DD format",
-    getTodayDateString("Asia/Kuala_Lumpur")
+    getTodayDateString("Asia/Kuala_Lumpur"),
   );
 
   // --- 4. Database CRUD & Constraints Lifecycle ---
@@ -281,7 +289,10 @@ async function main() {
   const sessionCountForCourse = await db.calendarSession.count({
     where: { courseId: testCourse.id },
   });
-  assert(sessionCountForCourse > 0, "Course has 1 session, deletion should be blocked by app logic");
+  assert(
+    sessionCountForCourse > 0,
+    "Course has 1 session, deletion should be blocked by app logic",
+  );
 
   // E. Status toggle
   const updatedSession = await db.calendarSession.update({
@@ -314,25 +325,31 @@ async function main() {
     assert(
       titleMatch?.[1] === "2026 Training Calendar | Altair Academy",
       "Public title matches baseline: '2026 Training Calendar | Altair Academy'",
-      titleMatch?.[1]
+      titleMatch?.[1],
     );
     assert(
       descMatch?.[1] ===
         "Altair Academy 2026 NDT Level 2 training and examination calendar for UT, MT, PT, PAUT, TOFD and RI courses.",
       "Public description matches baseline course code list",
-      descMatch?.[1]
+      descMatch?.[1],
     );
 
     const cleanPub = pubHtml.replace(/<!--.*?-->/g, "");
-    assert(cleanPub.includes("2026 TRAINING CALENDAR"), "Public page contains hero heading '2026 TRAINING CALENDAR'");
-    assert(cleanPub.includes("Level 2 · Year 2026"), "Public page contains dynamic level/year label 'Level 2 · Year 2026'");
+    assert(
+      cleanPub.includes("2026 TRAINING CALENDAR"),
+      "Public page contains hero heading '2026 TRAINING CALENDAR'",
+    );
+    assert(
+      cleanPub.includes("Level 2 · Year 2026"),
+      "Public page contains dynamic level/year label 'Level 2 · Year 2026'",
+    );
     assert(pubHtml.includes("Reserve a Seat"), "Public page contains 'Reserve a Seat' button");
 
     // Unauthenticated admin access
     const unauthRes = await fetch("http://localhost:3000/admin/calendar", { redirect: "manual" });
     assert(
       unauthRes.status === 307 && unauthRes.headers.get("location") === "/admin/login",
-      "Unauthenticated GET /admin/calendar redirects (307) to /admin/login"
+      "Unauthenticated GET /admin/calendar redirects (307) to /admin/login",
     );
 
     // Authenticated admin access
@@ -357,19 +374,37 @@ async function main() {
     const authNewRes = await fetch("http://localhost:3000/admin/calendar/sessions/new", {
       headers: { Cookie: cookieHeader },
     });
-    assert(authNewRes.status === 200, "Authenticated GET /admin/calendar/sessions/new returns 200 OK");
+    assert(
+      authNewRes.status === 200,
+      "Authenticated GET /admin/calendar/sessions/new returns 200 OK",
+    );
     const newHtml = await authNewRes.text();
-    assert(newHtml.includes("Schedule New Session"), "Form displays 'Schedule New Session' heading");
+    assert(
+      newHtml.includes("Schedule New Session"),
+      "Form displays 'Schedule New Session' heading",
+    );
 
     const overviewRes = await fetch("http://localhost:3000/admin", {
       headers: { Cookie: cookieHeader },
     });
     assert(overviewRes.status === 200, "Authenticated GET /admin returns 200 OK");
     const ovHtml = await overviewRes.text();
-    assert(ovHtml.includes("Training Calendar"), "Admin overview displays 'Training Calendar' stats card");
-    assert(ovHtml.includes("Upcoming Active"), "Admin overview card displays 'Upcoming Active' count");
-    assert(ovHtml.includes("Courses Active"), "Admin overview card displays 'Courses Active' count");
-    assert(ovHtml.includes("/admin/calendar"), "Admin sidebar contains navigation link to /admin/calendar");
+    assert(
+      ovHtml.includes("Training Calendar"),
+      "Admin overview displays 'Training Calendar' stats card",
+    );
+    assert(
+      ovHtml.includes("Upcoming Active"),
+      "Admin overview card displays 'Upcoming Active' count",
+    );
+    assert(
+      ovHtml.includes("Courses Active"),
+      "Admin overview card displays 'Courses Active' count",
+    );
+    assert(
+      ovHtml.includes("/admin/calendar"),
+      "Admin sidebar contains navigation link to /admin/calendar",
+    );
   } catch (err: any) {
     assert(false, "Live HTTP verification completed without connection errors", err.message);
   }

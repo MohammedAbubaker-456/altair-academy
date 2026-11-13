@@ -71,4 +71,3 @@ export async function getTestimonialByIdAdmin(id: string) {
     where: { id },
   });
 }
-

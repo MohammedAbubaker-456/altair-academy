@@ -249,7 +249,7 @@ export async function Footer() {
         </div>
       </div>
       <FloatingWhatsApp />
-        <BackToTop />
+      <BackToTop />
     </footer>
   );
 }

@@ -15,11 +15,7 @@ import path from "node:path";
 import { env } from "@/lib/env";
 
 export interface StorageService {
-  uploadImage(
-    fileBuffer: Buffer,
-    folder: string,
-    originalFileName?: string,
-  ): Promise<string>;
+  uploadImage(fileBuffer: Buffer, folder: string, originalFileName?: string): Promise<string>;
 
   deleteImage(imageUrl: string): Promise<void>;
 }
@@ -27,17 +23,11 @@ export interface StorageService {
 /**
  * Validates binary magic bytes to guarantee file authenticity.
  */
-export function detectImageExtension(
-  buffer: Buffer,
-): "jpg" | "png" | "webp" | null {
+export function detectImageExtension(buffer: Buffer): "jpg" | "png" | "webp" | null {
   if (buffer.length < 12) return null;
 
   // JPEG
-  if (
-    buffer[0] === 0xff &&
-    buffer[1] === 0xd8 &&
-    buffer[2] === 0xff
-  ) {
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
     return "jpg";
   }
 
@@ -101,9 +91,7 @@ function sanitizeFileName(
   const originalExtension = parsed.ext.toLowerCase();
 
   const extension =
-    detectedExtension === "jpg" && originalExtension === ".jpeg"
-      ? "jpeg"
-      : detectedExtension;
+    detectedExtension === "jpg" && originalExtension === ".jpeg" ? "jpeg" : detectedExtension;
 
   return `${name}.${extension}`;
 }
@@ -139,10 +127,7 @@ export class LocalDiskStorageService implements StorageService {
     // Verify targetDir is strictly within baseDir.
     const relativeDir = path.relative(this.baseDir, targetDir);
 
-    if (
-      relativeDir.startsWith("..") ||
-      path.isAbsolute(relativeDir)
-    ) {
+    if (relativeDir.startsWith("..") || path.isAbsolute(relativeDir)) {
       throw new Error("Invalid destination folder.");
     }
 
@@ -150,10 +135,7 @@ export class LocalDiskStorageService implements StorageService {
     await fs.mkdir(targetDir, { recursive: true });
 
     // Generate the original filename with a verified extension.
-    const safeFileName = sanitizeFileName(
-      originalFileName || `image.${ext}`,
-      ext,
-    );
+    const safeFileName = sanitizeFileName(originalFileName || `image.${ext}`, ext);
 
     const parsed = path.parse(safeFileName);
 
@@ -193,18 +175,13 @@ export class LocalDiskStorageService implements StorageService {
     }
 
     try {
-      const relativePath = decodeURIComponent(
-        imageUrl.slice("/uploads/".length),
-      );
+      const relativePath = decodeURIComponent(imageUrl.slice("/uploads/".length));
 
       const targetFile = path.resolve(this.baseDir, relativePath);
       const relativeFile = path.relative(this.baseDir, targetFile);
 
       // Guard against directory traversal.
-      if (
-        relativeFile.startsWith("..") ||
-        path.isAbsolute(relativeFile)
-      ) {
+      if (relativeFile.startsWith("..") || path.isAbsolute(relativeFile)) {
         return;
       }
 

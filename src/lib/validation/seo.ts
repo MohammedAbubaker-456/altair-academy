@@ -24,12 +24,7 @@ export function stripControlCharacters(str: string): string {
  * Trims input, strips control characters, and converts empty strings to null.
  */
 export function optionalSanitizedText(maxLength: number, message: string) {
-  return z
-    .string()
-    .trim()
-    .max(maxLength, message)
-    .nullable()
-    .optional();
+  return z.string().trim().max(maxLength, message).nullable().optional();
 }
 
 /**
@@ -163,7 +158,10 @@ export function isPageSeoEmpty(data: PageSeoInput): boolean {
  */
 export const siteSeoSchema = z.object({
   siteName: optionalSanitizedText(80, "Site name cannot exceed 80 characters"),
-  defaultDescription: optionalSanitizedText(300, "Default description cannot exceed 300 characters"),
+  defaultDescription: optionalSanitizedText(
+    300,
+    "Default description cannot exceed 300 characters",
+  ),
   defaultOgImage: optionalImagePath,
   twitterSite: optionalTwitterHandle,
 });
@@ -174,10 +172,5 @@ export type SiteSeoInput = z.infer<typeof siteSeoSchema>;
  * Returns true if all SiteSeo fields are null/empty/undefined
  */
 export function isSiteSeoEmpty(data: SiteSeoInput): boolean {
-  return (
-    !data.siteName &&
-    !data.defaultDescription &&
-    !data.defaultOgImage &&
-    !data.twitterSite
-  );
+  return !data.siteName && !data.defaultDescription && !data.defaultOgImage && !data.twitterSite;
 }

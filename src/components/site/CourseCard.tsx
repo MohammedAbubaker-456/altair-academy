@@ -87,8 +87,6 @@
 //   );
 // }
 
-
-
 //this was the new ui i was trying
 /**
  * Course Card Component
@@ -118,7 +116,6 @@ export function CourseCard({ course }: { course: Course }) {
       <span
         aria-hidden="true"
         className="absolute inset-x-0 top-0 z-10 h-1 origin-left scale-x-0 bg-brand-red transition-transform duration-300 group-hover:scale-x-100 motion-reduce:transition-none"
-
       />
 
       {/* Image with overlaid badges */}
@@ -131,7 +128,6 @@ export function CourseCard({ course }: { course: Course }) {
             height={750}
             sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             className="size-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
-
           />
         ) : (
           <div className="flex size-full items-center justify-center bg-secondary/50 text-muted-foreground">
@@ -201,7 +197,10 @@ export function CourseCard({ course }: { course: Course }) {
               aria-hidden="true"
               className="flex size-8 items-center justify-center rounded-full bg-primary/8 text-primary transition-all duration-300 group-hover:translate-x-0.5 group-hover:bg-brand-red group-hover:text-white"
             >
-              <Link href={`/courses/${course.slug}`}> <ArrowRight className="size-4" /> </Link>
+              <Link href={`/courses/${course.slug}`}>
+                {" "}
+                <ArrowRight className="size-4" />{" "}
+              </Link>
             </span>
           </div>
         </div>

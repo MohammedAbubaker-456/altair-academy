@@ -48,41 +48,72 @@ async function main() {
       include: { subcategories: true },
       orderBy: { order: "asc" },
     });
-    assert(allCategories.length >= 9, "Total categories count >= 9", `found ${allCategories.length}`);
+    assert(
+      allCategories.length >= 9,
+      "Total categories count >= 9",
+      `found ${allCategories.length}`,
+    );
 
     const subcategories = await db.subcategory.findMany({
       include: { category: true, parent: true, children: true, courses: true },
       orderBy: { order: "asc" },
     });
-    assert(subcategories.length >= 11, "Seeded subcategories count >= 11", `found ${subcategories.length}`);
+    assert(
+      subcategories.length >= 11,
+      "Seeded subcategories count >= 11",
+      `found ${subcategories.length}`,
+    );
 
     const ndtCategory = allCategories.find((c) => c.slug === "ndt");
     assert(!!ndtCategory, "NDT category exists in database");
 
     const ndtSubs = subcategories.filter((s) => s.categoryId === ndtCategory?.id);
     const ndtTopLevel = ndtSubs.filter((s) => !s.parentId);
-    assert(ndtTopLevel.length === 3, "NDT has exactly 3 top-level subcategories", `found ${ndtTopLevel.length}`);
+    assert(
+      ndtTopLevel.length === 3,
+      "NDT has exactly 3 top-level subcategories",
+      `found ${ndtTopLevel.length}`,
+    );
 
     const asntSub = ndtSubs.find((s) => s.slug === "asnt-courses");
     assert(!!asntSub, "Top-level 'ASNT Courses' exists");
-    assert(asntSub?.children.length === 3, "ASNT Courses has 3 children", `found ${asntSub?.children.length}`);
+    assert(
+      asntSub?.children.length === 3,
+      "ASNT Courses has 3 children",
+      `found ${asntSub?.children.length}`,
+    );
 
     const pcnSub = ndtSubs.find((s) => s.slug === "pcn-courses");
     assert(!!pcnSub, "Top-level 'PCN Courses' exists");
-    assert(pcnSub?.children.length === 3, "PCN Courses has 3 children", `found ${pcnSub?.children.length}`);
+    assert(
+      pcnSub?.children.length === 3,
+      "PCN Courses has 3 children",
+      `found ${pcnSub?.children.length}`,
+    );
 
     const specialSub = ndtSubs.find((s) => s.slug === "special-ndt-courses");
     assert(!!specialSub, "Top-level 'Special NDT Courses' exists (leaf)");
-    assert(specialSub?.children.length === 0, "Special NDT Courses has 0 children (leaf)", `found ${specialSub?.children.length}`);
+    assert(
+      specialSub?.children.length === 0,
+      "Special NDT Courses has 0 children (leaf)",
+      `found ${specialSub?.children.length}`,
+    );
 
     const officeCategory = allCategories.find((c) => c.slug === "office-productivity");
     assert(!!officeCategory, "Office Productivity category exists");
     const officeSubs = subcategories.filter((s) => s.categoryId === officeCategory?.id);
-    assert(officeSubs.length === 2, "Office Productivity has 2 subcategories", `found ${officeSubs.length}`);
+    assert(
+      officeSubs.length === 2,
+      "Office Productivity has 2 subcategories",
+      `found ${officeSubs.length}`,
+    );
 
     // Verify depth rule in database: no subcategory has a parent that also has a parent
     const maxDepthExceeded = subcategories.some((s) => s.parent && s.parent.parentId !== null);
-    assert(!maxDepthExceeded, "Database depth constraint: no subcategory exceeds 2 levels below category");
+    assert(
+      !maxDepthExceeded,
+      "Database depth constraint: no subcategory exceeds 2 levels below category",
+    );
 
     // -------------------------------------------------------------------------
     // SECTION 2: Live HTTP Tests on http://localhost:3000
@@ -94,15 +125,18 @@ async function main() {
     assert(homeRes.status === 200, "GET / returns 200 OK");
     const homeHtml = await homeRes.text();
     assert(homeHtml.includes("Our Courses"), "Header renders 'Our Courses' dropdown button");
-    assert(homeHtml.includes("Non-Destructive Testing"), "Header menu includes 'Non-Destructive Testing' category in tree");
+    assert(
+      homeHtml.includes("Non-Destructive Testing"),
+      "Header menu includes 'Non-Destructive Testing' category in tree",
+    );
     assert(homeHtml.includes("ASNT Courses"), "Header menu includes 'ASNT Courses' in tree");
     assert(homeHtml.includes("PCN Courses"), "Header menu includes 'PCN Courses' in tree");
     assert(homeHtml.includes("Special NDT Courses"), "Header menu includes 'Special NDT Courses'");
     assert(
       homeHtml.includes("category=ndt\\u0026subcategory=asnt-courses") ||
-      homeHtml.includes("category=ndt&subcategory=asnt-courses") ||
-      homeHtml.includes("category=ndt&amp;subcategory=asnt-courses"),
-      "Menu tree contains /courses?category=ndt&subcategory=asnt-courses link"
+        homeHtml.includes("category=ndt&subcategory=asnt-courses") ||
+        homeHtml.includes("category=ndt&amp;subcategory=asnt-courses"),
+      "Menu tree contains /courses?category=ndt&subcategory=asnt-courses link",
     );
 
     // Public Courses Page - Row 1 & Row 2 Pills
@@ -111,25 +145,59 @@ async function main() {
     const catRes = await fetch("http://localhost:3000/courses?category=ndt");
     assert(catRes.status === 200, "GET /courses?category=ndt returns 200 OK");
     const catHtml = await catRes.text();
-    assert(catHtml.includes("All Non-Destructive Testing"), "Renders Row 2 reset pill 'All Non-Destructive Testing'");
-    assert(catHtml.includes("ASNT Courses"), "Renders Row 2 top-level subcategory pill 'ASNT Courses'");
-    assert(catHtml.includes("PCN Courses"), "Renders Row 2 top-level subcategory pill 'PCN Courses'");
-    assert(catHtml.includes("Special NDT Courses"), "Renders Row 2 top-level subcategory pill 'Special NDT Courses'");
+    assert(
+      catHtml.includes("All Non-Destructive Testing"),
+      "Renders Row 2 reset pill 'All Non-Destructive Testing'",
+    );
+    assert(
+      catHtml.includes("ASNT Courses"),
+      "Renders Row 2 top-level subcategory pill 'ASNT Courses'",
+    );
+    assert(
+      catHtml.includes("PCN Courses"),
+      "Renders Row 2 top-level subcategory pill 'PCN Courses'",
+    );
+    assert(
+      catHtml.includes("Special NDT Courses"),
+      "Renders Row 2 top-level subcategory pill 'Special NDT Courses'",
+    );
 
     // Public Courses Page - Row 3 Child Pills
-    const subRes = await fetch("http://localhost:3000/courses?category=ndt&subcategory=asnt-courses");
-    assert(subRes.status === 200, "GET /courses?category=ndt&subcategory=asnt-courses returns 200 OK");
+    const subRes = await fetch(
+      "http://localhost:3000/courses?category=ndt&subcategory=asnt-courses",
+    );
+    assert(
+      subRes.status === 200,
+      "GET /courses?category=ndt&subcategory=asnt-courses returns 200 OK",
+    );
     const subHtml = await subRes.text();
     assert(subHtml.includes("All ASNT Courses"), "Renders Row 3 reset pill 'All ASNT Courses'");
-    assert(subHtml.includes("ASNT - Level 1") || subHtml.includes("ASNT – Level 1"), "Renders Row 3 child pill 'ASNT - Level 1'");
-    assert(subHtml.includes("ASNT - Level 2") || subHtml.includes("ASNT – Level 2"), "Renders Row 3 child pill 'ASNT - Level 2'");
-    assert(subHtml.includes("ASNT - Level 3") || subHtml.includes("ASNT – Level 3"), "Renders Row 3 child pill 'ASNT - Level 3'");
+    assert(
+      subHtml.includes("ASNT - Level 1") || subHtml.includes("ASNT – Level 1"),
+      "Renders Row 3 child pill 'ASNT - Level 1'",
+    );
+    assert(
+      subHtml.includes("ASNT - Level 2") || subHtml.includes("ASNT – Level 2"),
+      "Renders Row 3 child pill 'ASNT - Level 2'",
+    );
+    assert(
+      subHtml.includes("ASNT - Level 3") || subHtml.includes("ASNT – Level 3"),
+      "Renders Row 3 child pill 'ASNT - Level 3'",
+    );
 
     // Public Courses Page - Fallback on unknown subcategory
-    const fallbackRes = await fetch("http://localhost:3000/courses?category=ndt&subcategory=unknown-random-sub");
-    assert(fallbackRes.status === 200, "GET with unknown subcategory returns 200 OK (no 404 or 500 error)");
+    const fallbackRes = await fetch(
+      "http://localhost:3000/courses?category=ndt&subcategory=unknown-random-sub",
+    );
+    assert(
+      fallbackRes.status === 200,
+      "GET with unknown subcategory returns 200 OK (no 404 or 500 error)",
+    );
     const fallbackHtml = await fallbackRes.text();
-    assert(fallbackHtml.includes("Non-Destructive Testing"), "Fallback page still shows the category context");
+    assert(
+      fallbackHtml.includes("Non-Destructive Testing"),
+      "Fallback page still shows the category context",
+    );
 
     // -------------------------------------------------------------------------
     // SECTION 4: Admin Portal & Course Form Subcategory Dropdown
@@ -137,12 +205,15 @@ async function main() {
     console.log("\n--- Section 4: Admin Management & Course Form Dropdown ---");
 
     // Unauthenticated Admin Access Check
-    const unauthSubRes = await fetch(`http://localhost:3000/admin/categories/${ndtCategory?.id}/subcategories`, {
-      redirect: "manual",
-    });
+    const unauthSubRes = await fetch(
+      `http://localhost:3000/admin/categories/${ndtCategory?.id}/subcategories`,
+      {
+        redirect: "manual",
+      },
+    );
     assert(
       unauthSubRes.status === 307 && unauthSubRes.headers.get("location") === "/admin/login",
-      "Unauthenticated GET /admin/categories/[id]/subcategories redirects (307) to /admin/login"
+      "Unauthenticated GET /admin/categories/[id]/subcategories redirects (307) to /admin/login",
     );
 
     // Authenticated Admin Session
@@ -163,16 +234,28 @@ async function main() {
     });
     assert(authCatRes.status === 200, "Authenticated GET /admin/categories returns 200 OK");
     const authCatHtml = await authCatRes.text();
-    assert(authCatHtml.includes("Subcategories"), "Categories table displays 'Subcategories' column/button");
+    assert(
+      authCatHtml.includes("Subcategories"),
+      "Categories table displays 'Subcategories' column/button",
+    );
 
     // Authenticated Subcategories Manager Page
-    const authSubRes = await fetch(`http://localhost:3000/admin/categories/${ndtCategory?.id}/subcategories`, {
-      headers: { Cookie: cookieHeader },
-    });
-    assert(authSubRes.status === 200, "Authenticated GET /admin/categories/[id]/subcategories returns 200 OK");
+    const authSubRes = await fetch(
+      `http://localhost:3000/admin/categories/${ndtCategory?.id}/subcategories`,
+      {
+        headers: { Cookie: cookieHeader },
+      },
+    );
+    assert(
+      authSubRes.status === 200,
+      "Authenticated GET /admin/categories/[id]/subcategories returns 200 OK",
+    );
     const authSubHtml = await authSubRes.text();
     assert(authSubHtml.includes("Subcategories"), "Page displays Subcategories header");
-    assert(authSubHtml.includes('href="/admin/categories"') && authSubHtml.includes("Categories"), "Page displays breadcrumb link back to Categories");
+    assert(
+      authSubHtml.includes('href="/admin/categories"') && authSubHtml.includes("Categories"),
+      "Page displays breadcrumb link back to Categories",
+    );
     assert(authSubHtml.includes("ASNT Courses"), "Table renders 'ASNT Courses'");
     assert(authSubHtml.includes("PCN Courses"), "Table renders 'PCN Courses'");
     assert(authSubHtml.includes("Add Subcategory"), "Displays 'Add Subcategory' action button");
@@ -184,7 +267,10 @@ async function main() {
     assert(authCourseNewRes.status === 200, "Authenticated GET /admin/courses/new returns 200 OK");
     const authCourseNewHtml = await authCourseNewRes.text();
     assert(authCourseNewHtml.includes("Category"), "Course form contains Category field");
-    assert(authCourseNewHtml.includes("Subcategory"), "Course form contains Subcategory field directly below Category");
+    assert(
+      authCourseNewHtml.includes("Subcategory"),
+      "Course form contains Subcategory field directly below Category",
+    );
 
     // Authenticated Courses Table List
     const authCoursesListRes = await fetch("http://localhost:3000/admin/courses", {
@@ -192,7 +278,10 @@ async function main() {
     });
     assert(authCoursesListRes.status === 200, "Authenticated GET /admin/courses returns 200 OK");
     const authCoursesListHtml = await authCoursesListRes.text();
-    assert(authCoursesListHtml.includes("Subcategory"), "Courses table displays 'Subcategory' column header");
+    assert(
+      authCoursesListHtml.includes("Subcategory"),
+      "Courses table displays 'Subcategory' column header",
+    );
   } catch (err: unknown) {
     const error = err as Error;
     assert(false, "Verification encountered unexpected error", error.message);

@@ -34,9 +34,7 @@ async function checkDatabase() {
   if (!databaseUrl || databaseUrl.trim() === "") {
     console.error("❌ ERROR: DATABASE_URL environment variable is not set.");
     console.error("👉 If running over SSH, export it first or enter the cPanel Node virtualenv:");
-    console.error(
-      '   export DATABASE_URL="mysql://<user>:<password>@localhost:3306/<dbname>"\n',
-    );
+    console.error('   export DATABASE_URL="mysql://<user>:<password>@localhost:3306/<dbname>"\n');
     process.exit(1);
   }
 
@@ -78,19 +76,16 @@ async function checkDatabase() {
       console.error(
         "   Remember to URL-encode special characters in passwords (e.g. '@' -> '%40').",
       );
-    } else if (
-      errorMessage.includes("ENOTFOUND") ||
-      errorMessage.includes("getaddrinfo")
-    ) {
+    } else if (errorMessage.includes("ENOTFOUND") || errorMessage.includes("getaddrinfo")) {
       console.error("\nReason: DNS / Hostname resolution failed.");
       console.error("👉 Verify the hostname in DATABASE_URL (e.g. localhost or 127.0.0.1).");
-    } else if (
-      errorMessage.includes("timed out") ||
-      errorMessage.includes("ETIMEDOUT")
-    ) {
+    } else if (errorMessage.includes("timed out") || errorMessage.includes("ETIMEDOUT")) {
       console.error("\nReason: Connection timed out.");
       console.error("👉 Check host and port (3306).");
-    } else if (errorMessage.includes("ECONNREFUSED") || errorMessage.includes("Can't reach database server")) {
+    } else if (
+      errorMessage.includes("ECONNREFUSED") ||
+      errorMessage.includes("Can't reach database server")
+    ) {
       console.error("\nReason: Connection refused (port 3306).");
       console.error("👉 Verify that MySQL/MariaDB is running.");
     } else {

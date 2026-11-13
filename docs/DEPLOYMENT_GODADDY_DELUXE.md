@@ -1,6 +1,6 @@
 # Complete Deployment Guide: GoDaddy Web Hosting Deluxe (cPanel + Node.js 22)
 
-> **Document Purpose**: Step-by-step production deployment guide for Altair Academy on GoDaddy "Web Hosting Deluxe" shared Linux hosting using cPanel "Setup Node.js App" (Phusion Passenger), MongoDB Atlas, and server-disk persistent media storage.
+> **Document Purpose**: Step-by-step production deployment guide for Altair Academy on GoDaddy "Web Hosting Deluxe" shared Linux hosting using cPanel "Setup Node.js App" (Phusion Passenger), local cPanel MariaDB 10.11, and server-disk persistent media storage.
 >
 > **Notice**: Wherever a hosting detail cannot be officially verified from public GoDaddy documentation or depends on your specific server provision, it is explicitly flagged with **`[VERIFY]`**.
 
@@ -22,7 +22,7 @@
                                              │ Origin HTTPS
                                              ▼
                       ┌──────────────────────────────────────────────┐
-                      │    GoDaddy Web Hosting Deluxe (Europe DC)     │
+                      │    GoDaddy Web Hosting Deluxe (Linux Server) │
                       │  cPanel Apache + Phusion Passenger           │
                       │                                              │
                       │  Application Root:                           │
@@ -38,12 +38,10 @@
                       │  ├── courses/                                │
                       │  ├── team/                                   │
                       │  └── news/                                   │
-                      └──────────────────────┬───────────────────────┘
-                                             │ TLS / Port 27017
-                                             ▼
-                      ┌──────────────────────────────────────────────┐
-                      │      MongoDB Atlas (Europe M0 / Dedicated)   │
-                      │         Database: `altair-academy`           │
+                      │                                              │
+                      │  Local MariaDB 10.11 Database:               │
+                      │  localhost:3306                              │
+                      │  Database: `<cpanel-user>_altair`            │
                       └──────────────────────────────────────────────┘
 ```
 
@@ -55,13 +53,35 @@ Before starting, ensure you have:
 
 1. GoDaddy cPanel login credentials and domain assigned.
 2. SSH access enabled in cPanel (**cPanel -> SSH Access -> Manage SSH Keys** or password-based SSH).
-3. A free [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account.
+3. MariaDB database created in cPanel (**cPanel -> MySQL Databases**).
 4. Local computer with Node.js 22 and terminal.
-5. MongoDB Database Tools (`mongodump` / `mongorestore`) installed locally for database backups.
+5. Production SQL dump `db-dumps/altair_academy_full.sql` generated via `npm run db:dump`.
 
 ---
 
-## Step 1: MongoDB Atlas Configuration (Europe Region)
+## Step 1: MariaDB Database Setup & phpMyAdmin Import
+
+GoDaddy Web Hosting Deluxe runs MariaDB 10.11 on the same physical server (`localhost:3306`), completely eliminating outbound network latency.
+
+### 1.1 Create Database & User in cPanel
+
+1. In cPanel, navigate to **MySQL Databases**.
+2. **Create New Database**: e.g., `altair_academy` (cPanel prefixes this as `<cpanel-user>_altair_academy`).
+3. **Add New User**: create a dedicated database user (e.g. `<cpanel-user>_altair_user`) with a strong password.
+   > [!IMPORTANT]
+   > If your password contains special characters (`@`, `:`, `/`, `?`, `#`), URL-encode them in `DATABASE_URL` (e.g. `@` -> `%40`).
+4. **Add User to Database**: assign the user to the database and check **ALL PRIVILEGES**.
+
+### 1.2 Import Database Dump via phpMyAdmin
+
+Follow the detailed guide in:
+👉 **[docs/MYSQL_IMPORT_GODADDY.md](MYSQL_IMPORT_GODADDY.md)**
+
+1. Open **cPanel -> phpMyAdmin**.
+2. Select your newly created database in the left sidebar.
+3. Click the **Import** tab.
+4. Choose `db-dumps/altair_academy_full.sql` and click **Import**.
+5. Verify all 21 tables are created and populated (69 courses, 38 calendar sessions, etc.).
 
 Shared hosting cannot run a native MongoDB service. Production uses MongoDB Atlas.
 
@@ -275,25 +295,26 @@ Before starting the server, run the diagnostic tools to ensure networking and da
    ```bash
    source /home/<cpanel-user>/nodevenv/altair-app/22/bin/activate && cd /home/<cpanel-user>/altair-app
    ```
-2. Test network connectivity to Atlas:
+2. Test local TCP connectivity to MariaDB (port 3306):
    ```bash
-   export DATABASE_URL="mongodb+srv://altair_app_user:<encoded-password>@<your-cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority"
+   export DATABASE_URL="mysql://<user>:<password>@localhost:3306/<dbname>"
    node tools/connectivity-check.mjs
    ```
    **Expected Output**:
    ```
-   ✔ Discovered 3 replica set nodes via DNS SRV.
-   ✔ PASS: Connected to ...:27017
-   ✔ ALL CHECKS PASSED: Outbound TCP traffic to MongoDB Atlas is working perfectly.
+   ✔ TCP socket to localhost:3306 opened successfully!
+     MariaDB is reachable and accepting connections.
    ```
-3. Test database authentication and replica set status:
+3. Test database authentication and query execution:
    ```bash
    node tools/check-db.mjs
    ```
    **Expected Output**:
    ```
-   ✔ SUCCESS: Connected to MongoDB successfully!
-   Status: Writable Primary (Transactions Ready)
+   ✔ SUCCESS: Connected to MariaDB / MySQL successfully!
+     Engine:   10.11.19-MariaDB
+     Database: <dbname>
+     Status:   Ready
    ```
 
 ---
@@ -302,14 +323,14 @@ Before starting the server, run the diagnostic tools to ensure networking and da
 
 In **cPanel -> Setup Node.js App**, edit your application and navigate to the **Environment variables** table. Add:
 
-| Variable Name  | Production Value                                                                                   | Notes                                                     |
-| :------------- | :------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
-| `NODE_ENV`     | `production`                                                                                       | Required                                                  |
-| `DATABASE_URL` | `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/altair-academy?retryWrites=true&w=majority` | URL-encode password special characters                    |
-| `AUTH_SECRET`  | _(64-char random string)_                                                                          | Generate with `openssl rand -hex 32`                      |
-| `UPLOAD_DIR`   | `/home/<cpanel-user>/altair-assets/uploads`                                                        | Must be absolute, outside app root                        |
-| `SITE_URL`     | `https://<your-domain>`                                                                            | Recommended for canonical URLs, metadataBase, & OpenGraph |
-| `PORT`         | `3000`                                                                                             | Port Passenger assigns `[VERIFY]`                         |
+| Variable Name  | Production Value                                    | Notes                                                     |
+| :------------- | :-------------------------------------------------- | :-------------------------------------------------------- |
+| `NODE_ENV`     | `production`                                        | Required                                                  |
+| `DATABASE_URL` | `mysql://<user>:<password>@localhost:3306/<dbname>` | URL-encode password special characters                    |
+| `AUTH_SECRET`  | _(64-char random string)_                           | Generate with `openssl rand -hex 32`                      |
+| `UPLOAD_DIR`   | `/home/<cpanel-user>/altair-assets/uploads`         | Must be absolute, outside app root                        |
+| `SITE_URL`     | `https://<your-domain>`                             | Recommended for canonical URLs, metadataBase, & OpenGraph |
+| `PORT`         | `3000`                                              | Port Passenger assigns `[VERIFY]`                         |
 
 Click **Save** and click **Restart Application**.
 

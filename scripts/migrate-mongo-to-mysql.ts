@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * MongoDB to MariaDB Data Migration & Verification Script
  *
@@ -26,8 +27,8 @@ import { PrismaClient } from "@prisma/client";
 // Ensure environment is parsed
 dotenv.config();
 
-const mongoUrl = process.env.MONGO_SOURCE_URL || process.env.DATABASE_URL;
-const mysqlUrl = process.env.DATABASE_URL;
+const mongoUrl = process.env["MONGO_SOURCE_URL"] || process.env["DATABASE_URL"];
+const mysqlUrl = process.env["DATABASE_URL"];
 
 function sanitizeUrl(raw?: string): string {
   if (!raw) return "[missing]";
@@ -470,7 +471,9 @@ async function main() {
   const isResetTarget = args.includes("--reset-target");
 
   if (!isExportOnly && !isDryRun && !isApply && !isVerify) {
-    console.log("Usage: tsx scripts/migrate-mongo-to-mysql.ts [--export-only | --dry-run | --apply | --verify] [--reset-target]");
+    console.log(
+      "Usage: tsx scripts/migrate-mongo-to-mysql.ts [--export-only | --dry-run | --apply | --verify] [--reset-target]",
+    );
     process.exit(1);
   }
 
@@ -516,10 +519,16 @@ async function main() {
       sha256: hash,
     };
 
-    console.log(`  - ${spec.collectionName.padEnd(22)}: ${String(docs.length).padStart(4)} docs -> ${path.basename(filePath)}`);
+    console.log(
+      `  - ${spec.collectionName.padEnd(22)}: ${String(docs.length).padStart(4)} docs -> ${path.basename(filePath)}`,
+    );
   }
 
-  fs.writeFileSync(path.join(exportDir, "manifest.json"), JSON.stringify(manifest, null, 2), "utf8");
+  fs.writeFileSync(
+    path.join(exportDir, "manifest.json"),
+    JSON.stringify(manifest, null, 2),
+    "utf8",
+  );
   console.log(`\n✔ Export complete. Saved to: ${exportDir}\n`);
 
   if (isExportOnly) {
@@ -542,7 +551,9 @@ async function main() {
       errors.push(`Subcategory "${sub.slug}" references non-existent categoryId: ${catId}`);
     }
     if (sub.parentId && !subcategoryIds.has(stringifyId(sub.parentId))) {
-      errors.push(`Subcategory "${sub.slug}" references non-existent parentId: ${stringifyId(sub.parentId)}`);
+      errors.push(
+        `Subcategory "${sub.slug}" references non-existent parentId: ${stringifyId(sub.parentId)}`,
+      );
     }
   }
 
@@ -552,7 +563,9 @@ async function main() {
       errors.push(`Course "${course.slug}" references non-existent categoryId: ${catId}`);
     }
     if (course.subcategoryId && !subcategoryIds.has(stringifyId(course.subcategoryId))) {
-      errors.push(`Course "${course.slug}" references non-existent subcategoryId: ${stringifyId(course.subcategoryId)}`);
+      errors.push(
+        `Course "${course.slug}" references non-existent subcategoryId: ${stringifyId(course.subcategoryId)}`,
+      );
     }
   }
 
@@ -571,7 +584,9 @@ async function main() {
       if (typeof val === "string") {
         const lower = val.toLowerCase().trim();
         if (seen.has(lower)) {
-          errors.push(`${model} unique field "${field}" collision under utf8mb4_unicode_ci: "${seen.get(lower)}" vs "${val}"`);
+          errors.push(
+            `${model} unique field "${field}" collision under utf8mb4_unicode_ci: "${seen.get(lower)}" vs "${val}"`,
+          );
         } else {
           seen.set(lower, val);
         }
@@ -595,7 +610,9 @@ async function main() {
     process.exit(1);
   }
 
-  console.log("✔ Pre-migration validations passed! No orphaned foreign keys or collation collisions.\n");
+  console.log(
+    "✔ Pre-migration validations passed! No orphaned foreign keys or collation collisions.\n",
+  );
 
   if (isDryRun) {
     console.log("ℹ️ Dry-run mode completed. No changes written to MariaDB.");
@@ -625,7 +642,9 @@ async function main() {
       const transformed = rawDocs.map(spec.transform);
 
       if (transformed.length > 0) {
-        const delegate = (prisma as any)[spec.modelName.charAt(0).toLowerCase() + spec.modelName.slice(1)];
+        const delegate = (prisma as any)[
+          spec.modelName.charAt(0).toLowerCase() + spec.modelName.slice(1)
+        ];
         if (!delegate || typeof delegate.createMany !== "function") {
           throw new Error(`Prisma delegate not found for ${spec.modelName}`);
         }
@@ -657,7 +676,9 @@ async function main() {
 
   for (const spec of MODEL_SPECS) {
     const mongoCount = exportedData[spec.modelName]?.length ?? 0;
-    const delegate = (prisma as any)[spec.modelName.charAt(0).toLowerCase() + spec.modelName.slice(1)];
+    const delegate = (prisma as any)[
+      spec.modelName.charAt(0).toLowerCase() + spec.modelName.slice(1)
+    ];
     const mysqlCount = await delegate.count();
 
     const match = mongoCount === mysqlCount;
@@ -672,11 +693,15 @@ async function main() {
       match,
     };
 
-    console.log(`  - ${spec.modelName.padEnd(22)}: Mongo = ${String(mongoCount).padStart(3)} | MySQL = ${String(mysqlCount).padStart(3)} [${match ? "✔ PASS" : "❌ MISMATCH"}]`);
+    console.log(
+      `  - ${spec.modelName.padEnd(22)}: Mongo = ${String(mongoCount).padStart(3)} | MySQL = ${String(mysqlCount).padStart(3)} [${match ? "✔ PASS" : "❌ MISMATCH"}]`,
+    );
   }
 
   console.log("-------------------------------------------------------------------------------");
-  console.log(`  TOTAL RECORDS         : Mongo = ${String(totalMongo).padStart(3)} | MySQL = ${String(totalMysql).padStart(3)} [${allMatched ? "✔ PASS" : "❌ MISMATCH"}]\n`);
+  console.log(
+    `  TOTAL RECORDS         : Mongo = ${String(totalMongo).padStart(3)} | MySQL = ${String(totalMysql).padStart(3)} [${allMatched ? "✔ PASS" : "❌ MISMATCH"}]\n`,
+  );
 
   const reportPath = path.resolve(process.cwd(), "backups", "migration-report.json");
   fs.writeFileSync(

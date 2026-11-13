@@ -54,8 +54,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${archivo.variable} ${barlow.variable}`}>
-      <body>{children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

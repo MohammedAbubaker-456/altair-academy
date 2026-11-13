@@ -33,9 +33,7 @@ export function IntakeCard({ intake }: IntakeCardProps) {
   return (
     <article className="card-lift flex flex-col rounded-xl border border-border bg-card p-5">
       <span className="eyebrow">{formattedDate}</span>
-      <h3 className="mt-2 font-display text-base font-bold text-primary">
-        {intake.title}
-      </h3>
+      <h3 className="mt-2 font-display text-base font-bold text-primary">{intake.title}</h3>
       <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
         <MapPin className="size-3.5 text-brand-red" aria-hidden="true" />
         {intake.location}
@@ -46,23 +44,14 @@ export function IntakeCard({ intake }: IntakeCardProps) {
             key={`${point}-${index}`}
             className="flex items-start gap-2 text-sm text-muted-foreground"
           >
-            <Check
-              className="mt-0.5 size-4 shrink-0 text-brand-red"
-              aria-hidden="true"
-            />
+            <Check className="mt-0.5 size-4 shrink-0 text-brand-red" aria-hidden="true" />
             {point}
           </li>
         ))}
       </ul>
-      <Button
-        variant="ctaOutline"
-        size="default"
-        className="mt-5 w-full text-base"
-        asChild
-      >
+      <Button variant="ctaOutline" size="default" className="mt-5 w-full text-base" asChild>
         <Link href="/contact">Reserve a Seat</Link>
       </Button>
     </article>
   );
 }
-

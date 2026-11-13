@@ -1,5 +1,5 @@
 datasource db {
-  provider = "mongodb"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -40,54 +40,57 @@ enum NewsKind {
   PICK
 }
 
-enum TeamPlacement {
-  MANAGEMENT
-  INSTRUCTOR
-}
-
 model AdminUser {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
-  name         String
-  passwordHash String
+  id           String   @id @default(cuid()) @db.VarChar(36)
+  email        String   @unique @db.VarChar(191)
+  name         String   @db.VarChar(191)
+  passwordHash String   @db.VarChar(255)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@map("admin_users")
 }
 
 model LoginAttempt {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  key         String   @unique
+  id          String   @id @default(cuid()) @db.VarChar(36)
+  key         String   @unique @db.VarChar(191)
   count       Int      @default(0)
   windowStart DateTime @default(now())
+
+  @@map("login_attempts")
 }
 
 model MigrationLog {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  name      String   @unique
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  name      String   @unique @db.VarChar(191)
   appliedAt DateTime @default(now())
+
+  @@map("migration_logs")
 }
 
 model Category {
-  id            String        @id @default(auto()) @map("_id") @db.ObjectId
-  slug          String        @unique
-  name          String
-  short         String
+  id            String        @id @default(cuid()) @db.VarChar(36)
+  slug          String        @unique @db.VarChar(191)
+  name          String        @db.VarChar(191)
+  short         String        @db.VarChar(191)
   order         Int           @default(0)
   status        Status        @default(ACTIVE)
   courses       Course[]
   subcategories Subcategory[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+
+  @@map("categories")
 }
 
 model Subcategory {
-  id         String        @id @default(auto()) @map("_id") @db.ObjectId
-  categoryId String        @db.ObjectId
+  id         String        @id @default(cuid()) @db.VarChar(36)
+  categoryId String        @db.VarChar(36)
   category   Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  parentId   String?       @db.ObjectId
+  parentId   String?       @db.VarChar(36)
   parent     Subcategory?  @relation("SubcategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  slug       String
-  name       String
+  slug       String        @db.VarChar(191)
+  name       String        @db.VarChar(191)
   order      Int           @default(0)
   status     Status        @default(ACTIVE)
   createdAt  DateTime      @default(now())
@@ -98,34 +101,35 @@ model Subcategory {
   @@unique([categoryId, slug])
   @@index([categoryId, parentId, order])
   @@index([parentId])
+  @@map("subcategories")
 }
 
 model Course {
-  id                String       @id @default(auto()) @map("_id") @db.ObjectId
-  slug              String       @unique
-  title             String
-  image             String?
-  categoryId        String       @db.ObjectId
+  id                String       @id @default(cuid()) @db.VarChar(36)
+  slug              String       @unique @db.VarChar(191)
+  title             String       @db.VarChar(255)
+  image             String?      @db.VarChar(500)
+  categoryId        String       @db.VarChar(36)
   category          Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  subcategoryId     String?      @db.ObjectId
+  subcategoryId     String?      @db.VarChar(36)
   subcategory       Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: Restrict)
-  level             String?
-  duration          String
-  price             String
-  summary           String
-  objective         String?
-  content           String?
-  whoShouldAttend   String?
-  prerequisites     String?
-  certification     String?
-  notesAndEquipment String?
-  classCapacity     String?
-  feeDetails        String?
-  courseSupport     String?
-  courseNote        String?
-  metaTitle         String?
-  metaDescription   String?
-  ogImage           String?
+  level             String?      @db.VarChar(100)
+  duration          String       @db.VarChar(100)
+  price             String       @db.VarChar(100)
+  summary           String       @db.Text
+  objective         String?      @db.MediumText
+  content           String?      @db.MediumText
+  whoShouldAttend   String?      @db.MediumText
+  prerequisites     String?      @db.MediumText
+  certification     String?      @db.MediumText
+  notesAndEquipment String?      @db.MediumText
+  classCapacity     String?      @db.VarChar(100)
+  feeDetails        String?      @db.MediumText
+  courseSupport     String?      @db.MediumText
+  courseNote        String?      @db.MediumText
+  metaTitle         String?      @db.VarChar(255)
+  metaDescription   String?      @db.VarChar(500)
+  ogImage           String?      @db.VarChar(500)
   isFeatured        Boolean      @default(false)
   order             Int          @default(0)
   status            Status       @default(ACTIVE)
@@ -135,6 +139,7 @@ model Course {
   @@index([status, order])
   @@index([categoryId])
   @@index([subcategoryId])
+  @@map("courses")
 }
 
 enum LeadStatus {
@@ -144,17 +149,18 @@ enum LeadStatus {
 }
 
 model Lead {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  email     String
-  phone     String
-  message   String
+  id        String     @id @default(cuid()) @db.VarChar(36)
+  name      String     @db.VarChar(191)
+  email     String     @db.VarChar(191)
+  phone     String     @db.VarChar(100)
+  message   String     @db.Text
   status    LeadStatus @default(NEW)
-  source    String     @default("contact-page")
+  source    String     @default("contact-page") @db.VarChar(100)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
   @@index([status, createdAt])
+  @@map("leads")
 }
 
 enum ApplicationStatus {
@@ -165,129 +171,137 @@ enum ApplicationStatus {
 }
 
 model CareerApplication {
-  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
-  name               String
-  email              String
-  phone              String
-  specialisation     String?
-  message            String?
-  resumeOriginalName String?
-  resumeStoredName   String?
-  resumeMime         String?
+  id                 String            @id @default(cuid()) @db.VarChar(36)
+  name               String            @db.VarChar(191)
+  email              String            @db.VarChar(191)
+  phone              String            @db.VarChar(100)
+  specialisation     String?           @db.VarChar(191)
+  message            String?           @db.Text
+  resumeOriginalName String?           @db.VarChar(255)
+  resumeStoredName   String?           @db.VarChar(255)
+  resumeMime         String?           @db.VarChar(100)
   resumeSize         Int?
   status             ApplicationStatus @default(NEW)
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
   @@index([status, createdAt])
+  @@map("career_applications")
 }
 
 model TeamMember {
-  id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  slug            String          @unique
-  name            String
-  instructorName  String?
-  role            String
-  instructorRole  String?
-  shortBio        String
-  fullBio         String?
-  metaTitle       String?
-  metaDescription String?
-  expertise       String[]
-  image           String?
-  placements      TeamPlacement[]
-  managementOrder Int             @default(0)
-  instructorOrder Int             @default(0)
-  status          Status          @default(ACTIVE)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id                String   @id @default(cuid()) @db.VarChar(36)
+  slug              String   @unique @db.VarChar(191)
+  name              String   @db.VarChar(191)
+  instructorName    String?  @db.VarChar(191)
+  role              String   @db.VarChar(191)
+  instructorRole    String?  @db.VarChar(191)
+  shortBio          String   @db.Text
+  fullBio           String?  @db.MediumText
+  metaTitle         String?  @db.VarChar(255)
+  metaDescription   String?  @db.VarChar(500)
+  expertise         String   @default("[]") @db.LongText
+  image             String?  @db.VarChar(500)
+  showInManagement  Boolean  @default(false)
+  showInInstructors Boolean  @default(false)
+  managementOrder   Int      @default(0)
+  instructorOrder   Int      @default(0)
+  status            Status   @default(ACTIVE)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  @@index([status, managementOrder])
-  @@index([status, instructorOrder])
+  @@index([status, showInManagement, managementOrder])
+  @@index([status, showInInstructors, instructorOrder])
+  @@map("team_members")
 }
 
 model NewsPost {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  slug        String   @unique
-  title       String
-  excerpt     String
-  body        String?
-  kind        NewsKind
-  category    String?
-  tags        String[]
-  image       String?
-  metaTitle   String?
-  metaDescription String?
-  ogImage     String?
-  publishedAt DateTime
-  status      Status   @default(ACTIVE)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid()) @db.VarChar(36)
+  slug            String   @unique @db.VarChar(191)
+  title           String   @db.VarChar(255)
+  excerpt         String   @db.Text
+  body            String?  @db.LongText
+  kind            NewsKind
+  category        String?  @db.VarChar(100)
+  tags            String   @default("[]") @db.LongText
+  image           String?  @db.VarChar(500)
+  metaTitle       String?  @db.VarChar(255)
+  metaDescription String?  @db.VarChar(500)
+  ogImage         String?  @db.VarChar(500)
+  publishedAt     DateTime
+  status          Status   @default(ACTIVE)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([status, kind, publishedAt])
+  @@map("news_posts")
 }
 
 model Faq {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  question  String
-  answer    String
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  question  String   @db.VarChar(500)
+  answer    String   @db.MediumText
   order     Int      @default(0)
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, order])
+  @@map("faqs")
 }
 
 model Testimonial {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  quote     String
-  name      String
-  company   String?
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  quote     String   @db.Text
+  name      String   @db.VarChar(191)
+  company   String?  @db.VarChar(191)
   order     Int      @default(0)
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, order])
+  @@map("testimonials")
 }
 
 model JobOpening {
-  id             String         @id @default(auto()) @map("_id") @db.ObjectId
-  title          String
+  id             String         @id @default(cuid()) @db.VarChar(36)
+  title          String         @db.VarChar(255)
   employmentType EmploymentType @default(FULL_TIME)
-  location       String
-  scope          String
-  summary        String
+  location       String         @db.VarChar(191)
+  scope          String         @db.VarChar(191)
+  summary        String         @db.Text
   order          Int            @default(0)
   status         Status         @default(ACTIVE)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
   @@index([status, order])
+  @@map("job_openings")
 }
 
 model ContactDetail {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  id        String      @id @default(cuid()) @db.VarChar(36)
   type      ContactType
-  label     String?
-  value     String
-  link      String?
+  label     String?     @db.VarChar(191)
+  value     String      @db.Text
+  link      String?     @db.VarChar(500)
   order     Int         @default(0)
   status    Status      @default(ACTIVE)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
   @@index([status, type, order])
+  @@map("contact_details")
 }
 
 model LegalPage {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  slug            String   @unique
-  title           String
-  metaTitle       String?
-  metaDescription String?
-  body            String
+  id              String   @id @default(cuid()) @db.VarChar(36)
+  slug            String   @unique @db.VarChar(191)
+  title           String   @db.VarChar(255)
+  metaTitle       String?  @db.VarChar(255)
+  metaDescription String?  @db.VarChar(500)
+  body            String   @db.LongText
   showInFooter    Boolean  @default(true)
   isCore          Boolean  @default(false)
   order           Int      @default(0)
@@ -296,6 +310,7 @@ model LegalPage {
   updatedAt       DateTime @updatedAt
 
   @@index([status, order])
+  @@map("legal_pages")
 }
 
 enum SubscriberStatus {
@@ -304,17 +319,18 @@ enum SubscriberStatus {
 }
 
 model NewsletterSubscriber {
-  id               String           @id @default(auto()) @map("_id") @db.ObjectId
-  email            String           @unique
+  id               String           @id @default(cuid()) @db.VarChar(36)
+  email            String           @unique @db.VarChar(191)
   status           SubscriberStatus @default(ACTIVE)
-  source           String           @default("footer")
-  unsubscribeToken String           @unique
+  source           String           @default("footer") @db.VarChar(100)
+  unsubscribeToken String           @unique @db.VarChar(191)
   subscribedAt     DateTime         @default(now())
   unsubscribedAt   DateTime?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@index([status, subscribedAt])
+  @@map("newsletter_subscribers")
 }
 
 enum SessionKind {
@@ -323,27 +339,29 @@ enum SessionKind {
 }
 
 model CalendarCourse {
-  id        String            @id @default(auto()) @map("_id") @db.ObjectId
-  code      String            @unique
-  name      String
+  id        String            @id @default(cuid()) @db.VarChar(36)
+  code      String            @unique @db.VarChar(100)
+  name      String            @db.VarChar(255)
   order     Int               @default(0)
   status    Status            @default(ACTIVE)
   sessions  CalendarSession[]
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
+
+  @@map("calendar_courses")
 }
 
 model CalendarSession {
-  id        String         @id @default(auto()) @map("_id") @db.ObjectId
-  courseId  String         @db.ObjectId
+  id        String         @id @default(cuid()) @db.VarChar(36)
+  courseId  String         @db.VarChar(36)
   course    CalendarCourse @relation(fields: [courseId], references: [id], onDelete: Restrict)
   kind      SessionKind
-  level     String?
-  startDate String
-  endDate   String
-  timeLabel String?
-  location  String?
-  note      String?
+  level     String?        @db.VarChar(100)
+  startDate String         @db.VarChar(50)
+  endDate   String         @db.VarChar(50)
+  timeLabel String?        @db.VarChar(100)
+  location  String?        @db.VarChar(191)
+  note      String?        @db.Text
   status    Status         @default(ACTIVE)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
@@ -351,45 +369,50 @@ model CalendarSession {
   @@unique([courseId, kind, startDate, endDate])
   @@index([status, startDate])
   @@index([courseId])
+  @@map("calendar_sessions")
 }
 
 model UpcomingIntake {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  startDate String
-  endDate   String
-  location  String
-  points    String[]
+  id        String   @id @default(cuid()) @db.VarChar(36)
+  title     String   @db.VarChar(255)
+  startDate String   @db.VarChar(50)
+  endDate   String   @db.VarChar(50)
+  location  String   @db.VarChar(191)
+  points    String   @default("[]") @db.LongText
   order     Int      @default(0)
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, endDate])
+  @@map("upcoming_intakes")
 }
 
 model PageSeo {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  pageKey       String   @unique
-  title         String?
-  description   String?
-  ogTitle       String?
-  ogDescription String?
-  ogImage       String?
+  id            String   @id @default(cuid()) @db.VarChar(36)
+  pageKey       String   @unique @db.VarChar(100)
+  title         String?  @db.VarChar(255)
+  description   String?  @db.VarChar(500)
+  ogTitle       String?  @db.VarChar(255)
+  ogDescription String?  @db.VarChar(500)
+  ogImage       String?  @db.VarChar(500)
   noIndex       Boolean?
-  canonicalPath String?
+  canonicalPath String?  @db.VarChar(255)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@map("page_seos")
 }
 
 model SiteSeo {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
-  key                String   @unique @default("default")
-  siteName           String?
-  defaultDescription String?
-  defaultOgImage     String?
-  twitterSite        String?
+  id                 String   @id @default(cuid()) @db.VarChar(36)
+  key                String   @unique @default("default") @db.VarChar(50)
+  siteName           String?  @db.VarChar(191)
+  defaultDescription String?  @db.VarChar(500)
+  defaultOgImage     String?  @db.VarChar(500)
+  twitterSite        String?  @db.VarChar(100)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-}
 
+  @@map("site_seos")
+}

@@ -17,6 +17,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:dump": "tsx scripts/dump-db.ts",
+    "db:import": "tsx scripts/import-sql-to-sqlite.ts",
+    "db:verify": "tsx scripts/verify-sqlite-migration.ts",
     "db:check": "tsx scripts/check-db.ts",
     "db:seed": "tsx prisma/seed.ts",
     "db:data-migrate": "tsx scripts/run-data-migrations.ts",

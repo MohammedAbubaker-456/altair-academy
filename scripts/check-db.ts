@@ -12,25 +12,31 @@
 import { PrismaClient } from "@prisma/client";
 
 async function checkDatabase() {
-  console.log("🔍 Checking MariaDB / MySQL connection status...");
+  const dbUrl = process.env["DATABASE_URL"] || "";
+  const isSqlite = dbUrl.startsWith("file:") || dbUrl.startsWith("sqlite:");
+
+  console.log(`🔍 Checking ${isSqlite ? "SQLite" : "MariaDB / MySQL"} connection status...`);
 
   const prisma = new PrismaClient({
     log: ["error"],
   });
 
   try {
-    const rawResult = await prisma.$queryRawUnsafe<
-      Array<{ ok: number; version: string; db_name: string }>
-    >("SELECT 1 as ok, VERSION() as version, DATABASE() as db_name");
+    const query = isSqlite
+      ? "SELECT 1 as ok, sqlite_version() as version, 'sqlite' as db_name"
+      : "SELECT 1 as ok, VERSION() as version, DATABASE() as db_name";
+
+    const rawResult =
+      await prisma.$queryRawUnsafe<Array<{ ok: number; version: string; db_name: string }>>(query);
 
     const row = rawResult?.[0];
 
-    if (!row || row.ok !== 1) {
+    if (!row || Number(row.ok) !== 1) {
       console.error("❌ Database returned an unexpected result:", rawResult);
       process.exit(1);
     }
 
-    console.log("\n✔ MariaDB / MySQL connection successful!");
+    console.log(`\n✔ ${isSqlite ? "SQLite" : "MariaDB / MySQL"} connection successful!`);
     console.log(`  Engine:   ${row.version}`);
     console.log(`  Database: ${row.db_name}`);
     console.log("  Status:   Ready\n");

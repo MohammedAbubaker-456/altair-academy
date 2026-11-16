@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const createNextConfig = (phase: string): NextConfig => {
@@ -5,6 +6,7 @@ const createNextConfig = (phase: string): NextConfig => {
 
   return {
     output: "standalone",
+    outputFileTracingRoot: path.resolve(__dirname),
     images: {
       localPatterns: [
         {

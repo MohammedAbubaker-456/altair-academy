@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { lookup } from "node:dns/promises";
+import fs from "node:fs";
 import net from "node:net";
+import path from "node:path";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +63,43 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (databaseUrl.startsWith("file:") || databaseUrl.startsWith("sqlite:")) {
+      const filePath = databaseUrl.replace(/^(file:|sqlite:)\/{0,2}/, "");
+      const resolvedPath = path.isAbsolute(filePath)
+        ? filePath
+        : path.resolve(process.cwd(), filePath);
+      const exists = fs.existsSync(resolvedPath);
+      let writable = false;
+      let dirWritable = false;
+      const dir = path.dirname(resolvedPath);
+      try {
+        fs.accessSync(dir, fs.constants.W_OK | fs.constants.R_OK);
+        dirWritable = true;
+      } catch {
+        dirWritable = false;
+      }
+      if (exists) {
+        try {
+          fs.accessSync(resolvedPath, fs.constants.W_OK | fs.constants.R_OK);
+          writable = true;
+        } catch {
+          writable = false;
+        }
+      } else {
+        writable = dirWritable;
+      }
+
+      return NextResponse.json({
+        success: writable,
+        environment: "SQLite",
+        protocol: databaseUrl.startsWith("file:") ? "file:" : "sqlite:",
+        path: resolvedPath,
+        exists,
+        directoryWritable: dirWritable,
+        fileWritable: writable,
+      });
+    }
+
     const url = new URL(databaseUrl);
 
     let targets: { name: string; port: number }[] = [];

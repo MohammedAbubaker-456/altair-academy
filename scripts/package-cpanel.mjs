@@ -103,6 +103,19 @@ async function main() {
   const targetToolsDir = path.join(PACKAGE_DIR, "tools");
   copyRecursiveSync(TOOLS_DIR, targetToolsDir);
 
+  // Step 6b: Copy prisma directory (schema and migrations) without local database files
+  console.log("Step 7b: Copying prisma schema and migrations...");
+  const targetPrismaDir = path.join(PACKAGE_DIR, "prisma");
+  copyRecursiveSync(path.join(projectRoot, "prisma"), targetPrismaDir);
+  if (fs.existsSync(targetPrismaDir)) {
+    for (const item of fs.readdirSync(targetPrismaDir)) {
+      if (item.endsWith(".db") || item.includes(".db-") || item.endsWith(".bak")) {
+        console.log(`   Removing local database artifact: ${item}`);
+        removeRecursiveSync(path.join(targetPrismaDir, item));
+      }
+    }
+  }
+
   // Step 7: Create Passenger entry point wrapper (app.js)
   console.log("Step 8: Creating Passenger startup file (app.js)...");
   const appJsContent = `/**
@@ -258,7 +271,7 @@ import "./server.js";
   console.log("1. Upload altair-academy-cpanel.zip via cPanel File Manager into your app root.");
   console.log("2. Click 'Extract' in cPanel File Manager.");
   console.log("3. Configure environment variables in cPanel 'Setup Node.js App'.");
-  console.log("4. Run 'node tools/check-db.mjs' over SSH to verify MariaDB database connectivity.");
+  console.log("4. Run 'node tools/check-db.mjs' over SSH to verify SQLite database connectivity.");
   console.log("5. Click 'Restart' in Setup Node.js App.");
   console.log("===============================================================================\n");
 }

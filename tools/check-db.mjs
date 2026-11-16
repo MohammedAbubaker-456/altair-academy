@@ -25,16 +25,20 @@ function sanitizeUrl(rawUrl) {
 }
 
 async function checkDatabase() {
-  console.log("===============================================================================");
-  console.log("Altair Academy — MariaDB / MySQL Database Connection Diagnostic");
-  console.log("===============================================================================\n");
-
   const databaseUrl = process.env.DATABASE_URL;
+  const isSqlite =
+    databaseUrl && (databaseUrl.startsWith("file:") || databaseUrl.startsWith("sqlite:"));
+
+  console.log("===============================================================================");
+  console.log(
+    `Altair Academy — ${isSqlite ? "SQLite" : "MariaDB / MySQL"} Database Connection Diagnostic`,
+  );
+  console.log("===============================================================================\n");
 
   if (!databaseUrl || databaseUrl.trim() === "") {
     console.error("❌ ERROR: DATABASE_URL environment variable is not set.");
     console.error("👉 If running over SSH, export it first or enter the cPanel Node virtualenv:");
-    console.error('   export DATABASE_URL="mysql://<user>:<password>@localhost:3306/<dbname>"\n');
+    console.error('   export DATABASE_URL="file:./prisma/dev.db"\n');
     process.exit(1);
   }
 
@@ -45,18 +49,20 @@ async function checkDatabase() {
   });
 
   try {
-    const rawResult = await prisma.$queryRawUnsafe(
-      "SELECT 1 as ok, VERSION() as version, DATABASE() as db_name",
-    );
+    const query = isSqlite
+      ? "SELECT 1 as ok, sqlite_version() as version, 'sqlite' as db_name"
+      : "SELECT 1 as ok, VERSION() as version, DATABASE() as db_name";
+
+    const rawResult = await prisma.$queryRawUnsafe(query);
 
     const row = rawResult?.[0];
 
-    if (!row || row.ok !== 1) {
+    if (!row || Number(row.ok) !== 1) {
       console.error("❌ Database returned an unexpected result:", rawResult);
       process.exit(1);
     }
 
-    console.log("✔ SUCCESS: Connected to MariaDB / MySQL successfully!");
+    console.log(`✔ SUCCESS: Connected to ${isSqlite ? "SQLite" : "MariaDB / MySQL"} successfully!`);
     console.log(`  Engine:   ${row.version}`);
     console.log(`  Database: ${row.db_name}`);
     console.log("  Status:   Ready\n");
